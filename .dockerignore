@@ -1,0 +1,6 @@
+.git
+**/*.txt
+**/*.md
+
+# dotfiles in the repo root
+/.*

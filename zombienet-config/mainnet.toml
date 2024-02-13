@@ -1,0 +1,38 @@
+[relaychain]
+chain = "rococo-local"
+default_command = "./bin-v1.6.0/polkadot"
+
+[relaychain.genesis.runtime.configuration.config]
+scheduling_lookahead = 2
+
+[relaychain.genesis.runtime.configuration.config.async_backing_params]
+max_candidate_depth = 3
+allowed_ancestry_len = 2
+
+	[[relaychain.nodes]]
+	name = "alice"
+	validator = true
+
+	[[relaychain.nodes]]
+	name = "bob"
+	validator = true
+
+[[parachains]]
+id = 201804
+addToGenesis = true
+cumulus_based = true
+chain = "local-v"
+
+	[[parachains.collators]]
+	name = "mythical-collator01"
+	command = "./target/release/mythical-node"
+	ws_port = 9933
+	rpc_port = 8833
+	args = ["--rpc-max-connections 10000"]
+
+	[[parachains.collators]]
+	name = "mythical-collator02"
+	ws_port = 9822
+	rpc_port = 8822
+	command = "./target/release/mythical-node"
+	args = ["--rpc-max-connections 10000"]

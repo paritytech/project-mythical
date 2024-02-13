@@ -1,0 +1,56 @@
+name: Build, test and lint
+
+on:
+  push:
+    branches:
+      - release-**
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free up space on runner
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Rust Setup
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          components: rustfmt, clippy, rust-src
+
+      - name: Install protoc
+        run: |
+          sudo apt-get install -y protobuf-compiler
+          protoc --version
+
+      - uses: actions/checkout@v3
+
+      - name: Rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: fmt
+          args: --all --check
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.5.0
+        with:
+          cache-on-failure: true
+          cache-all-crates: true
+
+      - name: Check Build
+        run: |
+          cargo check --release --features try-runtime,runtime-benchmarks
+
+      - name: Run tests
+        run: cargo test --release --features try-runtime,runtime-benchmarks --locked --verbose --all

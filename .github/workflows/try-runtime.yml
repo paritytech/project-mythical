@@ -1,0 +1,47 @@
+# Test storage migration using try-runtime on PRs with label "migration"
+name: Test storage migration
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  push:
+    branches: [ main ]
+
+jobs:
+  try_runtime:
+    if: contains(github.event.pull_request.labels.*.name, 'migration')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Setup worker
+        uses: "./.github/templates/setup-worker"
+
+      - name: Cache Build artefacts
+        uses: actions/cache/restore@v3
+        id: cargo-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}
+
+      - name: Install try-runtime
+        run: |
+          echo "---------- Downloading try-runtime CLI ----------"
+          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.4.0/try-runtime-x86_64-unknown-linux-musl -o try-runtime
+          chmod +x ./try-runtime
+
+      - run: |
+          echo "Found label runtime_migration. Running tests"
+          echo "---------- Running try-runtime for Trappist ----------"
+          cargo build -p mythical --locked --release --no-default-features --features mythical/mythical-runtime,try-runtime && \
+          ./try-runtime --runtime ./target/release/wbuild/mythical-runtime/target/wasm32-unknown-unknown/release/mythical_runtime.wasm \
+              on-runtime-upgrade --checks pre-and-post --no-idempotency-checks live --uri wss://rococo-mythical-try-runtime-node.parity-chains.parity.io:443
+        env:
+          RUST_LOG: remote-ext=debug,runtime=debug

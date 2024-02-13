@@ -1,0 +1,53 @@
+[package]
+authors = { workspace = true }
+description = "Runtime Common"
+edition = { workspace = true }
+license = { workspace = true }
+name = "runtime-common"
+repository = { workspace = true }
+version = "1.0.0"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+parity-scale-codec = { workspace = true, default-features = false, features = [
+  "derive",
+] }
+scale-info = { workspace = true, default-features = false, features = [
+  "derive",
+] }
+
+# Substrate
+frame-support = { workspace = true, default-features = false }
+frame-system = { workspace = true, default-features = false }
+sp-runtime = { workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false }
+sp-std = { workspace = true, default-features = false }
+pallet-balances = { workspace = true, default-features = false }
+pallet-collator-selection = { workspace = true, default-features = false }
+
+parachains-common = { workspace = true, default-features = false }
+polkadot-primitives = { workspace = true, default-features = false }
+
+# Frontier
+fp-account = { workspace = true, features = ["serde"] }
+
+
+[features]
+default = ["std"]
+std = [
+  "frame-support/std",
+  "frame-system/std",
+  "sp-runtime/std",
+  "sp-core/std",
+  "sp-std/std",
+  "fp-account/std",
+  "pallet-balances/std",
+  "pallet-collator-selection/std"
+]
+
+runtime-benchmarks = [
+  "frame-support/runtime-benchmarks",
+  "sp-runtime/runtime-benchmarks",
+]
