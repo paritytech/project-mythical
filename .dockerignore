@@ -4,3 +4,4 @@
 
 # dotfiles in the repo root
 /.*
+target/

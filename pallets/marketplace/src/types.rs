@@ -1,7 +1,6 @@
 use frame_support::traits::Currency;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
-use sp_runtime::Permill;
 
 use crate::Config;
 
@@ -15,14 +14,14 @@ pub struct Ask<AccountId, Amount, Expiration> {
 	pub seller: AccountId,
 	pub price: Amount,
 	pub expiration: Expiration,
-	pub fee: Permill,
+	pub fee: Amount,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
-pub struct Bid<AccountId, Expiration> {
+pub struct Bid<AccountId, Expiration, Amount> {
 	pub buyer: AccountId,
 	pub expiration: Expiration,
-	pub fee: Permill,
+	pub fee: Amount,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
@@ -32,13 +31,13 @@ pub enum OrderType {
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
-pub struct Order<CollectionId, ItemId, Price, Expiration, BoundedString> {
+pub struct Order<CollectionId, ItemId, Amount, Expiration, BoundedString> {
 	pub order_type: OrderType,
 	pub collection: CollectionId,
 	pub item: ItemId,
-	pub price: Price,
+	pub price: Amount,
 	pub expires_at: Expiration,
-	pub fee_percent: Permill,
+	pub fee_percent: Amount,
 	pub signature_data: SignatureData<BoundedString>,
 }
 
@@ -53,7 +52,7 @@ pub struct Suggestion<CollectionId, ItemId, Amount, AccountId> {
 	pub collection: CollectionId,
 	pub item: ItemId,
 	pub price: Amount,
-	pub fee_percent: Permill,
+	pub fee_percent: Amount,
 	pub suggestion_fill: SuggestionFill<AccountId, Amount>,
 }
 
@@ -61,7 +60,7 @@ pub struct Suggestion<CollectionId, ItemId, Amount, AccountId> {
 pub struct SuggestionFill<AccountId, Amount> {
 	who: AccountId,
 	value: Amount,
-	fee: Permill,
+	fee: Amount,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
@@ -69,7 +68,7 @@ pub struct WantAsk<CollectionId, ItemId, Amount> {
 	pub collection: CollectionId,
 	pub item: ItemId,
 	pub price: Amount,
-	pub fee_percent: Permill,
+	pub fee_percent: Amount,
 }
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, TypeInfo)]
 pub struct ExecSuggestion<BoundedString> {

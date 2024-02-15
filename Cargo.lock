@@ -6702,6 +6702,7 @@ dependencies = [
  "log",
  "pallet-balances",
  "pallet-nfts",
+ "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
