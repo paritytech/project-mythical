@@ -32,7 +32,9 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_nfts::Config {
+	pub trait Config:
+		frame_system::Config + pallet_nfts::Config + pallet_timestamp::Config
+	{
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		type RuntimeCall: Parameter
@@ -44,7 +46,7 @@ pub mod pallet {
 
 		/// The minimum amount of time for an ask duration.
 		#[pallet::constant]
-		type MinOrderDuration: Get<BlockNumberFor<Self>>;
+		type MinOrderDuration: Get<Self::Moment>;
 
 		/// Used for calculation of fees
 		#[pallet::constant]
@@ -96,7 +98,7 @@ pub mod pallet {
 			NMapKey<Blake2_128Concat, T::ItemId>,
 			NMapKey<Blake2_128Concat, BalanceOf<T>>,
 		),
-		Bid<T::AccountId, BlockNumberFor<T>>,
+		Bid<T::AccountId, BlockNumberFor<T>, BalanceOf<T>>,
 	>;
 
 	#[pallet::storage]
@@ -147,13 +149,11 @@ pub mod pallet {
 		/// An Ask/Bid order was created.
 		OrderCreated {
 			who: T::AccountId,
-			order: Order<
-				T::CollectionId,
-				T::ItemId,
-				BalanceOf<T>,
-				BlockNumberFor<T>,
-				BoundedVec<u8, T::NonceStringLimit>,
-			>,
+			order_type: OrderType,
+			collection: T::CollectionId,
+			item: T::ItemId,
+			price: BalanceOf<T>,
+			expires_at: T::Moment,
 		},
 		/// A trade of Ask and Bid was executed.
 		OrderExecuted {
@@ -325,7 +325,7 @@ pub mod pallet {
 				T::CollectionId,
 				T::ItemId,
 				BalanceOf<T>,
-				BlockNumberFor<T>,
+				T::Moment,
 				BoundedVec<u8, T::NonceStringLimit>,
 			>,
 		) -> DispatchResult {
@@ -335,7 +335,14 @@ pub mod pallet {
 			// - If orderType Ask is received then an orderCreated event is emitted
 			//- If orderType Bid is received then an orderExecuted event is emitted
 			match order.clone().order_type {
-				OrderType::Ask => Self::deposit_event(Event::OrderCreated { who, order }),
+				OrderType::Ask => Self::deposit_event(Event::OrderCreated {
+					who,
+					order_type: order.order_type,
+					collection: order.collection,
+					item: order.item,
+					price: order.price,
+					expires_at: order.expires_at,
+				}),
 				OrderType::Bid => Self::deposit_event(Event::OrderExecuted {
 					collection: order.collection,
 					item: order.item,
@@ -406,7 +413,7 @@ pub mod pallet {
 			exchange: HashId,
 			collection: T::CollectionId,
 			item: T::ItemId,
-			fee: Permill,
+			fee: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 

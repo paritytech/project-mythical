@@ -1,10 +1,10 @@
-# Mythical Testnet
+# Mythical Parachain Node
 
 ### 🔰 Description
 
-Mythical is a Web3 gaming platform. Building an NFT marketplace based on old chain (private Ethereum) Solidity Smart Contracts, integration with Mythical backend, bridge integration, and migrating chain state from old contracts.
+Parachain node for the Mythical Games blockchain platform.
 
-### 🦀 Rust Setup
+### 🦀 Setup
 
 First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
