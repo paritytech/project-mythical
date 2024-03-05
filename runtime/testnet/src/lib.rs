@@ -352,6 +352,13 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
+impl pallet_multibatching::Config for Runtime {
+    type RuntimeCall = RuntimeCall;
+    type Signature = Signature;
+    type Signer = <Signature as Verify>::Signer;
+    type MaxCalls = ConstU32<128>;
+}
+
 parameter_types! {
 	/// Relay Chain `TransactionByteFee` / 10
 	pub const TransactionByteFee: Balance = 10 * MICRO_MUSE;
@@ -723,6 +730,7 @@ construct_runtime!(
 		// NFTs
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
+        Multibatching: pallet_multibatching = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,

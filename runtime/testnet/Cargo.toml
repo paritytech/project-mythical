@@ -24,6 +24,7 @@ smallvec = { workspace = true }
 # Local
 runtime-common = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
+pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
@@ -116,6 +117,7 @@ std = [
   "pallet-collator-selection/std",
   "pallet-marketplace/std",
   "pallet-multisig/std",
+  "pallet-multibatching/std",
   "pallet-nfts/std",
   "pallet-session/std",
   "pallet-sudo/std",
@@ -162,6 +164,7 @@ runtime-benchmarks = [
   "pallet-message-queue/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
+  "pallet-multibatching/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
@@ -190,6 +193,7 @@ try-runtime = [
   "pallet-collator-selection/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-multisig/try-runtime",
+  "pallet-multibatching/try-runtime",
   "pallet-nfts/try-runtime",
   "pallet-session/try-runtime",
   "pallet-sudo/try-runtime",
