@@ -49,6 +49,8 @@ pallet-nfts = { workspace = true, default-features = false }
 pallet-preimage = { workspace = true, default-features = false }
 pallet-safe-mode = { workspace = true, default-features = false }
 pallet-tx-pause = { workspace = true, default-features = false }
+pallet-proxy = { workspace = true, default-features = false }
+pallet-vesting = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
 sp-consensus-aura = { workspace = true, default-features = false }
@@ -126,6 +128,8 @@ std = [
   "pallet-xcm/std",
   "pallet-safe-mode/std",
   "pallet-tx-pause/std",
+  "pallet-proxy/std",
+  "pallet-vesting/std",
   "parachain-info/std",
   "parachains-common/std",
   "polkadot-parachain-primitives/std",
@@ -169,6 +173,8 @@ runtime-benchmarks = [
   "pallet-xcm/runtime-benchmarks",
   "pallet-safe-mode/runtime-benchmarks",
   "pallet-tx-pause/runtime-benchmarks",
+  "pallet-proxy/runtime-benchmarks",
+  "pallet-vesting/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
@@ -202,5 +208,7 @@ try-runtime = [
   "pallet-xcm/try-runtime",
   "pallet-safe-mode/try-runtime",
   "pallet-tx-pause/try-runtime",
+  "pallet-proxy/try-runtime",
+  "pallet-vesting/try-runtime",
   "parachain-info/try-runtime",
 ]

@@ -53,3 +53,10 @@ In case the script fails to fetch the relay chain runtimes they can also be buil
 ```sh
 ./zombienet.sh build
 ```
+
+### Notes regarding Polkadot.js and Ethereum accounts
+
+On Polkadot.js, when bootstraping the local network with zombienet, the normal accounts are not derived from a seed.
+Instead, there is a [known set of private/public keypairs](https://github.com/polkadot-js/common/blob/e3b11360ab381a51bb05544cf2872646037d3579/packages/keyring/src/testing.ts#L76) that are used instead.
+
+In normal circumstances when interacting with the GUI it is not necessary to control these private keys when submitting extrinsics to the chain, but if you are interacting via script then they are needed.
