@@ -1,5 +1,5 @@
 # This file is sourced from https://github.com/paritytech/polkadot/blob/master/scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile
-FROM docker.io/paritytech/ci-linux:production as builder
+FROM docker.io/paritytech/ci-unified:latest as builder
 
 WORKDIR /workdir
 COPY . /workdir
@@ -39,12 +39,12 @@ HEALTHCHECK --interval=300s --timeout=75s --start-period=30s --retries=3 \
 # specified with the --target build flag. This just preserves one of the builder's
 # outputs, which can then be moved into a volume at runtime
 FROM debian:bullseye-slim as runtime
-# Available options: devnet, mainnet or rococo
-ARG environment=devnet
+# Available options: testnet or mainnet
+ARG environment=testnet
 COPY --from=builder \
-    /workdir/target/release/wbuild/mythical-node-runtime/${environment}_runtime.wasm \
+    /workdir/target/release/wbuild/mythical-${environment}/mythical_${environment}.compact.compressed.wasm \
     /var/opt/
-CMD ["cp", "-v", "/var/opt/${environment}-mythical-node.wasm", "/runtime/"]
+CMD ["cp", "-v", "/var/opt/mythical_${environment}.compact.compressed.wasm", "/runtime/"]
 
 FROM debian:bullseye-slim
 COPY --from=builder \

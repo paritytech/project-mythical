@@ -41,18 +41,18 @@ use substrate_prometheus_endpoint::Registry;
 // Local Runtime types
 use runtime_common::{AccountId, AuraId, Balance, Block, Hash, Nonce};
 
-/// Devnet Native executor type.
-pub struct DevnetRuntimeExecutor;
+/// Testnet Native executor type.
+pub struct TestnetRuntimeExecutor;
 
-impl NativeExecutionDispatch for DevnetRuntimeExecutor {
+impl NativeExecutionDispatch for TestnetRuntimeExecutor {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		mythical_devnet::api::dispatch(method, data)
+		mythical_testnet::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		mythical_devnet::native_version()
+		mythical_testnet::native_version()
 	}
 }
 

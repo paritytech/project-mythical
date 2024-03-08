@@ -7,9 +7,9 @@ on:
         description: The docker image
         required: true
       environment:
-        description: Runtime. Either devnet, mainnet or rococo
+        description: Runtime. Either testnet or mainnet
         required: false
-        default: devnet
+        default: testnet
 
 jobs:
   push_to_registry:

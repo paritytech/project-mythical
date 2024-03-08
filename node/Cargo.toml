@@ -21,7 +21,7 @@ serde_json = { workspace = true }
 hex-literal = { workspace = true }
 
 # Local
-mythical-devnet = { workspace = true }
+mythical-testnet = { workspace = true }
 mythical-mainnet = { workspace = true }
 runtime-common = { workspace = true }
 
@@ -89,11 +89,11 @@ substrate-build-script-utils = { workspace = true }
 default = []
 runtime-benchmarks = [
   "mythical-mainnet/runtime-benchmarks",
-  "mythical-devnet/runtime-benchmarks",
+  "mythical-testnet/runtime-benchmarks",
   "polkadot-cli/runtime-benchmarks",
 ]
 try-runtime = [
   "mythical-mainnet/try-runtime",
-  "mythical-devnet/try-runtime",
+  "mythical-testnet/try-runtime",
   "dep:sp-io",
 ]

@@ -35,7 +35,7 @@ You will have to use [Zombienet (available for Linux and MacOS)](https://github.
 **To start a Development Network run:**
 
 ```sh
-./zombienet.sh devnet # Starts a development network as specified in zombienet-config/devnet.toml
+./zombienet.sh testnet # Starts a development network as specified in zombienet-config/testnet.toml
 ```
 
 The script will take care of fetching the corresponding binaries for the relay chain.
