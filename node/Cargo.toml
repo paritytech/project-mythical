@@ -51,7 +51,6 @@ sp-block-builder = { workspace = true }
 sp-blockchain = { workspace = true }
 sp-consensus-aura = { workspace = true }
 sp-core = { workspace = true }
-sp-io = { workspace = true, optional = true }
 sp-keystore = { workspace = true }
 sp-offchain = { workspace = true }
 sp-runtime = { workspace = true }
@@ -95,5 +94,4 @@ runtime-benchmarks = [
 try-runtime = [
   "mythical-mainnet/try-runtime",
   "mythical-testnet/try-runtime",
-  "dep:sp-io",
 ]

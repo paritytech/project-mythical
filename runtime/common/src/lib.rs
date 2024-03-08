@@ -4,7 +4,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-pub use fp_account::EthereumSignature;
+pub use account::EthereumSignature;
 use frame_support::{
 	traits::{Currency, Imbalance, OnUnbalanced},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
@@ -64,7 +64,7 @@ pub struct DealWithFees<R>(PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<fp_account::AccountId20> + Into<fp_account::AccountId20>,
+	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
@@ -82,7 +82,7 @@ pub struct ToStakingPot<R>(PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for ToStakingPot<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<fp_account::AccountId20> + Into<fp_account::AccountId20>,
+	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {

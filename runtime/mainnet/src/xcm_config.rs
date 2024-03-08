@@ -6,7 +6,6 @@ use core::{marker::PhantomData, ops::ControlFlow};
 use frame_support::{
 	match_types, parameter_types,
 	traits::{ConstU32, Everything, Nothing, ProcessMessageError},
-	weights::Weight,
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
