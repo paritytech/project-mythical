@@ -3,8 +3,9 @@ use super::{
 	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, XcmpQueue,
 };
 use core::{marker::PhantomData, ops::ControlFlow};
+use frame_support::traits::Contains;
 use frame_support::{
-	match_types, parameter_types,
+	parameter_types,
 	traits::{ConstU32, Everything, Nothing, ProcessMessageError},
 };
 use frame_system::EnsureRoot;
@@ -13,8 +14,8 @@ use polkadot_parachain_primitives::primitives::Sibling;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	CreateMatcher, EnsureXcmOrigin, FixedWeightBounds, MatchXcm, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	CreateMatcher, EnsureXcmOrigin, FixedWeightBounds, FrameTransactionalProcessor, MatchXcm,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, WithComputedOrigin,
 	WithUniqueTopic,
 };
@@ -25,15 +26,15 @@ use xcm_executor::traits::Properties;
 use xcm_executor::{traits::ShouldExecute, XcmExecutor};
 
 parameter_types! {
-	pub const RelayLocation: MultiLocation = MultiLocation::parent();
+	pub const RelayLocation: Location = Location::parent();
 	pub const RelayNetwork: NetworkId = cumulus_primitives_core::Ethereum { chain_id: 132 }; // todo!();
-	pub SelfReserve: MultiLocation = MultiLocation { parents: 0, interior: Here };
+	pub SelfReserve: Location = Location { parents: 0, interior: Here };
 	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub UniversalLocation: InteriorLocation = [Parachain(ParachainInfo::parachain_id().into())].into();
 }
 
-/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
+/// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
@@ -73,11 +74,11 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
-match_types! {
-	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
-		MultiLocation { parents: 1, interior: Here } |
-		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
-	};
+pub struct ParentOrParentsExecutivePlurality;
+impl Contains<Location> for ParentOrParentsExecutivePlurality {
+	fn contains(l: &Location) -> bool {
+		matches!(l.unpack(), (1, []) | (1, [Plurality { id: BodyId::Executive, .. }]))
+	}
 }
 
 //TODO: move DenyThenTry to polkadot's xcm module.
@@ -94,7 +95,7 @@ where
 	Allow: ShouldExecute,
 {
 	fn should_execute<RuntimeCall>(
-		origin: &MultiLocation,
+		origin: &Location,
 		instructions: &mut [Instruction<RuntimeCall>],
 		max_weight: Weight,
 		properties: &mut Properties,
@@ -108,7 +109,7 @@ where
 pub struct DenyReserveTransferToRelayChain;
 impl ShouldExecute for DenyReserveTransferToRelayChain {
 	fn should_execute<RuntimeCall>(
-		origin: &MultiLocation,
+		origin: &Location,
 		instructions: &mut [Instruction<RuntimeCall>],
 		_max_weight: Weight,
 		_properties: &mut Properties,
@@ -117,21 +118,17 @@ impl ShouldExecute for DenyReserveTransferToRelayChain {
 			|_| true,
 			|inst| match inst {
 				InitiateReserveWithdraw {
-					reserve: MultiLocation { parents: 1, interior: Here },
+					reserve: Location { parents: 1, interior: Here },
 					..
 				}
-				| DepositReserveAsset {
-					dest: MultiLocation { parents: 1, interior: Here }, ..
-				}
-				| TransferReserveAsset {
-					dest: MultiLocation { parents: 1, interior: Here }, ..
-				} => {
+				| DepositReserveAsset { dest: Location { parents: 1, interior: Here }, .. }
+				| TransferReserveAsset { dest: Location { parents: 1, interior: Here }, .. } => {
 					Err(ProcessMessageError::Unsupported) // Deny
 				},
 				// An unexpected reserve transfer has arrived from the Relay Chain. Generally,
 				// `IsReserve` should not allow this, but we just log it here.
 				ReserveAssetDeposited { .. }
-					if matches!(origin, MultiLocation { parents: 1, interior: Here }) =>
+					if matches!(origin, Location { parents: 1, interior: Here }) =>
 				{
 					log::warn!(
 						target: "xcm::barrier",
@@ -194,6 +191,7 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
+	type TransactionalProcessor = FrameTransactionalProcessor;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.

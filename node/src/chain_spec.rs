@@ -7,21 +7,20 @@ use serde::{Deserialize, Serialize};
 use sp_core::{crypto::UncheckedInto, ecdsa, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
-use mythical_mainnet;
-use mythical_testnet;
+use mainnet_runtime;
+use testnet_runtime;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type MainChainSpec =
-	sc_service::GenericChainSpec<mythical_mainnet::RuntimeGenesisConfig, Extensions>;
+	sc_service::GenericChainSpec<mainnet_runtime::RuntimeGenesisConfig, Extensions>;
 
 /// Specialized `ChainSpec` for the development parachain runtime.
 pub type TestnetChainSpec =
-	sc_service::GenericChainSpec<mythical_testnet::RuntimeGenesisConfig, Extensions>;
+	sc_service::GenericChainSpec<testnet_runtime::RuntimeGenesisConfig, Extensions>;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
-const PARA_ID: u32 = 201804;
 const LOCAL_PARA_ID: u32 = 2000;
 
 /// Helper function to generate a crypto pair from seed
@@ -68,16 +67,17 @@ where
 /// Generate the session keys from individual elements.
 ///
 /// The input must be a tuple of individual keys (a single arg for now since we have just one key).
-pub fn mainnet_session_keys(keys: AuraId) -> mythical_mainnet::SessionKeys {
-	mythical_mainnet::SessionKeys { aura: keys }
+pub fn mainnet_session_keys(keys: AuraId) -> mainnet_runtime::SessionKeys {
+	mainnet_runtime::SessionKeys { aura: keys }
 }
 
-pub fn testnet_session_keys(keys: AuraId) -> mythical_testnet::SessionKeys {
-	mythical_testnet::SessionKeys { aura: keys }
+pub fn testnet_session_keys(keys: AuraId) -> testnet_runtime::SessionKeys {
+	testnet_runtime::SessionKeys { aura: keys }
 }
 
 pub mod testnet {
-	use mythical_testnet::MUSE;
+	const PARA_ID: u32 = 201804;
+	use testnet_runtime::MUSE;
 
 	use super::*;
 	pub fn development_config() -> TestnetChainSpec {
@@ -91,7 +91,7 @@ pub mod testnet {
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(6);
 
 		TestnetChainSpec::builder(
-			mythical_testnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
 				relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
@@ -158,7 +158,7 @@ pub mod testnet {
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(3);
 
 		TestnetChainSpec::builder(
-			mythical_testnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
 				relay_chain: "rococo".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
@@ -205,11 +205,11 @@ pub mod testnet {
 
 	fn testnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
-		endowed_accounts: Vec<(AccountId, mythical_testnet::Balance)>,
+		endowed_accounts: Vec<(AccountId, testnet_runtime::Balance)>,
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
-		use mythical_testnet::EXISTENTIAL_DEPOSIT;
+		use testnet_runtime::EXISTENTIAL_DEPOSIT;
 
 		serde_json::json!({
 				"balances": {
@@ -244,7 +244,8 @@ pub mod testnet {
 }
 
 pub mod mainnet {
-	use mythical_mainnet::MYTH;
+	const PARA_ID: u32 = 3368; // TODO yet to be confirmed
+	use mainnet_runtime::MYTH;
 
 	use super::*;
 	pub fn development_config() -> MainChainSpec {
@@ -258,7 +259,7 @@ pub mod mainnet {
 		let balance_per_account = (1_000_000_000 * MYTH).saturating_div(6);
 
 		MainChainSpec::builder(
-			mythical_mainnet::WASM_BINARY.expect("WASM binary was not build, please build it!"),
+			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
 				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
 				para_id: LOCAL_PARA_ID,
@@ -319,64 +320,65 @@ pub mod mainnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into());
+		properties.insert("ss58Format".into(), 333.into()); // TODO yet to be defined
 		properties.insert("isEthereum".into(), true.into());
 
-		let balance_per_account = (1_000_000_000 * MYTH).saturating_div(3);
-
 		MainChainSpec::builder(
-			mythical_mainnet::WASM_BINARY.expect("WASM binary was not build, please build it!"),
+			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
 				relay_chain: "polkadot".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
 			},
 		)
-		.with_name("Mythical Mainnet")
-		.with_id("mythical")
+		.with_name("Mythos Mainnet")
+		.with_id("mythos")
 		.with_chain_type(ChainType::Live)
 		.with_genesis_config_patch(mainnet_genesis(
 			// initial collators.
 			vec![
 				(
-					hex!("e6b4f55209a70384db3d147c06b99e32feb03d6fe191ff62b9dd23d5dd9ac64a").into(),
-					hex!("e6b4f55209a70384db3d147c06b99e32feb03d6fe191ff62b9dd23d5dd9ac64a")
-						.unchecked_into(),
+					get_account_id_from_seed::<ecdsa::Public>("Alice"),
+					get_collator_keys_from_seed("Alice"),
 				),
 				(
-					hex!("e07113e692708775d0cc39e00fe7f2974bff4e20a6fd127f0810c01142547723").into(),
-					hex!("e07113e692708775d0cc39e00fe7f2974bff4e20a6fd127f0810c01142547723")
-						.unchecked_into(),
+					get_account_id_from_seed::<ecdsa::Public>("Bob"),
+					get_collator_keys_from_seed("Bob"),
 				),
 			],
 			vec![
+				(AccountId::from(hex!("f2Fe8Fb69552D82a0E82F18356eA086D545d1c7b")), 1_000 * MYTH),
 				(
-					AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
-					balance_per_account,
+					AccountId::from(hex!("Af624Bf09102eD3B9Ecb5ba2c4CE6c5499dd26b2")),
+					50_000_000 * MYTH,
 				),
 				(
-					AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
-					balance_per_account,
+					AccountId::from(hex!("c0a328cC9Ee827f82f47Ad09f5e35E56034C79D1")),
+					10_000_000 * MYTH,
 				),
 				(
-					AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
-					balance_per_account,
+					AccountId::from(hex!("DE8A092092151e21CD623529b620310D9ef9D2d1")),
+					80_000_000 * MYTH,
+				),
+				(
+					AccountId::from(hex!("D3f15E06af3FB1a066D260e97B4e42715eE35A68")),
+					131_999_000 * MYTH,
 				),
 			],
-			AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+			AccountId::from(hex!("f2Fe8Fb69552D82a0E82F18356eA086D545d1c7b")),
 			PARA_ID.into(),
 		))
-		.with_protocol_id("mythical")
+		.with_protocol_id("mythos")
 		.with_properties(properties)
 		.build()
 	}
 
 	fn mainnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
-		endowed_accounts: Vec<(AccountId, mythical_mainnet::Balance)>,
+		endowed_accounts: Vec<(AccountId, mainnet_runtime::Balance)>,
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
-		use mythical_mainnet::EXISTENTIAL_DEPOSIT;
+		use mainnet_runtime::EXISTENTIAL_DEPOSIT;
 
 		serde_json::json!({
 				"balances": {

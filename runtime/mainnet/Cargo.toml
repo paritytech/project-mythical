@@ -1,5 +1,5 @@
 [package]
-name = "mythical-mainnet"
+name = "mainnet-runtime"
 version = "0.1.0"
 authors = { workspace = true }
 description = "A new Cumulus FRAME-based Substrate Runtime, ready for hacking together a parachain."

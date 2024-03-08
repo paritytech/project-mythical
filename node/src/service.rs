@@ -47,11 +47,11 @@ impl NativeExecutionDispatch for TestnetRuntimeExecutor {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		mythical_testnet::api::dispatch(method, data)
+		testnet_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		mythical_testnet::native_version()
+		testnet_runtime::native_version()
 	}
 }
 
@@ -62,11 +62,11 @@ impl NativeExecutionDispatch for MainnetRuntimeExecutor {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		mythical_mainnet::api::dispatch(method, data)
+		mainnet_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		mythical_mainnet::native_version()
+		mainnet_runtime::native_version()
 	}
 }
 
@@ -506,8 +506,6 @@ where
 	// when starting the network.
 	use cumulus_client_consensus_aura::collators::lookahead::{self as aura, Params as AuraParams};
 
-	let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
-
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
@@ -539,11 +537,11 @@ where
 		collator_key,
 		para_id,
 		overseer_handle,
-		slot_duration,
 		relay_chain_slot_duration,
 		proposer,
 		collator_service,
 		authoring_duration: Duration::from_millis(1500),
+		reinitialize: false,
 	};
 
 	let fut =

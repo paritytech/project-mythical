@@ -166,9 +166,9 @@ macro_rules! construct_async_run {
 		match runner.config().chain_spec.runtime() {
 			Runtime::Testnet | Runtime::Default => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<mythical_testnet::RuntimeApi, TestnetRuntimeExecutor, _>(
+					let $components = new_partial::<testnet_runtime::RuntimeApi, TestnetRuntimeExecutor, _>(
 						&$config,
-						crate::service::build_import_queue::<mythical_testnet::RuntimeApi, TestnetRuntimeExecutor>,
+						crate::service::build_import_queue::<testnet_runtime::RuntimeApi, TestnetRuntimeExecutor>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -176,9 +176,9 @@ macro_rules! construct_async_run {
 			}
 			Runtime::Mainnet => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<mythical_mainnet::RuntimeApi, MainnetRuntimeExecutor, _>(
+					let $components = new_partial::<mainnet_runtime::RuntimeApi, MainnetRuntimeExecutor, _>(
 						&$config,
-						crate::service::build_import_queue::<mythical_mainnet::RuntimeApi, MainnetRuntimeExecutor>,
+						crate::service::build_import_queue::<mainnet_runtime::RuntimeApi, MainnetRuntimeExecutor>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -193,7 +193,7 @@ macro_rules! construct_benchmark_partials {
 		match $config.chain_spec.runtime() {
 			Runtime::Testnet | Runtime::Default => {
 				let $partials =
-					new_partial::<mythical_testnet::RuntimeApi, TestnetRuntimeExecutor, _>(
+					new_partial::<testnet_runtime::RuntimeApi, TestnetRuntimeExecutor, _>(
 						&$config,
 						crate::service::build_import_queue::<_, TestnetRuntimeExecutor>,
 					)?;
@@ -201,7 +201,7 @@ macro_rules! construct_benchmark_partials {
 			},
 			Runtime::Mainnet => {
 				let $partials =
-					new_partial::<mythical_mainnet::RuntimeApi, MainnetRuntimeExecutor, _>(
+					new_partial::<mainnet_runtime::RuntimeApi, MainnetRuntimeExecutor, _>(
 						&$config,
 						crate::service::build_import_queue::<_, MainnetRuntimeExecutor>,
 					)?;
@@ -285,7 +285,7 @@ pub fn run() -> Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) => {
 					if cfg!(feature = "runtime-benchmarks") {
-						runner.sync_run(|config| cmd.run::<Block, ()>(config))
+						runner.sync_run(|config| cmd.run::<sp_runtime::traits::HashingFor<Block>, ()>(config))
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
@@ -366,10 +366,10 @@ pub fn run() -> Result<()> {
 						// This will enable the node to decode ss58 addresses with this prefix.
 						// This SS58 version/format is also only used by the node and not by the runtime.
 						sp_core::crypto::set_default_ss58_version(
-							mythical_testnet::SS58Prefix::get().into(),
+							testnet_runtime::SS58Prefix::get().into(),
 						);
 						crate::service::start_parachain_node::<
-							mythical_testnet::RuntimeApi,
+							testnet_runtime::RuntimeApi,
 							TestnetRuntimeExecutor,
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
@@ -378,10 +378,10 @@ pub fn run() -> Result<()> {
 					},
 					Runtime::Mainnet => {
 						sp_core::crypto::set_default_ss58_version(
-							mythical_mainnet::SS58Prefix::get().into(),
+							mainnet_runtime::SS58Prefix::get().into(),
 						);
 						crate::service::start_parachain_node::<
-							mythical_mainnet::RuntimeApi,
+							mainnet_runtime::RuntimeApi,
 							MainnetRuntimeExecutor,
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
