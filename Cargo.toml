@@ -6,7 +6,7 @@ members = [
   "node",
   "primitives/xcm",
   "runtime/mainnet",
-  "runtime/devnet",
+	"runtime/testnet",
 ]
 resolver = "2"
 
@@ -35,9 +35,8 @@ serde_json = {version = "1.0.113", features = ["arbitrary_precision"]}
 smallvec = "1.13.1"
 
 # Local dependencies
-mythical-devnet = { path = "runtime/devnet" }
+mythical-testnet = { path = "runtime/testnet" }
 mythical-mainnet = { path = "runtime/mainnet" }
-pallet-marketplace = { path = "pallets/marketplace", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 
 # Substrate

@@ -7,21 +7,22 @@ use serde::{Deserialize, Serialize};
 use sp_core::{crypto::UncheckedInto, ecdsa, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
-use mythical_devnet;
 use mythical_mainnet;
+use mythical_testnet;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type MainChainSpec =
 	sc_service::GenericChainSpec<mythical_mainnet::RuntimeGenesisConfig, Extensions>;
 
 /// Specialized `ChainSpec` for the development parachain runtime.
-pub type DevnetChainSpec =
-	sc_service::GenericChainSpec<mythical_devnet::RuntimeGenesisConfig, Extensions>;
+pub type TestnetChainSpec =
+	sc_service::GenericChainSpec<mythical_testnet::RuntimeGenesisConfig, Extensions>;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
 const PARA_ID: u32 = 201804;
+const LOCAL_PARA_ID: u32 = 2000;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -71,8 +72,8 @@ pub fn mainnet_session_keys(keys: AuraId) -> mythical_mainnet::SessionKeys {
 	mythical_mainnet::SessionKeys { aura: keys }
 }
 
-pub fn devnet_session_keys(keys: AuraId) -> mythical_devnet::SessionKeys {
-	mythical_devnet::SessionKeys { aura: keys }
+pub fn testnet_session_keys(keys: AuraId) -> mythical_testnet::SessionKeys {
+	mythical_testnet::SessionKeys { aura: keys }
 }
 
 fn check_sudo_key(authority_set: &mut Vec<AccountId>, threshold: u16) {
@@ -89,36 +90,23 @@ fn check_sudo_key(authority_set: &mut Vec<AccountId>, threshold: u16) {
 }
 
 /// Generate a multisig key from a given `authority_set` and a `threshold`
-/// Used for generating a multisig to use as sudo key for devnet.
-pub fn get_devnet_multisig_sudo_key(
+/// Used for generating a multisig to use as sudo key for testnet.
+pub fn get_testnet_multisig_sudo_key(
 	mut authority_set: Vec<AccountId>,
 	threshold: u16,
 ) -> AccountId {
 	check_sudo_key(&mut authority_set, threshold);
-	pallet_multisig::Pallet::<mythical_devnet::Runtime>::multi_account_id(
+	pallet_multisig::Pallet::<mythical_testnet::Runtime>::multi_account_id(
 		&authority_set[..],
 		threshold,
 	)
 }
 
-/// Generate a multisig key from a given `authority_set` and a `threshold`
-/// Used for generating a multisig to use as sudo key for mainnet.
-pub fn get_mainnet_multisig_sudo_key(
-	mut authority_set: Vec<AccountId>,
-	threshold: u16,
-) -> AccountId {
-	check_sudo_key(&mut authority_set, threshold);
-	pallet_multisig::Pallet::<mythical_mainnet::Runtime>::multi_account_id(
-		&authority_set[..],
-		threshold,
-	)
-}
-
-pub mod devnet {
-	use mythical_devnet::MUSE;
+pub mod testnet {
+	use mythical_testnet::MUSE;
 
 	use super::*;
-	pub fn development_config() -> DevnetChainSpec {
+	pub fn development_config() -> TestnetChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
@@ -126,8 +114,8 @@ pub mod devnet {
 		properties.insert("ss58Format".into(), 333.into());
 		properties.insert("isEthereum".into(), true.into());
 
-		DevnetChainSpec::builder(
-			mythical_devnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		TestnetChainSpec::builder(
+			mythical_testnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
 				relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
@@ -136,9 +124,9 @@ pub mod devnet {
 		// Name
 		.with_name("Development Muse Testnet")
 		// ID
-		.with_id("devnet_muse_network_dev")
+		.with_id("testnet_muse_network_dev")
 		.with_chain_type(ChainType::Development)
-		.with_genesis_config_patch(devnet_genesis(
+		.with_genesis_config_patch(testnet_genesis(
 			// initial collators.
 			vec![
 				(
@@ -161,7 +149,7 @@ pub mod devnet {
 			// Example multisig sudo key configuration:
 			// Configures 2/3 threshold multisig key
 			// Note: For using this multisig key as a sudo key, each individual signatory must possess funds
-			get_devnet_multisig_sudo_key(
+			get_testnet_multisig_sudo_key(
 				vec![
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
@@ -176,7 +164,7 @@ pub mod devnet {
 		.build()
 	}
 
-	pub fn devnet_config() -> DevnetChainSpec {
+	pub fn testnet_config() -> TestnetChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
@@ -184,8 +172,8 @@ pub mod devnet {
 		properties.insert("ss58Format".into(), 333.into());
 		properties.insert("isEthereum".into(), true.into());
 
-		DevnetChainSpec::builder(
-			mythical_devnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		TestnetChainSpec::builder(
+			mythical_testnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
 				relay_chain: "rococo".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
@@ -194,7 +182,7 @@ pub mod devnet {
 		.with_name("Muse Testnet")
 		.with_id("muse")
 		.with_chain_type(ChainType::Live)
-		.with_genesis_config_patch(devnet_genesis(
+		.with_genesis_config_patch(testnet_genesis(
 			// initial collators.
 			vec![
 				(
@@ -222,24 +210,21 @@ pub mod devnet {
 		.build()
 	}
 
-	fn devnet_genesis(
+	fn testnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
 		endowed_accounts: Vec<AccountId>,
 		root_key: AccountId,
 		id: ParaId,
-		total_issuance: Option<mythical_devnet::Balance>,
+		total_issuance: Option<mythical_testnet::Balance>,
 	) -> serde_json::Value {
-		use mythical_devnet::EXISTENTIAL_DEPOSIT;
-		//TODO: Define multisig root account
-		//let alice = get_from_seed::<sr25519::Public>("Alice");
-		//let bob = get_from_seed::<sr25519::Public>("Bob");
+		use mythical_testnet::EXISTENTIAL_DEPOSIT;
 
 		let num_endowed_accounts = endowed_accounts.len();
 		let balances = match total_issuance {
 			Some(total_issuance) => {
 				let balance_per_endowed = total_issuance
-					.checked_div(num_endowed_accounts as mythical_devnet::Balance)
-					.unwrap_or(0 as mythical_devnet::Balance);
+					.checked_div(num_endowed_accounts as mythical_testnet::Balance)
+					.unwrap_or(0 as mythical_testnet::Balance);
 
 				endowed_accounts.iter().cloned().map(|k| (k, balance_per_endowed)).collect()
 			},
@@ -264,7 +249,7 @@ pub mod devnet {
 							(
 								acc.clone(),               // account id
 								acc,                       // validator id
-								devnet_session_keys(aura), // session keys
+								testnet_session_keys(aura), // session keys
 							)
 						})
 						.collect::<Vec<_>>(),
@@ -293,8 +278,8 @@ pub mod mainnet {
 		MainChainSpec::builder(
 			mythical_mainnet::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
-				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network!
-				para_id: PARA_ID,
+				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
+				para_id: LOCAL_PARA_ID,
 			},
 		)
 		// Name
@@ -322,18 +307,8 @@ pub mod mainnet {
 				AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
 				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
 			],
-			// Example multisig sudo key configuration:
-			// Configures 2/3 threshold multisig key
-			// Note: For using this multisig key as a sudo key, each individual signatory must possess funds
-			get_mainnet_multisig_sudo_key(
-				vec![
-					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
-					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
-					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-				],
-				2,
-			),
-			PARA_ID.into(),
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			LOCAL_PARA_ID.into(),
 			Some(1_000_000_000 * MYTH),
 		))
 		.with_properties(properties)
@@ -377,9 +352,6 @@ pub mod mainnet {
 				AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
 				AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
 			],
-			// Example multisig sudo key configuration:
-			// Configures 2/3 threshold multisig key
-			// Note: For using this multisig key as a sudo key, each individual signatory must possess funds
 			AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
 			PARA_ID.into(),
 			Some(1_000_000_000 * MYTH),

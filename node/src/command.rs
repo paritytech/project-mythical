@@ -14,7 +14,7 @@ use sp_runtime::traits::AccountIdConversion;
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, DevnetRuntimeExecutor, MainnetRuntimeExecutor},
+	service::{new_partial, MainnetRuntimeExecutor, TestnetRuntimeExecutor},
 };
 
 /// Helper enum that is used for better distinction of different parachain/runtime configuration
@@ -24,7 +24,7 @@ enum Runtime {
 	/// This is the default runtime (actually based on rococo)
 	#[default]
 	Default,
-	Devnet,
+	Testnet,
 	Mainnet,
 }
 
@@ -35,7 +35,7 @@ trait RuntimeResolver {
 /// and returns the Runtime accordingly.
 fn runtime(id: &str) -> Runtime {
 	if id.starts_with("dev") {
-		Runtime::Devnet
+		Runtime::Testnet
 	} else if id.starts_with("main") {
 		Runtime::Mainnet
 	} else {
@@ -68,19 +68,19 @@ impl RuntimeResolver for PathBuf {
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
-		// Devnet - Muse
-		"" | "dev" | "devnet-local" | "local" | "local-v" => {
-			Box::new(chain_spec::devnet::development_config())
+		// Testnet - Muse
+		"" | "dev" | "testnet-local" | "local" => {
+			Box::new(chain_spec::testnet::development_config())
 		},
-		"muse" | "devnet" => Box::new(chain_spec::devnet::devnet_config()),
+		"muse" | "testnet" => Box::new(chain_spec::testnet::testnet_config()),
 		// Mainnet - Mythical
-		"main" | "mainnet-dev" => Box::new(chain_spec::mainnet::development_config()),
+		"main" | "mainnet-dev" | "local-v" => Box::new(chain_spec::mainnet::development_config()),
 		"mythical" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
 		path => {
 			let path: PathBuf = path.into();
 			match path.runtime() {
-				Runtime::Devnet | Runtime::Default => {
-					Box::new(chain_spec::DevnetChainSpec::from_json_file(path)?)
+				Runtime::Testnet | Runtime::Default => {
+					Box::new(chain_spec::TestnetChainSpec::from_json_file(path)?)
 				},
 				Runtime::Mainnet => Box::new(chain_spec::MainChainSpec::from_json_file(path)?),
 			}
@@ -164,11 +164,11 @@ macro_rules! construct_async_run {
 	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 		let runner = $cli.create_runner($cmd)?;
 		match runner.config().chain_spec.runtime() {
-			Runtime::Devnet | Runtime::Default => {
+			Runtime::Testnet | Runtime::Default => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<mythical_devnet::RuntimeApi, DevnetRuntimeExecutor, _>(
+					let $components = new_partial::<mythical_testnet::RuntimeApi, TestnetRuntimeExecutor, _>(
 						&$config,
-						crate::service::build_import_queue::<mythical_devnet::RuntimeApi, DevnetRuntimeExecutor>,
+						crate::service::build_import_queue::<mythical_testnet::RuntimeApi, TestnetRuntimeExecutor>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -191,11 +191,12 @@ macro_rules! construct_async_run {
 macro_rules! construct_benchmark_partials {
 	($config:expr, |$partials:ident| $code:expr) => {
 		match $config.chain_spec.runtime() {
-			Runtime::Devnet | Runtime::Default => {
-				let $partials = new_partial::<mythical_devnet::RuntimeApi, DevnetRuntimeExecutor, _>(
-					&$config,
-					crate::service::build_import_queue::<_, DevnetRuntimeExecutor>,
-				)?;
+			Runtime::Testnet | Runtime::Default => {
+				let $partials =
+					new_partial::<mythical_testnet::RuntimeApi, TestnetRuntimeExecutor, _>(
+						&$config,
+						crate::service::build_import_queue::<_, TestnetRuntimeExecutor>,
+					)?;
 				$code
 			},
 			Runtime::Mainnet => {
@@ -359,17 +360,17 @@ pub fn run() -> Result<()> {
 				info!("Is collating: {}", if config.role.is_authority() { "yes" } else { "no" });
 
 				match config.chain_spec.runtime() {
-					Runtime::Default | Runtime::Devnet => {
+					Runtime::Default | Runtime::Testnet => {
 						// If you want to support a custom SS58 prefix (that isn’t yet registered in the ss58-registry),
 						// you are required to call this function with your desired prefix [Ss58AddressFormat::custom].
 						// This will enable the node to decode ss58 addresses with this prefix.
 						// This SS58 version/format is also only used by the node and not by the runtime.
 						sp_core::crypto::set_default_ss58_version(
-							mythical_devnet::SS58Prefix::get().into(),
+							mythical_testnet::SS58Prefix::get().into(),
 						);
 						crate::service::start_parachain_node::<
-							mythical_devnet::RuntimeApi,
-							DevnetRuntimeExecutor,
+							mythical_testnet::RuntimeApi,
+							TestnetRuntimeExecutor,
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
 						.map(|r| r.0)

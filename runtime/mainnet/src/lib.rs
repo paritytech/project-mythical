@@ -12,12 +12,11 @@ pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, Concrete, ParaId};
-use pallet_tx_pause::RuntimeCallNameOf;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Verify},
+	traits::{BlakeTwo256, Block as BlockT},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -27,22 +26,20 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::traits::fungible::HoldConsideration;
-use frame_support::traits::LinearStoragePrice;
+use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse},
+	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureRootWithSuccess, EnsureSigned,
+	EnsureRoot,
 };
-use pallet_nfts::PalletFeatures;
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
@@ -275,8 +272,16 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 
+pub struct DisableTokenTxFilter;
+impl Contains<RuntimeCall> for DisableTokenTxFilter {
+	fn contains(call: &RuntimeCall) -> bool {
+		!matches!(call, RuntimeCall::Balances(_))
+	}
+}
+
 #[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
+	type BaseCallFilter = DisableTokenTxFilter;
 	/// Block & extrinsics weights: base values and limits.
 	type BlockWeights = RuntimeBlockWeights;
 	/// The maximum length of a block (in bytes).
@@ -346,46 +351,6 @@ impl pallet_balances::Config for Runtime {
 	type MaxHolds = ConstU32<2>;
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-}
-
-parameter_types! {
-	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
-	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	// re-use the Uniques deposits
-	pub const NftsCollectionDeposit: Balance = MYTH / 10;
-	pub const NftsItemDeposit: Balance = MYTH / 1_000;
-	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
-	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
-	pub const NftsDepositPerByte: Balance = deposit(0, 1);
-}
-
-impl pallet_nfts::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type CollectionId = u32;
-	type ItemId = u32;
-	type Currency = Balances;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type Locker = ();
-	type CollectionDeposit = NftsCollectionDeposit;
-	type ItemDeposit = NftsItemDeposit;
-	type MetadataDepositBase = NftsMetadataDepositBase;
-	type AttributeDepositBase = NftsAttributeDepositBase;
-	type DepositPerByte = NftsDepositPerByte;
-	type StringLimit = ConstU32<256>;
-	type KeyLimit = ConstU32<64>;
-	type ValueLimit = ConstU32<256>;
-	type ApprovalsLimit = ConstU32<20>;
-	type ItemAttributesApprovalsLimit = ConstU32<30>;
-	type MaxTips = ConstU32<10>;
-	type MaxDeadlineDuration = NftsMaxDeadlineDuration;
-	type MaxAttributesPerCall = ConstU32<10>;
-	type Features = NftsPalletFeatures;
-	type OffchainSignature = Signature;
-	type OffchainPublic = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type Helper = ();
 }
 
 parameter_types! {
@@ -512,25 +477,6 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) *
-	RuntimeBlockWeights::get().max_block;
-	pub const NoPreimagePostponement: Option<u32> = Some(10);
-}
-
-impl pallet_scheduler::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = frame_system::EnsureRoot<AccountId>;
-	type OriginPrivilegeCmp = frame_support::traits::EqualPrivilegeOnly;
-	type MaxScheduledPerBlock = ConstU32<512>;
-	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
-	type Preimages = Preimage;
-}
-
-parameter_types! {
 	pub const Period: u32 = 6 * HOURS;
 	pub const Offset: u32 = 0;
 }
@@ -570,25 +516,6 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
 	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
-}
-
-parameter_types! {
-	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
-	pub const PreimageByteDeposit: Balance = deposit(0, 1);
-	pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
-}
-
-impl pallet_preimage::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
-	type Currency = Balances;
-	type ManagerOrigin = EnsureRoot<AccountId>;
-	type Consideration = HoldConsideration<
-		AccountId,
-		Balances,
-		PreimageHoldReason,
-		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
-	>;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -631,81 +558,6 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct SafeModeWhitelistedCalls;
-impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
-	fn contains(call: &RuntimeCall) -> bool {
-		match call {
-			RuntimeCall::System(_)
-			| RuntimeCall::SafeMode(_)
-			| RuntimeCall::TxPause(_)
-			// balance transfers are allowed
-			| RuntimeCall::Balances(_) => true,
-			_ => false,
-		}
-	}
-}
-
-parameter_types! {
-	pub const EnterDuration: BlockNumber = 4 * HOURS;
-	pub const EnterDepositAmount: Option<Balance> = None;
-	pub const ExtendDuration: BlockNumber = 2 * HOURS;
-	pub const ExtendDepositAmount: Option<Balance> = None;
-	pub const ReleaseDelay: u32 = 2 * DAYS;
-}
-
-impl pallet_safe_mode::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	// balance transfers are still allowed
-	type WhitelistedCalls = SafeModeWhitelistedCalls;
-	// Safe mode will last 4 hours
-	type EnterDuration = EnterDuration;
-	// Safe mode can be extended 2 hours
-	type ExtendDuration = ExtendDuration;
-	// 1 DOT required to enter into safe mode
-	type EnterDepositAmount = EnterDepositAmount;
-	// 0.5 DOT required to extend the safe mode
-	type ExtendDepositAmount = ExtendDepositAmount;
-	// only allow root origin to enter into safe mode
-	type ForceEnterOrigin = EnsureRootWithSuccess<AccountId, ConstU32<9>>;
-	// only allow root origin to extend safe mode
-	type ForceExtendOrigin = EnsureRootWithSuccess<AccountId, ConstU32<11>>;
-	// only allow root origin to exit from safe mode
-	type ForceExitOrigin = EnsureRoot<AccountId>;
-	// only allow root origin to release or slash a deposit
-	type ForceDepositOrigin = EnsureRoot<AccountId>;
-	type Notify = ();
-	// Deposits will remain reserved for 2 days after entering or extending the safe mode
-	type ReleaseDelay = ReleaseDelay;
-	type WeightInfo = pallet_safe_mode::weights::SubstrateWeight<Runtime>;
-}
-
-/// Calls that cannot be paused by the tx-pause pallet.
-pub struct TxPauseWhitelistedCalls;
-/// Whitelist `Balances::transfer_keep_alive`, all others are pauseable.
-impl Contains<RuntimeCallNameOf<Runtime>> for TxPauseWhitelistedCalls {
-	fn contains(full_name: &RuntimeCallNameOf<Runtime>) -> bool {
-		match (full_name.0.as_slice(), full_name.1.as_slice()) {
-			(b"Balances", b"transfer_keep_alive") => true,
-			_ => false,
-		}
-	}
-}
-
-impl pallet_tx_pause::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	// Only root origin can pause transactions
-	type PauseOrigin = EnsureRoot<AccountId>;
-	// Only root origin can unpause transactions
-	type UnpauseOrigin = EnsureRoot<AccountId>;
-	// Balance transfers will not be paused
-	type WhitelistedCalls = TxPauseWhitelistedCalls;
-	type MaxNameLen = ConstU32<256>;
-	type WeightInfo = pallet_tx_pause::weights::SubstrateWeight<Runtime>;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -718,17 +570,10 @@ construct_runtime!(
 		// Utility
 		Utility: pallet_utility = 4,
 		Multisig: pallet_multisig = 5,
-		Preimage: pallet_preimage = 6,
-		Scheduler: pallet_scheduler = 7,
-		SafeMode:  pallet_safe_mode = 8,
-		TxPause: pallet_tx_pause = 9,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-
-		// NFTs
-		Nfts: pallet_nfts = 12,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
@@ -805,16 +650,10 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
-		[pallet_scheduler, Scheduler]
 		[pallet_timestamp, Timestamp]
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
-		// TODO include this after https://github.com/polkadot-evm/frontier/pull/1295 gets merged
-		// [pallet_nfts, Nfts]
-		[pallet_preimage, Preimage]
-		[pallet_safe_mode, SafeMode]
-		[pallet_tx_pause, TxPause]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 	);
 }

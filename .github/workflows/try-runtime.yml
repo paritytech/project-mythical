@@ -40,8 +40,8 @@ jobs:
       - run: |
           echo "Found label runtime_migration. Running tests"
           echo "---------- Running try-runtime for Trappist ----------"
-          cargo build -p mythical --locked --release --no-default-features --features mythical/mythical-runtime,try-runtime && \
-          ./try-runtime --runtime ./target/release/wbuild/mythical-runtime/target/wasm32-unknown-unknown/release/mythical_runtime.wasm \
-              on-runtime-upgrade --checks pre-and-post --no-idempotency-checks live --uri wss://rococo-mythical-try-runtime-node.parity-chains.parity.io:443
+          cargo build --locked --release --features try-runtime && \
+          ./try-runtime --runtime ./target/release/wbuild/mythical-testnet/target/wasm32-unknown-unknown/release/mythical_testnet.wasm \
+              on-runtime-upgrade --checks pre-and-post --disable-idempotency-checks live --uri wss://rococo-muse-rpc.polkadot.io:443
         env:
           RUST_LOG: remote-ext=debug,runtime=debug

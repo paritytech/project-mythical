@@ -14,7 +14,7 @@ use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, Concrete, ParaId};
 use pallet_tx_pause::RuntimeCallNameOf;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, ConstU128, OpaqueMetadata, H160};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
@@ -437,16 +437,6 @@ impl pallet_nfts::Config for Runtime {
 	type Helper = ();
 }
 
-impl pallet_marketplace::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type MaxExchangeItems = ConstU32<100>;
-	type MaxBasisPoints = ConstU128<10000>;
-	type MinOrderDuration = ConstU64<10>;
-	type NonceStringLimit = ConstU32<50>;
-}
-
 parameter_types! {
 	/// Relay Chain `TransactionByteFee` / 10
 	pub const TransactionByteFee: Balance = 10 * MICRO_MUSE;
@@ -786,7 +776,6 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment = 11,
 		// NFTs
 		Nfts: pallet_nfts = 12,
-		Marketplace: pallet_marketplace = 13,
 
 		// Governance
 		Sudo: pallet_sudo = 15,

@@ -13,7 +13,7 @@ use pallet_balances::NegativeImbalance;
 use sp_std::marker::PhantomData;
 
 // Cumulus types re-export
-// These types are shared between the mainnet and devnet runtimes
+// These types are shared between the mainnet and testnet runtimes
 //https://github.com/paritytech/cumulus/tree/master/parachains/common
 pub use parachains_common::{AuraId, Balance, Block, BlockNumber, Hash};
 

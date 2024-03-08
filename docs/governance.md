@@ -6,7 +6,7 @@ The concept of on-chain authority ties intricately with the concept of [Origin](
 
 Now coming back to `pallet-sudo`, this pallet allows you to define one single account key that can act as superuser on-chain. That's convenient for development purposes when you want to quickly test privileged calls, but what about production?
 
-EPT comes with two runtimes `devnet` and `mainnet`. The `devnet` runtime is targeted solely for development and quick testing of on-chain logic, thus it makes sense to include `pallet-sudo`. But to demonstrate that this is not an ideal production-ready practice, the `mainnet` runtime configures `pallet-sudo` with a **multisig** key. More information on multisigs can be found on this [Multisig Deep Dive](https://youtu.be/J2OAcd4sWfA?si=yC4zKiQGY1FrQt_v).
+EPT comes with two runtimes `testnet` and `mainnet`. The `testnet` runtime is targeted solely for development and quick testing of on-chain logic, thus it makes sense to include `pallet-sudo`. But to demonstrate that this is not an ideal production-ready practice, the `mainnet` runtime configures `pallet-sudo` with a **multisig** key. More information on multisigs can be found on this [Multisig Deep Dive](https://youtu.be/J2OAcd4sWfA?si=yC4zKiQGY1FrQt_v).
 
 As an example the `mainnet` runtime comes configured with a 3-account multisig for the sudo key, with a threshold of 2 meaning that at least 2/3 of the initial authority set must sign and send a privileged call for it to pass `ensure_root(Origin)` check. This means increased security, you don't have to rely on a single key to perform superuser actions, and increased decentralization, or at least a taste of it, given that the keys may be distributed across locations to prevent compromise.
 
