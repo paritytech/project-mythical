@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ZOMBIENET_V=v1.3.91
 POLKADOT_V=v1.6.0
 
