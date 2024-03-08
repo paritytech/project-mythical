@@ -15,7 +15,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        runtime: ["mythical-testnet", "mythical-mainnet"]
+        runtime: ["testnet", "mainnet"]
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
 
       - name: Build ${{ matrix.runtime }} runtime
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.8.0
+        uses: chevdor/srtool-actions@v0.9.2
         with:
           chain: ${{ matrix.runtime }}
 

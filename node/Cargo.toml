@@ -7,7 +7,7 @@ homepage = { workspace = true }
 license = { workspace = true }
 name = "mythical-node"
 repository = { workspace = true }
-version = "1.6.0"
+version = "1.8.0"
 
 [dependencies]
 clap = { workspace = true }
@@ -21,8 +21,8 @@ serde_json = { workspace = true }
 hex-literal = { workspace = true }
 
 # Local
-mythical-testnet = { workspace = true }
-mythical-mainnet = { workspace = true }
+testnet-runtime = { workspace = true }
+mainnet-runtime = { workspace = true }
 runtime-common = { workspace = true }
 
 # Substrate
@@ -87,11 +87,11 @@ substrate-build-script-utils = { workspace = true }
 [features]
 default = []
 runtime-benchmarks = [
-  "mythical-mainnet/runtime-benchmarks",
-  "mythical-testnet/runtime-benchmarks",
+  "mainnet-runtime/runtime-benchmarks",
+  "testnet-runtime/runtime-benchmarks",
   "polkadot-cli/runtime-benchmarks",
 ]
 try-runtime = [
-  "mythical-mainnet/try-runtime",
-  "mythical-testnet/try-runtime",
+  "mainnet-runtime/try-runtime",
+  "testnet-runtime/try-runtime",
 ]

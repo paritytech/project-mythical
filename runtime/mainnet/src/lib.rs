@@ -11,7 +11,7 @@ pub mod xcm_config;
 pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
-use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, Concrete, ParaId};
+use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
@@ -345,7 +345,6 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type MaxHolds = ConstU32<2>;
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
@@ -441,7 +440,7 @@ impl pallet_message_queue::Config for Runtime {
 
 parameter_types! {
 	/// The asset ID for the asset that we use to pay for message delivery fees.
-	pub FeeAssetId: AssetId = Concrete(xcm_config::RelayLocation::get());
+	pub FeeAssetId: AssetId = AssetId(xcm_config::RelayLocation::get());
 	/// The base fee for the message delivery fees.
 	pub const BaseDeliveryFee: Balance = 300_000_000;
 	/// The fee per byte

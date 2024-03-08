@@ -11,7 +11,7 @@ pub mod xcm_config;
 pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
-use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, Concrete, ParaId};
+use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use pallet_tx_pause::RuntimeCallNameOf;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
@@ -34,7 +34,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
+	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
@@ -389,7 +389,6 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type MaxHolds = ConstU32<2>;
 	type MaxFreezes = ConstU32<0>;
 }
 
@@ -434,6 +433,16 @@ impl pallet_nfts::Config for Runtime {
 	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
+}
+
+impl pallet_marketplace::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type MaxExchangeItems = ConstU32<100>;
+	type MaxBasisPoints = ConstU128<10000>;
+	type MinOrderDuration = ConstU64<10>;
+	type NonceStringLimit = ConstU32<50>;
 }
 
 parameter_types! {
@@ -527,7 +536,7 @@ impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 parameter_types! {
 	/// The asset ID for the asset that we use to pay for message delivery fees.
-	pub FeeAssetId: AssetId = Concrete(xcm_config::RelayLocation::get());
+	pub FeeAssetId: AssetId = AssetId(xcm_config::RelayLocation::get());
 	/// The base fee for the message delivery fees.
 	pub const BaseDeliveryFee: Balance = 300_000_000;
 	/// The fee per byte
@@ -867,6 +876,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment = 11,
 		// NFTs
 		Nfts: pallet_nfts = 12,
+		Marketplace: pallet_marketplace = 13,
 
 		// Governance
 		Sudo: pallet_sudo = 15,

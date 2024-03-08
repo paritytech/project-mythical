@@ -41,7 +41,7 @@ jobs:
           echo "Found label runtime_migration. Running tests"
           echo "---------- Running try-runtime for Trappist ----------"
           cargo build --locked --release --features try-runtime && \
-          ./try-runtime --runtime ./target/release/wbuild/mythical-testnet/target/wasm32-unknown-unknown/release/mythical_testnet.wasm \
+          ./try-runtime --runtime ./target/release/wbuild/mythical-testnet/target/wasm32-unknown-unknown/release/testnet_runtime.wasm \
               on-runtime-upgrade --checks pre-and-post --disable-idempotency-checks live --uri wss://rococo-muse-rpc.polkadot.io:443
         env:
           RUST_LOG: remote-ext=debug,runtime=debug
