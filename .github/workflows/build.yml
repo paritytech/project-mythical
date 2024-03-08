@@ -48,9 +48,5 @@ jobs:
           cache-on-failure: true
           cache-all-crates: true
 
-      - name: Check Build
-        run: |
-          cargo check --release --features try-runtime,runtime-benchmarks
-
       - name: Run tests
-        run: cargo test --release --features try-runtime,runtime-benchmarks --locked --verbose --all
+        run: cargo test --all-features --locked

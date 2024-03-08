@@ -76,32 +76,6 @@ pub fn testnet_session_keys(keys: AuraId) -> mythical_testnet::SessionKeys {
 	mythical_testnet::SessionKeys { aura: keys }
 }
 
-fn check_sudo_key(authority_set: &mut Vec<AccountId>, threshold: u16) {
-	assert!(threshold > 0, "Threshold for sudo multisig cannot be 0");
-	assert!(!authority_set.is_empty(), "Sudo authority set cannot be empty");
-	assert!(
-		authority_set.len() >= threshold.into(),
-		"Threshold must be less than or equal to authority set members"
-	);
-	// Sorting is done to deterministically order the multisig set
-	// So that a single authority set (A, B, C) may generate only a single unique multisig key
-	// Otherwise, (B, A, C) or (C, A, B) could produce different keys and cause chaos
-	authority_set.sort();
-}
-
-/// Generate a multisig key from a given `authority_set` and a `threshold`
-/// Used for generating a multisig to use as sudo key for testnet.
-pub fn get_testnet_multisig_sudo_key(
-	mut authority_set: Vec<AccountId>,
-	threshold: u16,
-) -> AccountId {
-	check_sudo_key(&mut authority_set, threshold);
-	pallet_multisig::Pallet::<mythical_testnet::Runtime>::multi_account_id(
-		&authority_set[..],
-		threshold,
-	)
-}
-
 pub mod testnet {
 	use mythical_testnet::MUSE;
 
@@ -113,6 +87,8 @@ pub mod testnet {
 		properties.insert("tokenDecimals".into(), 18.into());
 		properties.insert("ss58Format".into(), 333.into());
 		properties.insert("isEthereum".into(), true.into());
+
+		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(6);
 
 		TestnetChainSpec::builder(
 			mythical_testnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
@@ -139,26 +115,33 @@ pub mod testnet {
 				),
 			],
 			vec![
-				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
-				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
-				AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-				AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
-				AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
-				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
+				(
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					balance_per_account,
+				), // Alith
+				(
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					balance_per_account,
+				), // Baltathar
+				(
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					balance_per_account,
+				), // Charleth
+				(
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+					balance_per_account,
+				), // Dorothy
+				(
+					AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
+					balance_per_account,
+				), // Ethan
+				(
+					AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
+					balance_per_account,
+				), // Faith
 			],
-			// Example multisig sudo key configuration:
-			// Configures 2/3 threshold multisig key
-			// Note: For using this multisig key as a sudo key, each individual signatory must possess funds
-			get_testnet_multisig_sudo_key(
-				vec![
-					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
-					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
-					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-				],
-				2,
-			),
-			PARA_ID.into(),
-			Some(1_000_000_000 * MUSE),
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			LOCAL_PARA_ID.into(),
 		))
 		.with_properties(properties)
 		.build()
@@ -171,6 +154,8 @@ pub mod testnet {
 		properties.insert("tokenDecimals".into(), 18.into());
 		properties.insert("ss58Format".into(), 333.into());
 		properties.insert("isEthereum".into(), true.into());
+
+		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(3);
 
 		TestnetChainSpec::builder(
 			mythical_testnet::WASM_BINARY.expect("WASM binary was not built, please build it!"),
@@ -197,13 +182,21 @@ pub mod testnet {
 				),
 			],
 			vec![
-				AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
-				AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
-				AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+				(
+					AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
+					balance_per_account,
+				),
+				(
+					AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
+					balance_per_account,
+				),
+				(
+					AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+					balance_per_account,
+				),
 			],
 			AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
 			PARA_ID.into(),
-			Some(1_000_000_000 * MUSE),
 		))
 		.with_protocol_id("muse")
 		.with_properties(properties)
@@ -212,28 +205,15 @@ pub mod testnet {
 
 	fn testnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
-		endowed_accounts: Vec<AccountId>,
+		endowed_accounts: Vec<(AccountId, mythical_testnet::Balance)>,
 		root_key: AccountId,
 		id: ParaId,
-		total_issuance: Option<mythical_testnet::Balance>,
 	) -> serde_json::Value {
 		use mythical_testnet::EXISTENTIAL_DEPOSIT;
 
-		let num_endowed_accounts = endowed_accounts.len();
-		let balances = match total_issuance {
-			Some(total_issuance) => {
-				let balance_per_endowed = total_issuance
-					.checked_div(num_endowed_accounts as mythical_testnet::Balance)
-					.unwrap_or(0 as mythical_testnet::Balance);
-
-				endowed_accounts.iter().cloned().map(|k| (k, balance_per_endowed)).collect()
-			},
-			None => vec![],
-		};
-
 		serde_json::json!({
 				"balances": {
-					"balances": balances
+					"balances": endowed_accounts,
 				},
 				"parachainInfo": {
 					"parachainId": id,
@@ -247,8 +227,8 @@ pub mod testnet {
 						.into_iter()
 						.map(|(acc, aura)| {
 							(
-								acc.clone(),               // account id
-								acc,                       // validator id
+								acc.clone(),                // account id
+								acc,                        // validator id
 								testnet_session_keys(aura), // session keys
 							)
 						})
@@ -275,6 +255,8 @@ pub mod mainnet {
 		properties.insert("ss58Format".into(), 333.into());
 		properties.insert("isEthereum".into(), true.into());
 
+		let balance_per_account = (1_000_000_000 * MYTH).saturating_div(6);
+
 		MainChainSpec::builder(
 			mythical_mainnet::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
@@ -300,16 +282,33 @@ pub mod mainnet {
 				),
 			],
 			vec![
-				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
-				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
-				AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-				AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
-				AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
-				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
+				(
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					balance_per_account,
+				), // Alith
+				(
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					balance_per_account,
+				), // Baltathar
+				(
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					balance_per_account,
+				), // Charleth
+				(
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+					balance_per_account,
+				), // Dorothy
+				(
+					AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
+					balance_per_account,
+				), // Ethan
+				(
+					AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
+					balance_per_account,
+				), // Faith
 			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 			LOCAL_PARA_ID.into(),
-			Some(1_000_000_000 * MYTH),
 		))
 		.with_properties(properties)
 		.build()
@@ -322,6 +321,8 @@ pub mod mainnet {
 		properties.insert("tokenDecimals".into(), 18.into());
 		properties.insert("ss58Format".into(), 333.into());
 		properties.insert("isEthereum".into(), true.into());
+
+		let balance_per_account = (1_000_000_000 * MYTH).saturating_div(3);
 
 		MainChainSpec::builder(
 			mythical_mainnet::WASM_BINARY.expect("WASM binary was not build, please build it!"),
@@ -348,13 +349,21 @@ pub mod mainnet {
 				),
 			],
 			vec![
-				AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
-				AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
-				AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+				(
+					AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
+					balance_per_account,
+				),
+				(
+					AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
+					balance_per_account,
+				),
+				(
+					AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+					balance_per_account,
+				),
 			],
 			AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
 			PARA_ID.into(),
-			Some(1_000_000_000 * MYTH),
 		))
 		.with_protocol_id("mythical")
 		.with_properties(properties)
@@ -363,31 +372,15 @@ pub mod mainnet {
 
 	fn mainnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
-		endowed_accounts: Vec<AccountId>,
+		endowed_accounts: Vec<(AccountId, mythical_mainnet::Balance)>,
 		root_key: AccountId,
 		id: ParaId,
-		total_issuance: Option<mythical_mainnet::Balance>,
 	) -> serde_json::Value {
 		use mythical_mainnet::EXISTENTIAL_DEPOSIT;
-		//TODO: Define multisig root account
-		//let alice = get_from_seed::<sr25519::Public>("Alice");
-		//let bob = get_from_seed::<sr25519::Public>("Bob");
-
-		let num_endowed_accounts = endowed_accounts.len();
-		let balances = match total_issuance {
-			Some(total_issuance) => {
-				let balance_per_endowed = total_issuance
-					.checked_div(num_endowed_accounts as mythical_mainnet::Balance)
-					.unwrap_or(0 as mythical_mainnet::Balance);
-
-				endowed_accounts.iter().cloned().map(|k| (k, balance_per_endowed)).collect()
-			},
-			None => vec![],
-		};
 
 		serde_json::json!({
 				"balances": {
-					"balances": balances
+					"balances": endowed_accounts,
 				},
 				"parachainInfo": {
 					"parachainId": id,

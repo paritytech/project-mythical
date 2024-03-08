@@ -28,7 +28,7 @@ parameter_types! {
 	pub SelfReserve: MultiLocation = MultiLocation { parents: 0, interior: Here };
 	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub UniversalLocation: InteriorMultiLocation = (GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())).into();
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -154,7 +154,7 @@ pub type Barrier = TrailingSetTopicAsId<
 			TakeWeightCredit,
 			WithComputedOrigin<
 				(
-					AllowTopLevelPaidExecutionFrom<Everything>,
+					AllowTopLevelPaidExecutionFrom<Nothing>,
 					// Parent and its exec plurality get free execution
 					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 				),
