@@ -30,9 +30,13 @@ parity-scale-codec = { version = "3.6.9", default-features = false, features = [
   "derive",
 ] }
 scale-info = { version = "2.10.0", default-features = false }
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.196", default-features = false, features = ["derive"] }
 serde_json = {version = "1.0.113", features = ["arbitrary_precision"]}
 smallvec = "1.13.1"
+impl-serde = { version = "0.3.1", default-features = false }
+libsecp256k1 = { version = "0.7", default-features = false }
+sha3 = { version = "0.10", default-features = false }
+hex = { version = "0.4.3", default-features = false }
 
 # Local dependencies
 mythical-testnet = { path = "runtime/testnet" }
@@ -98,6 +102,7 @@ sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-
 sp-keystore = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0" }
 sp-offchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
+sp-runtime-interface = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
 sp-session = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
 sp-std = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
 sp-timestamp = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0" }
@@ -145,6 +150,6 @@ xcm = { package = "staging-xcm", git = "https://github.com/paritytech/polkadot-s
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.6.0", default-features = false }
 
-# Frontier
-fp-account = { git = 'https://github.com/paritytech/frontier', branch = "polkadot-v1.6.0", default-features = false }
-fp-self-contained = { git = 'https://github.com/paritytech/frontier', branch = "polkadot-v1.6.0", default-features = false }
+# Primitives
+account = { path = "./primitives/account", default-features = false }
+fp-self-contained = { path = "./primitives/self-contained", default-features = false }

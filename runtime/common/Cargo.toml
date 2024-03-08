@@ -30,8 +30,8 @@ pallet-collator-selection = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
 
-# Frontier
-fp-account = { workspace = true, features = ["serde"] }
+# Primitives
+account = { workspace = true }
 
 
 [features]
@@ -42,7 +42,7 @@ std = [
   "sp-runtime/std",
   "sp-core/std",
   "sp-std/std",
-  "fp-account/std",
+  "account/std",
   "pallet-balances/std",
   "pallet-collator-selection/std"
 ]
