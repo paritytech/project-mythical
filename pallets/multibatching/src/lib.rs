@@ -30,6 +30,8 @@ pub mod pallet {
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+
         type RuntimeCall:
             Parameter
             + GetDispatchInfo
@@ -58,9 +60,22 @@ pub mod pallet {
     #[pallet::error]
     pub enum Error<T> {
         InvalidOrigin,
+        AlreadyApplied,
         BatchSenderIsNotOrigin,
         InvalidCallOrigin(u16),
         InvalidSignature(u16),
+    }
+
+    #[pallet::storage]
+    #[pallet::getter(fn applied)]
+    pub type Applied<T: Config> = StorageMap<_, Identity, T::Hash, (), ValueQuery>;
+
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        BatchApplied {
+            hash: T::Hash
+        },
     }
 
     /// A batch of calls.
@@ -73,6 +88,7 @@ pub mod pallet {
     #[scale_info(skip_type_params(T))]
     pub struct Batch<T: Config> {
         pub sender: T::AccountId,
+        pub bias: [u8; 32],
         pub calls: BoundedVec<BatchedCall<T>, T::MaxCalls>,
     }
 
@@ -81,6 +97,7 @@ pub mod pallet {
         fn clone(&self) -> Self {
             Self {
                 sender: self.sender.clone(),
+                bias: self.bias.clone(),
                 calls: self.calls.clone(),
             }
         }
@@ -165,6 +182,12 @@ pub mod pallet {
                 <T::Hashing>::hash(&bytes)
             };
 
+            if Applied::<T>::contains_key(&hash) {
+                return Err(Error::<T>::AlreadyApplied.into());
+            }
+
+            Applied::<T>::insert(hash, ());
+
             for (i, approval) in approvals.iter().enumerate() {
                 let ok = approval.signature.verify(hash.as_ref(), &approval.from.clone().into_account());
                 if !ok {
@@ -185,6 +208,8 @@ pub mod pallet {
                 let origin = <T::RuntimeOrigin>::from(frame_system::RawOrigin::Signed(payload.from.into_account()));
                 payload.call.dispatch_bypass_filter(origin).map_err(|e| e.error)?;
             }
+
+            Self::deposit_event(Event::BatchApplied { hash });
 
             Ok(())
         }
