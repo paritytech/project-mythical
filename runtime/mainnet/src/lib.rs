@@ -62,6 +62,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 
 // XCM Imports
 
+use crate::xcm_config::SelfReserve;
 use xcm::latest::prelude::BodyId;
 
 /// The address format for describing accounts.
@@ -440,7 +441,7 @@ impl pallet_message_queue::Config for Runtime {
 
 parameter_types! {
 	/// The asset ID for the asset that we use to pay for message delivery fees.
-	pub FeeAssetId: AssetId = AssetId(xcm_config::RelayLocation::get());
+	pub FeeAssetId: AssetId = AssetId(SelfReserve::get());
 	/// The base fee for the message delivery fees.
 	pub const BaseDeliveryFee: Balance = 300_000_000;
 	/// The fee per byte
@@ -457,7 +458,7 @@ pub type PriceForSiblingParachainDelivery = polkadot_runtime_common::xcm_sender:
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
+	type VersionWrapper = PolkadotXcm;
 	// Enqueue XCMP messages from siblings for later processing.
 	type XcmpQueue = frame_support::traits::TransformOrigin<
 		MessageQueue,

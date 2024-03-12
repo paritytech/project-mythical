@@ -3,7 +3,7 @@
 use frame_support::traits::{Get, OriginTrait};
 use xcm::latest::prelude::*;
 
-// Convert a local Origin (i.e., a signed 20 byte account Origin) to a Multilocation
+// Convert a local Origin (i.e., a signed 20 byte account Origin) to a Location
 pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
