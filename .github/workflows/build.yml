@@ -10,37 +10,15 @@ on:
 jobs:
   build:
     name: "Build"
-    runs-on: ubuntu-latest
+    runs-on: arc-runners-project-mythical
+    container:
+      image: "paritytech/ci-unified:bullseye-1.75.0-2024-01-22-v20240222"
     steps:
-      - name: Free up space on runner
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-
-      - name: Rust Setup
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-          components: rustfmt, clippy, rust-src
-
-      - name: Install protoc
-        run: |
-          sudo apt-get install -y protobuf-compiler
-          protoc --version
-
       - uses: actions/checkout@v3
 
       - name: Rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: stable
-          command: fmt
-          args: --all --check
+        run: |
+          cargo fmt --all --check
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.5.0
@@ -48,5 +26,9 @@ jobs:
           cache-on-failure: true
           cache-all-crates: true
 
+      - name: Check Build
+        run: |
+          cargo check --release --features try-runtime,runtime-benchmarks
+
       - name: Run tests
-        run: cargo test --all-features --locked
+        run: cargo test --release --features try-runtime,runtime-benchmarks --locked --verbose --all
