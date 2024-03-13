@@ -353,6 +353,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 impl pallet_multibatching::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
     type Signature = Signature;
     type Signer = <Signature as Verify>::Signer;
