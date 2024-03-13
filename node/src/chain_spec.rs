@@ -85,7 +85,7 @@ pub mod testnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into());
+		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(6);
@@ -152,7 +152,7 @@ pub mod testnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into());
+		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(3);
@@ -333,16 +333,42 @@ pub mod mainnet {
 		.with_name("Mythos")
 		.with_id("mythos")
 		.with_chain_type(ChainType::Live)
+		.with_boot_nodes(vec![
+			"/dns/polkadot-mythos-connect-0.polkadot.io/tcp/30333/p2p/12D3KooWJ3zJMjcReodmHx5KLm9LwbFtLvScncqj89UX5j8VYMUf"
+				.parse()
+				.expect("MultiaddrWithPeerId"),
+			"/dns/polkadot-mythos-connect-0.polkadot.io/tcp/443/wss/p2p/12D3KooWJ3zJMjcReodmHx5KLm9LwbFtLvScncqj89UX5j8VYMUf"
+				.parse()
+				.expect("MultiaddrWithPeerId"),
+			"/dns/polkadot-mythos-connect-1.polkadot.io/tcp/30333/p2p/12D3KooWLin9rPs8irgJZgFTab6nhQjFSVp6xYTPTrLGrbjZypeu"
+				.parse()
+				.expect("MultiaddrWithPeerId"),
+			"/dns/polkadot-mythos-connect-1.polkadot.io/tcp/443/wss/p2p/12D3KooWLin9rPs8irgJZgFTab6nhQjFSVp6xYTPTrLGrbjZypeu"
+				.parse()
+				.expect("MultiaddrWithPeerId"),
+		])
 		.with_genesis_config_patch(mainnet_genesis(
 			// initial collators.
 			vec![
 				(
-					get_account_id_from_seed::<ecdsa::Public>("Alice"),
-					get_collator_keys_from_seed("Alice"),
+					hex!("65c39EB8DDC9EA6F2135A28Ea670E97bc3CCc012").into(),
+					hex!("d609c361de761b4bf8ba1ae4f8e436e74e1324b0a9eac08b34e31413bbd3f27f")
+						.unchecked_into(),
 				),
 				(
-					get_account_id_from_seed::<ecdsa::Public>("Bob"),
-					get_collator_keys_from_seed("Bob"),
+					hex!("B9717024eB621a7AE331F92C3dC63a0aB60031c5").into(),
+					hex!("8abe92437bf6690bc8f75cea612a5898cd2823c23681b346f776337660316979")
+						.unchecked_into(),
+				),
+				(
+					hex!("F4d1C38f3Be73d7cD2123968141Aec3AbB393153").into(),
+					hex!("86360126eb30d60c9232206ba78a9fafb2322958bb3a021fa88ba09dfc753802")
+						.unchecked_into(),
+				),
+				(
+					hex!("E4f607AB7fA6b5Fd4f8127E051f151DaBb7279c6").into(),
+					hex!("b0909f6832d2f5120b874b3e1cbe1b72fb5ccdbc268ba79bebdd8e71ab41e334")
+						.unchecked_into(),
 				),
 			],
 			vec![

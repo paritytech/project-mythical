@@ -265,7 +265,7 @@ parameter_types! {
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
 	pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
-	pub const SS58Prefix: u16 = 42;
+	pub const SS58Prefix: u16 = 29972;
 }
 
 // Configure FRAME pallets to include in runtime.
