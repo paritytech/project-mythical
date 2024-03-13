@@ -244,7 +244,7 @@ pub mod testnet {
 }
 
 pub mod mainnet {
-	const PARA_ID: u32 = 3368; // TODO yet to be confirmed
+	const PARA_ID: u32 = 3369;
 	use mainnet_runtime::MYTH;
 
 	use super::*;
@@ -253,7 +253,7 @@ pub mod mainnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into());
+		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
 		let balance_per_account = (1_000_000_000 * MYTH).saturating_div(6);
@@ -320,7 +320,7 @@ pub mod mainnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into()); // TODO yet to be defined
+		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
 		MainChainSpec::builder(
@@ -330,7 +330,7 @@ pub mod mainnet {
 				para_id: PARA_ID,
 			},
 		)
-		.with_name("Mythos Mainnet")
+		.with_name("Mythos")
 		.with_id("mythos")
 		.with_chain_type(ChainType::Live)
 		.with_genesis_config_patch(mainnet_genesis(
@@ -346,25 +346,16 @@ pub mod mainnet {
 				),
 			],
 			vec![
-				(AccountId::from(hex!("f2Fe8Fb69552D82a0E82F18356eA086D545d1c7b")), 1_000 * MYTH),
 				(
-					AccountId::from(hex!("Af624Bf09102eD3B9Ecb5ba2c4CE6c5499dd26b2")),
-					50_000_000 * MYTH,
+					AccountId::from(hex!("742c722892976C23A3919ADC7A4B562169B91E41")),
+					1_000 * MYTH
 				),
 				(
-					AccountId::from(hex!("c0a328cC9Ee827f82f47Ad09f5e35E56034C79D1")),
-					10_000_000 * MYTH,
-				),
-				(
-					AccountId::from(hex!("DE8A092092151e21CD623529b620310D9ef9D2d1")),
-					80_000_000 * MYTH,
-				),
-				(
-					AccountId::from(hex!("D3f15E06af3FB1a066D260e97B4e42715eE35A68")),
-					131_999_000 * MYTH,
+					AccountId::from(hex!("f476dA221b07135b106d923b8884b76b09982B4F")),
+					150_000_000 * MYTH,
 				),
 			],
-			AccountId::from(hex!("f2Fe8Fb69552D82a0E82F18356eA086D545d1c7b")),
+			AccountId::from(hex!("742c722892976C23A3919ADC7A4B562169B91E41")),
 			PARA_ID.into(),
 		))
 		.with_protocol_id("mythos")
