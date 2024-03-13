@@ -85,7 +85,7 @@ pub mod testnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into());
+		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(6);
@@ -152,7 +152,7 @@ pub mod testnet {
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
 		properties.insert("tokenDecimals".into(), 18.into());
-		properties.insert("ss58Format".into(), 333.into());
+		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(3);
