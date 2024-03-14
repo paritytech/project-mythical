@@ -32,12 +32,12 @@ jobs:
         if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
-          cp target/production/mythical-node build/mythical-node
+          cp target/production/mythos-node build/mythos-node
       - name: Save parachain custom binary
         if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
-          cp target/production/mythical-node build/mythical-node-${{matrix.cpu}}
+          cp target/production/mythos-node build/mythos-node-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:

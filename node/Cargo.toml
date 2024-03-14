@@ -5,7 +5,7 @@ description = "A new Cumulus FRAME-based Substrate Node, ready for hacking toget
 edition = { workspace = true }
 homepage = { workspace = true }
 license = { workspace = true }
-name = "mythical-node"
+name = "mythos-node"
 repository = { workspace = true }
 version = "1.8.0"
 

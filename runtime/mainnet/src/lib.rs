@@ -211,8 +211,8 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("mythical"),
-	impl_name: create_runtime_str!("mythical"),
+	spec_name: create_runtime_str!("mythos"),
+	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
 	spec_version: 1000,
 	impl_version: 0,

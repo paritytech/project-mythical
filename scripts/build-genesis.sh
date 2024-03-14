@@ -4,14 +4,14 @@
 
 echo "Build genesis head and code for local"
 
-./target/release/mythical-node build-spec\
+./target/release/mythos-node build-spec\
   --disable-default-bootnode\
-  --chain=mainnet-dev > ./resources/mythical-shell-local.json
+  --chain=mainnet-dev > ./resources/mythos-shell-local.json
 
-./target/release/mythical-node build-spec\
-  --chain ./resources/mythical-shell-local.json\
+./target/release/mythos-node build-spec\
+  --chain ./resources/mythos-shell-local.json\
   --raw\
-  --disable-default-bootnode > ./resources/mythical-shell-local-raw.json
+  --disable-default-bootnode > ./resources/mythos-shell-local-raw.json
 
-./target/release/mythical-node export-genesis-state --chain ./resources/mythical-shell-local-raw.json > ./resources/mythical-shell-local-head-data
-./target/release/mythical-node export-genesis-wasm --chain ./resources/mythical-shell-local-raw.json > ./resources/mythical-shell-local-code
+./target/release/mythos-node export-genesis-state --chain ./resources/mythos-shell-local-raw.json > ./resources/mythos-shell-local-head-data
+./target/release/mythos-node export-genesis-wasm --chain ./resources/mythos-shell-local-raw.json > ./resources/mythos-shell-local-code

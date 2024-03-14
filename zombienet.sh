@@ -73,14 +73,14 @@ zombienet_build() {
 zombienet_testnet() {
   zombienet_init
   cargo build --release
-  echo "spawning rococo-local relay chain plus mythical testnet as a parachain..."
+  echo "spawning rococo-local relay chain plus mythos testnet as a parachain..."
   ./$ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
 }
 
 zombienet_mainnet() {
   zombienet_init
   cargo build --release
-  echo "spawning polkadot-local relay chain plus mythical mainnet as a parachain..."
+  echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain..."
   ./$ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
 }
 
@@ -90,8 +90,8 @@ print_help() {
   echo ""
   echo "$ ./zombienet.sh init         # fetches zombienet and polkadot executables"
   echo "$ ./zombienet.sh build        # builds polkadot executables from source"
-  echo "$ ./zombienet.sh testnet      # spawns a rococo-local relay chain plus mythical testnet-local as a parachain"
-  echo "$ ./zombienet.sh mainnet      # spawns a polkadot-local relay chain plus mythical mainnet-local as a parachain"
+  echo "$ ./zombienet.sh testnet      # spawns a rococo-local relay chain plus mythos testnet-local as a parachain"
+  echo "$ ./zombienet.sh mainnet      # spawns a polkadot-local relay chain plus mythos mainnet-local as a parachain"
 }
 
 SUBCOMMAND=$1

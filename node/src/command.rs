@@ -73,9 +73,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 			Box::new(chain_spec::testnet::development_config())
 		},
 		"muse" | "testnet" => Box::new(chain_spec::testnet::testnet_config()),
-		// Mainnet - Mythical
+		// Mainnet - Mythos
 		"main" | "mainnet-dev" | "local-v" => Box::new(chain_spec::mainnet::development_config()),
-		"mythical" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
+		"mythos" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
 		path => {
 			let path: PathBuf = path.into();
 			match path.runtime() {

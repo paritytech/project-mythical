@@ -268,7 +268,7 @@ pub mod mainnet {
 		// Name
 		.with_name("Development MYTH Mainnet")
 		// ID
-		.with_id("mainnet_mythical_network_dev")
+		.with_id("mainnet_mythos_network_dev")
 		.with_chain_type(ChainType::Development)
 		.with_genesis_config_patch(mainnet_genesis(
 			// initial collators.
