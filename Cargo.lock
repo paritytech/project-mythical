@@ -5731,7 +5731,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mythical-node"
+name = "mythos-node"
 version = "1.8.0"
 dependencies = [
  "clap",

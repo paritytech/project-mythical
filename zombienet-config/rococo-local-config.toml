@@ -17,4 +17,4 @@ cumulus_based = true
 
   [parachains.collator]
   name = "parachain-collator01"
-  command = "./target/release/mythical-node"
+  command = "./target/release/mythos-node"

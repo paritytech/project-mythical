@@ -1,8 +1,8 @@
-# Mythical Parachain Node
+# Mythos Parachain Node
 
 ### 🔰 Description
 
-Parachain node for the Mythical Games blockchain platform.
+Parachain node for the Mythos Games blockchain platform.
 
 ### 🦀 Setup
 
@@ -25,7 +25,7 @@ cargo build --release
 Or containerize with
 
 ```sh
-docker build -t mythical-node --file ./docker/Dockerfile .
+docker build -t mythos-node --file ./docker/Dockerfile .
 ```
 
 ### 🕸️ Run a local network

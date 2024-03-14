@@ -33,10 +33,10 @@ cumulus_based = true
     [[parachains.collators]]
     name = "collator1"
     ws_port = 9920
-    command = "./target/release/mythical-node"
+    command = "./target/release/mythos-node"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
     name = "collator2"
-    command = "./target/release/mythical-node"
+    command = "./target/release/mythos-node"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
