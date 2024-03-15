@@ -18,12 +18,9 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{fungible::{Inspect, Mutate, MutateHold},},
+		traits::fungible::{Inspect, Mutate, MutateHold},
 	};
-	use frame_system::{
-		ensure_signed,
-		pallet_prelude::*,
-	};
+	use frame_system::{ensure_signed, pallet_prelude::*};
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 	use sp_std::vec::Vec;
@@ -47,7 +44,7 @@ pub mod pallet {
 
 		/// Overarching hold reason.
 		type RuntimeHoldReason: From<HoldReason>;
-		
+
 		/// The minimum amount of time for an ask duration.
 		#[pallet::constant]
 		type MinOrderDuration: Get<Self::Moment>;
@@ -79,7 +76,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn payout_address)]
 	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
-	
+
 	#[pallet::storage]
 	#[pallet::getter(fn nonces)]
 	pub type Nonces<T: Config> =
@@ -112,17 +109,11 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// The pallet's authority was updated.
-		AuthorityUpdated {
-			authority: T::AccountId,
-		},
+		AuthorityUpdated { authority: T::AccountId },
 		/// The fee signer account was updated.
-		FeeSignerAddressUpdate {
-			fee_signer: T::AccountId,
-		},
+		FeeSignerAddressUpdate { fee_signer: T::AccountId },
 		/// The payout address account was updated.
-		PayoutAddressUpdated {
-			payout_address: T::AccountId,
-		},
+		PayoutAddressUpdated { payout_address: T::AccountId },
 		/// An Ask/Bid order was created.
 		OrderCreated {
 			who: T::AccountId,
@@ -141,11 +132,7 @@ pub mod pallet {
 			price: BalanceOf<T>,
 		},
 		/// The order was canceled by the order creator or the pallet's authority.
-		OrderCanceled {
-			collection: T::CollectionId,
-			item: T::ItemId,
-			who: T::AccountId,
-		},
+		OrderCanceled { collection: T::CollectionId, item: T::ItemId, who: T::AccountId },
 	}
 
 	#[pallet::error]
@@ -274,7 +261,14 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn create_order(
 			origin: OriginFor<T>,
-			order: Order<T::CollectionId, T::ItemId, BalanceOf<T>, T::Moment, T::OffchainSignature, Vec<u8>>,
+			order: Order<
+				T::CollectionId,
+				T::ItemId,
+				BalanceOf<T>,
+				T::Moment,
+				T::OffchainSignature,
+				Vec<u8>,
+			>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 

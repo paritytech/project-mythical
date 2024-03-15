@@ -1,7 +1,5 @@
 use crate::{mock::*, *};
-use frame_support::{
-	assert_noop, assert_ok, error::BadOrigin
-};
+use frame_support::{assert_noop, assert_ok, error::BadOrigin};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 
