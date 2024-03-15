@@ -439,7 +439,7 @@ impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type MaxExchangeItems = ConstU32<100>;
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
