@@ -353,11 +353,11 @@ impl pallet_balances::Config for Runtime {
 }
 
 impl pallet_multibatching::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type RuntimeCall = RuntimeCall;
-    type Signature = Signature;
-    type Signer = <Signature as Verify>::Signer;
-    type MaxCalls = ConstU32<128>;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type MaxCalls = ConstU32<128>;
 }
 
 parameter_types! {
@@ -731,7 +731,7 @@ construct_runtime!(
 		// NFTs
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
-        Multibatching: pallet_multibatching = 14,
+		Multibatching: pallet_multibatching = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
