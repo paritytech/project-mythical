@@ -78,9 +78,10 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		"main" | "mainnet-dev" | "mainnnet-local-v" => {
 			Box::new(chain_spec::mainnet::development_config())
 		},
-		"mythos" | "mainnet" => Box::new(GenericChainSpec::from_json_bytes(
+		"mythos-raw" => Box::new(GenericChainSpec::from_json_bytes(
 			&include_bytes!("../../chainspecs/mythos-raw.json")[..],
 		)?),
+		"mythos" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
 		path => {
 			let path: PathBuf = path.into();
 			match path.runtime() {

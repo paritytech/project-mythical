@@ -313,7 +313,7 @@ pub mod mainnet {
 		.build()
 	}
 
-	pub fn _mainnet_config() -> MainChainSpec {
+	pub fn mainnet_config() -> MainChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());
