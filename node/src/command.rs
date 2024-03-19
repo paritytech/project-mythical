@@ -69,12 +69,14 @@ impl RuntimeResolver for PathBuf {
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		// Testnet - Muse
-		"" | "dev" | "testnet-local" | "local" => {
+		"" | "dev" | "testnet-local" | "local-v" => {
 			Box::new(chain_spec::testnet::development_config())
 		},
 		"muse" | "testnet" => Box::new(chain_spec::testnet::testnet_config()),
 		// Mainnet - Mythos
-		"main" | "mainnet-dev" | "local-v" => Box::new(chain_spec::mainnet::development_config()),
+		"main" | "mainnet-dev" | "mainnnet-local-v" => {
+			Box::new(chain_spec::mainnet::development_config())
+		},
 		"mythos" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
 		path => {
 			let path: PathBuf = path.into();
