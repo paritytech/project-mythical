@@ -6715,6 +6715,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-migration"
+version = "0.0.1"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "pallet-marketplace",
+ "pallet-nfts",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
+]
+
+[[package]]
 name = "pallet-mmr"
 version = "27.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0#ec7817e5adc2f3a91dd94b0465dd61b4c1b07ab7"
@@ -13079,6 +13099,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-marketplace",
  "pallet-message-queue",
+ "pallet-migration",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-preimage",

@@ -403,8 +403,8 @@ parameter_types! {
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
 }
 
-pub type CollectionId = u32;
-pub type ItemId = u32;
+pub type CollectionId = u128;
+pub type ItemId = u128;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -443,6 +443,11 @@ impl pallet_marketplace::Config for Runtime {
 	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
+}
+
+impl pallet_migration::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
 }
 
 parameter_types! {
@@ -877,6 +882,7 @@ construct_runtime!(
 		// NFTs
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
+		Migration: pallet_migration = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
