@@ -24,6 +24,7 @@ smallvec = { workspace = true }
 # Local
 runtime-common = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
+pallet-migration = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
@@ -115,6 +116,7 @@ std = [
   "pallet-balances/std",
   "pallet-collator-selection/std",
   "pallet-marketplace/std",
+  "pallet-migration/std",
   "pallet-multisig/std",
   "pallet-nfts/std",
   "pallet-session/std",
