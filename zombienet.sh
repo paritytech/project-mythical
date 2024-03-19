@@ -2,7 +2,7 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.91
+ZOMBIENET_V=v1.3.95
 POLKADOT_V=v1.8.0
 
 case "$(uname -s)" in
@@ -13,11 +13,13 @@ esac
 
 if [ $MACHINE = "Linux" ]; then
   ZOMBIENET_BIN=zombienet-linux-x64
+  IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
   ZOMBIENET_BIN=zombienet-macos
+  IS_LINUX=0
 fi
 
-BIN_DIR=bin-$POLKADOT_V
+BIN_DIR=bin
 
 build_polkadot(){
   echo "cloning polkadot repository..."
@@ -55,7 +57,11 @@ zombienet_init() {
     chmod +x $ZOMBIENET_BIN
   fi
   if [ ! -f $BIN_DIR/polkadot ]; then
-    fetch_polkadot
+    if [ "$IS_LINUX" -eq 1 ]; then
+        fetch_polkadot
+    else
+        build_polkadot
+    fi
   fi
 }
 

@@ -13,6 +13,7 @@ fi
 
 echo "Build genesis head and code for chain $chain"
 
+mkdir -p ./resources
 ./target/release/mythos-node build-spec --chain="$chain" > "./resources/$chain.json"
 
 ./target/release/mythos-node build-spec \
