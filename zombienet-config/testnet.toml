@@ -11,7 +11,7 @@ default_command = "./bin/polkadot"
 	validator = true
 
 [[parachains]]
-id = 201804
+id = 3369
 addToGenesis = true
 cumulus_based = true
 chain = "local-v"

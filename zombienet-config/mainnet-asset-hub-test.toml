@@ -43,7 +43,7 @@ cumulus_based = true
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
 [[parachains]]
-id = 2000
+id = 3369
 chain = "local-v"
 cumulus_based = true
 
