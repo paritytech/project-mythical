@@ -21,8 +21,6 @@ pub type TestnetChainSpec =
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
-const LOCAL_PARA_ID: u32 = 2000;
-
 /// Helper function to generate a crypto pair from seed
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
 	TPublic::Pair::from_string(&format!("//{}", seed), None)
@@ -141,7 +139,7 @@ pub mod testnet {
 				), // Faith
 			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			LOCAL_PARA_ID.into(),
+			PARA_ID.into(),
 		))
 		.with_properties(properties)
 		.build()
@@ -262,7 +260,7 @@ pub mod mainnet {
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
 				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
-				para_id: LOCAL_PARA_ID,
+				para_id: PARA_ID,
 			},
 		)
 		// Name
@@ -309,13 +307,13 @@ pub mod mainnet {
 				), // Faith
 			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			LOCAL_PARA_ID.into(),
+			PARA_ID.into(),
 		))
 		.with_properties(properties)
 		.build()
 	}
 
-	pub fn mainnet_config() -> MainChainSpec {
+	pub fn _mainnet_config() -> MainChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());

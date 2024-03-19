@@ -3,6 +3,7 @@ use std::{net::SocketAddr, path::PathBuf};
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::info;
+use polkadot_service::GenericChainSpec;
 use runtime_common::Block;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -77,7 +78,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		"main" | "mainnet-dev" | "mainnnet-local-v" => {
 			Box::new(chain_spec::mainnet::development_config())
 		},
-		"mythos" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
+		"mythos" | "mainnet" => Box::new(GenericChainSpec::from_json_bytes(
+			&include_bytes!("../../chainspecs/mythos-raw.json")[..],
+		)?),
 		path => {
 			let path: PathBuf = path.into();
 			match path.runtime() {
