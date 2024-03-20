@@ -1,4 +1,6 @@
+use self::mock::Timestamp;
 use crate::{mock::*, *};
+use account::{EthereumSignature, EthereumSigner};
 use frame_support::{
 	assert_noop, assert_ok,
 	error::BadOrigin,
@@ -15,9 +17,6 @@ use sp_core::{
 	Get, Pair,
 };
 use sp_runtime::{traits::IdentifyAccount, BoundedVec, MultiSignature};
-use account::{EthereumSignature, EthereumSigner};
-use self::mock::Timestamp;
-
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 type CollectionId<Test> = <Test as pallet_nfts::Config>::CollectionId;
@@ -89,7 +88,8 @@ fn append_valid_signature(
 	wrapped_data.extend(b"\x19Ethereum Signed Message:\n32");
 	wrapped_data.extend(&message);
 
-	let signature = EthereumSignature::from(MultiSignature::Ecdsa(fee_signer_pair.sign(&wrapped_data)));
+	let signature =
+		EthereumSignature::from(MultiSignature::Ecdsa(fee_signer_pair.sign(&wrapped_data)));
 	order.signature_data.signature = signature;
 }
 
@@ -105,7 +105,7 @@ fn mint_item(item: u32, owner: AccountIdOf<Test>) {
 	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, item, owner, None));
 }
 
-pub fn raw_signature(bytes: [u8;65]) -> EthereumSignature {
+pub fn raw_signature(bytes: [u8; 65]) -> EthereumSignature {
 	EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(bytes)))
 }
 
@@ -661,10 +661,7 @@ mod create_ask {
 				expires_at,
 				price: 10000,
 				fee_percent: max_basis_points,
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
@@ -944,10 +941,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
@@ -997,10 +991,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: 10000,
 				fee_percent: max_basis_points,
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
@@ -1065,10 +1056,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
@@ -1133,10 +1121,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
@@ -1191,10 +1176,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
@@ -1271,10 +1253,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: vec![1],
-				},
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
