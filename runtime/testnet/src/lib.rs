@@ -443,6 +443,9 @@ impl pallet_marketplace::Config for Runtime {
 	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -911,6 +914,7 @@ mod benches {
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
+		[pallet_marketplace, Marketplace]
 		// TODO include this after https://github.com/polkadot-evm/frontier/pull/1295 gets merged
 		[pallet_nfts, Nfts]
 		[pallet_preimage, Preimage]
