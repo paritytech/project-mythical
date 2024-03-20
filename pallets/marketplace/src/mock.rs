@@ -103,6 +103,9 @@ impl pallet_marketplace::Config for Test {
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
 	type MaxBasisPoints = ConstU128<10000>;
+	type Signature = Signature;
+	type Signer = AccountPublic;
+	type WeightInfo = ();
 }
 
 impl pallet_balances::Config for Test {
