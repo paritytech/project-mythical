@@ -18,16 +18,12 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{Incrementable, LockableCurrency},
+		traits::fungible::{Inspect, Mutate, MutateHold},
 	};
-	use frame_system::{
-		ensure_signed,
-		pallet_prelude::{BlockNumberFor, *},
-	};
+	use frame_system::{ensure_signed, pallet_prelude::*};
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
-	use sp_runtime::Permill;
-
+	use sp_std::vec::Vec;
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -41,8 +37,13 @@ pub mod pallet {
 			+ UnfilteredDispatchable<RuntimeOrigin = Self::RuntimeOrigin>
 			+ GetDispatchInfo;
 
-		/// The currency trait.
-		type Currency: LockableCurrency<Self::AccountId>;
+		/// The fungible trait use for balance holds and transfers.
+		type Currency: Inspect<Self::AccountId>
+			+ Mutate<Self::AccountId>
+			+ MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
+
+		/// Overarching hold reason.
+		type RuntimeHoldReason: From<HoldReason>;
 
 		/// The minimum amount of time for an ask duration.
 		#[pallet::constant]
@@ -50,15 +51,18 @@ pub mod pallet {
 
 		/// Used for calculation of fees
 		#[pallet::constant]
-		type MaxBasisPoints: Get<u128>;
-
-		/// Maximum amount of items allowed for a suggestion and wantAsk in an exchange
-		#[pallet::constant]
-		type MaxExchangeItems: Get<u32>;
+		type MaxBasisPoints: Get<BalanceOf<Self>>;
 
 		/// Size of nonce StorageValue
 		#[pallet::constant]
 		type NonceStringLimit: Get<u32>;
+	}
+
+	/// A reason for the pallet placing a hold on funds.
+	#[pallet::composite_enum]
+	pub enum HoldReason {
+		/// Funds are held for a created bid.
+		MarketplaceBid,
 	}
 
 	#[pallet::storage]
@@ -70,13 +74,13 @@ pub mod pallet {
 	pub type FeeSigner<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn payout_address)]
+	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn nonces)]
 	pub type Nonces<T: Config> =
 		StorageMap<_, Identity, BoundedVec<u8, T::NonceStringLimit>, bool, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn payout_address)]
-	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn asks)]
@@ -86,7 +90,7 @@ pub mod pallet {
 		T::CollectionId,
 		Blake2_128Concat,
 		T::ItemId,
-		Ask<T::AccountId, BalanceOf<T>, BlockNumberFor<T>>,
+		Ask<T::AccountId, BalanceOf<T>, T::Moment>,
 	>;
 
 	#[pallet::storage]
@@ -98,54 +102,18 @@ pub mod pallet {
 			NMapKey<Blake2_128Concat, T::ItemId>,
 			NMapKey<Blake2_128Concat, BalanceOf<T>>,
 		),
-		Bid<T::AccountId, BlockNumberFor<T>, BalanceOf<T>>,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn suggestions)]
-	pub type Suggestions<T: Config> = StorageMap<
-		_,
-		Blake2_128Concat,
-		HashId,
-		Suggestion<T::CollectionId, T::ItemId, BalanceOf<T>, T::AccountId>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn want_asks)]
-	pub type WantAsks<T: Config> = StorageMap<
-		_,
-		Blake2_128Concat,
-		HashId,
-		WantAsk<T::CollectionId, T::ItemId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn exchanges)]
-	pub type Exchanges<T: Config> = StorageMap<
-		_,
-		Blake2_128Concat,
-		HashId,
-		Exchange<T::AccountId, BlockNumberFor<T>, BalanceOf<T>>,
-		OptionQuery,
+		Bid<T::AccountId, T::Moment, BalanceOf<T>>,
 	>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// The pallet's authority was updated.
-		AuthorityUpdated {
-			authority: T::AccountId,
-		},
+		AuthorityUpdated { authority: T::AccountId },
 		/// The fee signer account was updated.
-		FeeSignerAddressUpdate {
-			fee_signer: T::AccountId,
-		},
+		FeeSignerAddressUpdate { fee_signer: T::AccountId },
 		/// The payout address account was updated.
-		PayoutAddressUpdated {
-			payout_address: T::AccountId,
-		},
+		PayoutAddressUpdated { payout_address: T::AccountId },
 		/// An Ask/Bid order was created.
 		OrderCreated {
 			who: T::AccountId,
@@ -164,38 +132,7 @@ pub mod pallet {
 			price: BalanceOf<T>,
 		},
 		/// The order was canceled by the order creator or the pallet's authority.
-		OrderCanceled {
-			collection: T::CollectionId,
-			item: T::ItemId,
-			who: T::AccountId,
-		},
-		/// An exchange was created.
-		ExchangeCreated {
-			who: T::AccountId,
-			exchange: HashId,
-		},
-		/// An exchange suggestion was filled
-		SuggestionFilled {
-			who: T::AccountId,
-			exchange: HashId,
-			collection: T::CollectionId,
-			item: T::ItemId,
-		},
-		// An exchange was executed.
-		ExchangeExecuted(HashId),
-		/// A suggestion was canceled by its creator.
-		/// TODO: change item type after mock
-		SuggestionCanceled {
-			who: T::AccountId,
-			exchange: HashId,
-			collection: T::CollectionId,
-			item: T::CollectionId, //Should be ItemId but this type doesn't have any default values that can be used to simulate the event
-		},
-		/// The exchange was canceled by its creator.
-		ExchangeCanceled {
-			who: T::AccountId,
-			exchange: HashId,
-		},
+		OrderCanceled { collection: T::CollectionId, item: T::ItemId, who: T::AccountId },
 	}
 
 	#[pallet::error]
@@ -204,6 +141,10 @@ pub mod pallet {
 		NotAuthority,
 		/// Tried to store an account that is already set for this storage value.
 		AccountAlreadySet,
+		//// The fee signer address doesn't exist
+		FeeSignerAddressNotSet,
+		// The payout address doesn't exist
+		PayoutAddressNotSet,
 		/// The item was not found.
 		ItemNotFound,
 		/// The provided price is too low.
@@ -216,48 +157,28 @@ pub mod pallet {
 		OrderAlreadyExists,
 		/// Item can only be operated by the Item owner.
 		NotItemOwner,
+		/// Invalid Signed message
+		BadSignedMessage,
 		/// The Item is already locked and can't be used.
 		ItemAlreadyLocked,
+		/// Nonce has already been used
+		AlreadyUsedNonce,
 		/// The item is already owned by the account trying to bid on it.
 		BidOnOwnedItem,
-		/// Invalid payment amount, should be higher than MaxBasisPoints.
-		InvalidPayAmount,
 		/// Not allowed for the buyer of an item to be the same as the seller.
 		BuyerIsSeller,
 		/// The ask is already past its expiration time.
-		AskExpired,
+		OrderExpired,
 		/// The order was not found.
 		OrderNotFound,
-		/// Exchange suggestion has already been filled.
-		AlreadyFilled,
-		/// Not enough balance to pay for bid.
-		BalanceInsufficient,
-		/// The exchange with the specified hash was not found.
-		ExchangeNotFound,
-		/// The exchange is already past its expiration time.
-		ExchangeExpired,
-		/// The exchange suggestion item has not been filled.
-		ItemNotFilled,
-		/// The item is unavailable.
-		ItemUnavailable,
-		/// The exchange has already been executed.
-		AlreadyExecuted,
-		/// The exchange is canceled.
-		AlreadyCanceled,
-		/// No suggesions were provided.
-		SuggestionsEmpty,
-		/// No wantAsks were provided.
-		WantAsksEmpty,
-		/// An exchange with the same caracteristics already exists.
-		ExchangeAlreadyExists,
-		/// Duplicated item in exchange suggestions or wasnAsks.
-		ItemAlreadyInExchange,
-		/// The wanted item is not available as an Ask.
-		AskNotInMarketplace,
-		/// Sugggestions will not generate enough value to exchange for suggested asks.
-		NotEnoughValueForExchange,
-		///Internal Error - TODO: Remove after mock
-		InternalError,
+		/// User Balance is insufficient for the required action
+		InsufficientFunds,
+		/// The caller is not the orderc creator or the admin account of the pallet
+		NotOrderCreatorOrAdmin,
+		/// The provided nonce had an invalid size
+		BadNonce,
+		/// An overflow happened.
+		Overflow,
 	}
 
 	#[pallet::call]
@@ -271,6 +192,11 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure_root(origin)?;
 
+			ensure!(
+				Authority::<T>::get().as_ref() != Some(&authority),
+				Error::<T>::AccountAlreadySet
+			);
+
 			Authority::<T>::put(authority.clone());
 			Self::deposit_event(Event::AuthorityUpdated { authority });
 			Ok(())
@@ -283,8 +209,15 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			fee_signer: T::AccountId,
 		) -> DispatchResult {
-			ensure_signed(origin)?;
+			let who = ensure_signed(origin)?;
+			Self::ensure_authority(&who)?;
 
+			ensure!(
+				FeeSigner::<T>::get().as_ref() != Some(&fee_signer),
+				Error::<T>::AccountAlreadySet
+			);
+
+			FeeSigner::<T>::put(fee_signer.clone());
 			Self::deposit_event(Event::FeeSignerAddressUpdate { fee_signer });
 			Ok(())
 		}
@@ -296,8 +229,15 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			payout_address: T::AccountId,
 		) -> DispatchResult {
-			ensure_signed(origin)?;
+			let who = ensure_signed(origin)?;
+			Self::ensure_authority(&who)?;
 
+			ensure!(
+				PayoutAddress::<T>::get().as_ref() != Some(&payout_address),
+				Error::<T>::AccountAlreadySet
+			);
+
+			PayoutAddress::<T>::put(payout_address.clone());
 			Self::deposit_event(Event::PayoutAddressUpdated { payout_address });
 			Ok(())
 		}
@@ -326,7 +266,8 @@ pub mod pallet {
 				T::ItemId,
 				BalanceOf<T>,
 				T::Moment,
-				BoundedVec<u8, T::NonceStringLimit>,
+				T::OffchainSignature,
+				Vec<u8>,
 			>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -361,149 +302,26 @@ pub mod pallet {
 		///
 		/// If the order is an Ask the item is unlocked
 		/// If the order is a Bid the bidders balance is unlocked
-		///
-		/// Distinction between ask an bid determined by wheter the price is specified (Bid) or not (Ask)
 		#[pallet::call_index(4)]
 		#[pallet::weight({0})]
 		pub fn cancel_order(
 			origin: OriginFor<T>,
+			order_type: OrderType,
 			collection: T::CollectionId,
 			item: T::ItemId,
-			price: Option<BalanceOf<T>>,
+			price: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::deposit_event(Event::OrderCanceled { collection, item, who });
 			Ok(())
 		}
-
-		/// Create an exchange with the NFTs that the user is looking to sell and the NFTs it's looking to buy with the profit of the sale.
-		/// - The offered items (suggestions) get locked from transfer
-		/// - The wanted asks must already exist in the marketplace as Asks
-		/// - The expiration must be above MinOrderDuration
-		/// - Can specify an initial_amount to lock from the users balance. This will later be used to purchase the items.
-		#[pallet::call_index(5)]
-		#[pallet::weight({0})]
-		pub fn create_exchange(
-			origin: OriginFor<T>,
-			suggestions: BoundedVec<
-				Suggestion<T::CollectionId, T::ItemId, BalanceOf<T>, T::AccountId>,
-				T::MaxExchangeItems,
-			>,
-			want_asks: BoundedVec<
-				WantAsk<T::CollectionId, T::ItemId, BalanceOf<T>>,
-				T::MaxExchangeItems,
-			>,
-			expiration_time: BlockNumberFor<T>,
-			initial_amount: Option<BalanceOf<T>>,
-		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			Self::deposit_event(Event::ExchangeCreated { who, exchange: [0; 32] });
-			Ok(())
-		}
-
-		/// Allows users to participate in the purchase of a suggestion inside an exchange.
-		///
-		/// The user commits to buying the item once the exchange is executed so the funds
-		/// needed to purchase the item + fees are locked from the user's Balance.
-		#[pallet::call_index(6)]
-		#[pallet::weight({0})]
-		pub fn fill_suggestion(
-			origin: OriginFor<T>,
-			exchange: HashId,
-			collection: T::CollectionId,
-			item: T::ItemId,
-			fee: BalanceOf<T>,
-		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			Self::deposit_event(Event::SuggestionFilled { who, exchange, collection, item });
-			Ok(())
-		}
-
-		/// Trade suggested items with bidders that filled the suggestions and purchase the wantAsks
-		/// - Bidders receive the unlocked item
-		/// - Exchanger receives funds from sold items
-		/// - After selling the items, the wantAsks are purchased from the marketplace using the generate profit
-		/// - All the charged fees from bidders, sellers and exchanger go to the PayoutAddress
-		///
-		/// Only callable by exchange creator and when all suggestions have been filled.
-		#[pallet::call_index(7)]
-		#[pallet::weight({0})]
-		pub fn execute_exchange(
-			origin: OriginFor<T>,
-			exec_suggestion: BoundedVec<
-				ExecSuggestion<BoundedVec<u8, T::NonceStringLimit>>,
-				T::MaxExchangeItems,
-			>,
-			exec_want_ask: BoundedVec<
-				ExecWantAsk<BoundedVec<u8, T::NonceStringLimit>>,
-				T::MaxExchangeItems,
-			>,
-		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			Self::deposit_event(Event::ExchangeExecuted([0; 32]));
-			Ok(())
-		}
-
-		/// Cancel an already filled suggestion. The suggestion must be part of an unclosed exchange
-		///
-		/// Only callable by user that filled the suggestion.
-		///
-		/// Unlocks amount of balance that the user locked for the purchase of the item.
-		#[pallet::call_index(8)]
-		#[pallet::weight({0})]
-		pub fn cancel_suggestion(
-			origin: OriginFor<T>,
-			exchange: HashId,
-			item_key: HashId,
-		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			// Only used for id simulation for mock - TODO: Remove after mock
-			let id = T::CollectionId::initial_value().ok_or(Error::<T>::InternalError)?;
-
-			Self::deposit_event(Event::SuggestionCanceled {
-				who,
-				exchange,
-				collection: id,
-				item: id,
-			});
-			Ok(())
-		}
-
-		/// Cancels existing exchange marking it as closed. Only available for open exchanges
-		///
-		/// The suggested items and balance of the exchanger get unlocked
-		/// Users that filled a suggestion get their balances unlocked
-		///
-		/// Only callable by exchange creator
-		#[pallet::call_index(9)]
-		#[pallet::weight({0})]
-		pub fn cancel_exchange(origin: OriginFor<T>, exchange: HashId) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			Self::deposit_event(Event::ExchangeCanceled { who, exchange });
-			Ok(())
-		}
 	}
 	impl<T: Config> Pallet<T> {
 		pub fn ensure_authority(who: &T::AccountId) -> Result<(), Error<T>> {
-			match Authority::<T>::get().as_ref() {
-				Some(who) => Ok(()),
+			match Authority::<T>::get().as_ref() == Some(who) {
+				true => Ok(()),
 				_ => Err(Error::<T>::NotAuthority),
 			}
 		}
-		/* //TODO: create functionalities inside types.rs
-		pub fn valid_match_exists_for() -> bool {
-			true
-		}
-		pub fn calc_bid_payment() -> u128 {
-			0u128
-		}
-		pub fn validate_exchange() -> bool {
-			true
-		} */
 	}
 }
