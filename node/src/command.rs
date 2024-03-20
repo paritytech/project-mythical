@@ -75,7 +75,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		},
 		"muse" | "testnet" => Box::new(chain_spec::testnet::testnet_config()),
 		// Mainnet - Mythos
-		"main" | "mainnet-dev" | "mainnnet-local-v" => {
+		"main" | "mainnet-dev" | "mainnet-local-v" => {
 			Box::new(chain_spec::mainnet::development_config())
 		},
 		"mythos" | "mainnet" => Box::new(GenericChainSpec::from_json_bytes(
