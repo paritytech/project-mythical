@@ -14,9 +14,10 @@ use sp_core::{
 	ecdsa::{Pair as KeyPair, Signature},
 	Get, Pair,
 };
-use sp_runtime::{traits::IdentifyAccount, BoundedVec, MultiSignature, MultiSigner};
-
+use sp_runtime::{traits::IdentifyAccount, BoundedVec, MultiSignature};
+use account::{EthereumSignature, EthereumSigner};
 use self::mock::Timestamp;
+
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 type CollectionId<Test> = <Test as pallet_nfts::Config>::CollectionId;
@@ -26,12 +27,12 @@ type Moment<Test> = <Test as pallet_timestamp::Config>::Moment;
 type Balance<Test> = <Test as pallet_balances::Config>::Balance;
 
 fn account(id: u8) -> AccountIdOf<Test> {
-	[id; 32].into()
+	[id; 20].into()
 }
 
 fn admin_accounts_setup() -> (AccountIdOf<Test>, KeyPair) {
 	let admin_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
-	let admin_signer = MultiSigner::Ecdsa(admin_pair.public());
+	let admin_signer: EthereumSigner = admin_pair.public().into();
 	let admin = admin_signer.clone().into_account();
 	assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin.clone()));
 	assert_ok!(Marketplace::set_fee_signer_address(
@@ -88,7 +89,7 @@ fn append_valid_signature(
 	wrapped_data.extend(b"\x19Ethereum Signed Message:\n32");
 	wrapped_data.extend(&message);
 
-	let signature = MultiSignature::Ecdsa(fee_signer_pair.sign(&wrapped_data));
+	let signature = EthereumSignature::from(MultiSignature::Ecdsa(fee_signer_pair.sign(&wrapped_data)));
 	order.signature_data.signature = signature;
 }
 
@@ -102,6 +103,10 @@ fn mint_item(item: u32, owner: AccountIdOf<Test>) {
 		));
 	};
 	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, item, owner, None));
+}
+
+pub fn raw_signature(bytes: [u8;65]) -> EthereumSignature {
+	EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(bytes)))
 }
 
 pub fn create_valid_order(
@@ -126,7 +131,7 @@ pub fn create_valid_order(
 		price: 10000,
 		fee_percent: max_basis_points,
 		signature_data: SignatureData {
-			signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+			signature: raw_signature([0; 65]),
 			nonce: <Vec<u8>>::new(),
 		},
 	};
@@ -301,7 +306,7 @@ mod create_order_initial_checks {
 				price: max_basis_points + 1,
 				fee_percent: 1,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -335,7 +340,7 @@ mod create_order_initial_checks {
 				price: max_basis_points - 1,
 				fee_percent: 1,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -369,7 +374,7 @@ mod create_order_initial_checks {
 				price: 10000,
 				fee_percent: 1,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -404,7 +409,7 @@ mod create_order_initial_checks {
 				price: max_basis_points + 1,
 				fee_percent: 1,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -437,7 +442,7 @@ mod create_order_initial_checks {
 				price: 10000,
 				fee_percent: max_basis_points + 1,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -474,7 +479,7 @@ mod create_order_initial_checks {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![0u8],
 				},
 			};
@@ -512,7 +517,7 @@ mod create_ask {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -547,7 +552,7 @@ mod create_ask {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -581,7 +586,7 @@ mod create_ask {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -622,7 +627,7 @@ mod create_ask {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -657,7 +662,7 @@ mod create_ask {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -699,7 +704,7 @@ mod create_bid {
 				price: 10000,
 				fee_percent: max_basis_points.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -742,7 +747,7 @@ mod create_bid {
 				price: 10000,
 				fee_percent: max_basis_points.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -777,7 +782,7 @@ mod create_bid {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -812,7 +817,7 @@ mod create_bid {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -868,7 +873,7 @@ mod create_bid {
 				price: 10000000000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -913,7 +918,7 @@ mod execute_ask_with_existing_bid {
 				price,
 				fee_percent: bid_fee,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -940,7 +945,7 @@ mod execute_ask_with_existing_bid {
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -993,7 +998,7 @@ mod execute_ask_with_existing_bid {
 				price: 10000,
 				fee_percent: max_basis_points,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -1023,7 +1028,7 @@ mod execute_ask_with_existing_bid {
 			Balances::set_balance(&buyer, 100000);
 
 			let fee_signer_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
-			let admin_signer = MultiSigner::Ecdsa(fee_signer_pair.public());
+			let admin_signer: EthereumSigner = fee_signer_pair.public().into();
 			let admin = admin_signer.clone().into_account();
 			assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin.clone()));
 			assert_ok!(Marketplace::set_fee_signer_address(
@@ -1040,7 +1045,7 @@ mod execute_ask_with_existing_bid {
 				price: price.clone(),
 				fee_percent: bid_fee,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -1061,7 +1066,7 @@ mod execute_ask_with_existing_bid {
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -1102,7 +1107,7 @@ mod execute_ask_with_existing_bid {
 				price: price.clone(),
 				fee_percent: bid_fee,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -1129,7 +1134,7 @@ mod execute_ask_with_existing_bid {
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -1187,7 +1192,7 @@ mod execute_bid_with_existing_ask {
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -1215,7 +1220,7 @@ mod execute_bid_with_existing_ask {
 				price: price.clone(),
 				fee_percent: bid_fee,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};
@@ -1267,7 +1272,7 @@ mod execute_bid_with_existing_ask {
 				price: price.clone(),
 				fee_percent: ask_fee.clone(),
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: vec![1],
 				},
 			};
@@ -1295,7 +1300,7 @@ mod execute_bid_with_existing_ask {
 				price: price.clone(),
 				fee_percent: bid_fee,
 				signature_data: SignatureData {
-					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
 				},
 			};

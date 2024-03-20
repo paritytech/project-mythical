@@ -85,6 +85,15 @@ pub mod pallet {
 
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
+
+		#[cfg(feature = "runtime-benchmarks")]
+		/// A set of helper functions for benchmarking.
+		type BenchmarkHelper: BenchmarkHelper<
+			Self::CollectionId,
+			Self::ItemId,
+			Self::Moment,
+			Self::Signature,
+		>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.

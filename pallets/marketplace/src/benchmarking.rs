@@ -4,22 +4,172 @@ use super::*;
 use crate::Pallet as Marketplace;
 
 use frame_benchmarking::v2::*;
-use frame_support::{assert_ok, dispatch::RawOrigin};
+use frame_support::{
+	assert_ok,
+	dispatch::RawOrigin,
+	traits::{
+		fungible::{Inspect as InspectFungible, Mutate as MutateFungible},
+		tokens::nonfungibles_v2::{Create, Mutate},
+	},
+};
+use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
+
+use sp_core::{ecdsa::{Signature, Pair as EthereumPair}, Pair};
 
 const SEED: u32 = 0;
+
+type BalanceOf<T> =
+	<<T as Config>::Currency as InspectFungible<<T as frame_system::Config>::AccountId>>::Balance;
+
+impl<CollectionId, ItemId, Moment, OffchainSignature>
+	BenchmarkHelper<CollectionId, ItemId, Moment, OffchainSignature> for ()
+where
+	CollectionId: From<u32>,
+	ItemId: From<u32>,
+	Moment: From<u64>,
+	OffchainSignature: From<Signature>,
+{
+	fn collection(id: u32) -> CollectionId {
+		id.into()
+	}
+	fn item(id: u32) -> ItemId {
+		id.into()
+	}
+	fn timestamp(value: u64) -> Moment {
+		value.into()
+	}
+}
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 }
+
+fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
+	let caller: T::AccountId = account(name, index, SEED);
+	// Give the account half of the maximum value of the `Balance` type.
+	// Otherwise some transfers will fail with an overflow error.
+	let ed = <T as Config>::Currency::minimum_balance();
+	let multiplier = BalanceOf::<T>::from(10000u16);
+
+	<T as Config>::Currency::set_balance(&caller, ed * multiplier);
+	whitelist_account!(caller);
+	caller
+}
+
 fn get_admin<T: Config>() -> T::AccountId {
 	let admin: T::AccountId = account("admin", 10, SEED);
 	assert_ok!(Marketplace::<T>::force_set_authority(RawOrigin::Root.into(), admin.clone()));
 
 	admin
 }
-#[benchmarks()]
+
+fn mint_nft<T: Config>(nft_id: T::ItemId) -> T::AccountId {
+	let caller: T::AccountId = funded_and_whitelisted_account::<T>("tokenOwner", 0);
+
+	let default_config = CollectionConfig {
+		settings: CollectionSettings::all_enabled(),
+		max_supply: None,
+		mint_settings: MintSettings::default(),
+	};
+
+	assert_ok!(Nfts::<T>::create_collection(&caller, &caller, &default_config));
+	let collection = T::BenchmarkHelper::collection(0);
+	assert_ok!(Nfts::<T>::mint_into(&collection, &nft_id, &caller, &ItemConfig::default(), true));
+	caller
+}
+
+#[benchmarks(where T::AccountId: From<AccountId20>, T::Signature: From<EthereumSignature>)]
 pub mod benchmarks {
 	use super::*;
+	use pallet_timestamp::Pallet as Timestamp;
+	use parity_scale_codec::Encode;
+	use account::{EthereumSignature, AccountId20, EthereumSigner};
+	use scale_info::prelude::vec;
+	use sp_core::keccak_256;
+	use sp_runtime::{traits::IdentifyAccount, MultiSignature};
+	use hex;
+
+	fn create_valid_order<T: Config>(
+		order_type: OrderType,
+		caller: T::AccountId,
+		price: BalanceOf<T>,
+		fee_signer_pair: EthereumPair,
+	)
+		where T::Signature: From<EthereumSignature>
+	{
+		let mut order = Order {
+			order_type,
+			collection: T::BenchmarkHelper::collection(0),
+			item: T::BenchmarkHelper::item(0),
+			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
+			price,
+			fee_percent: BalanceOf::<T>::from(0u8),
+			signature_data: SignatureData {
+				signature: EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(
+					[0; 65],
+				)))
+				.into(),
+				nonce: vec![0],
+			},
+		};
+		append_valid_signature::<T>(fee_signer_pair, &mut order);
+
+		assert_ok!(Marketplace::<T>::create_order(RawOrigin::Signed(caller).into(), order, Execution::AllowCreation));
+	}
+
+	fn append_valid_signature<T: Config>(
+		fee_signer_pair: EthereumPair,
+		order: &mut Order<
+			T::CollectionId,
+			T::ItemId,
+			BalanceOf<T>,
+			T::Moment,
+			T::Signature,
+			Vec<u8>,
+		>,
+	) where T::Signature: From<EthereumSignature> {
+		let message = (
+			order.order_type.clone(),
+			order.collection,
+			order.item,
+			order.price,
+			order.expires_at,
+			order.fee_percent,
+			order.signature_data.nonce.clone(),
+		).encode();
+
+		let signature =
+			EthereumSignature::from(MultiSignature::Ecdsa(fee_signer_pair.sign(&keccak_256(&message))));
+		order.signature_data.signature = signature.into();
+	}
+
+	fn admin_accounts_setup<T: Config>() -> (T::AccountId, EthereumPair) where T::AccountId: From<AccountId20> {
+		let secret_key =
+		hex::decode("502f97299c472b88754accd412b7c9a6062ef3186fba0c0388365e1edec24875")
+			.unwrap();
+
+		let admin_pair = EthereumPair::from_seed_slice(&secret_key).unwrap();
+		let admin_signer: EthereumSigner = admin_pair.public().into();
+		let admin: T::AccountId = admin_signer.into_account().into();
+
+		let ed = <T as Config>::Currency::minimum_balance();
+		let multiplier = BalanceOf::<T>::from(10000u16);
+		<T as Config>::Currency::set_balance(&admin, ed * multiplier);
+		whitelist_account!(admin);
+
+		assert_ok!(Marketplace::<T>::force_set_authority(RawOrigin::Root.into(), admin.clone()));
+
+		assert_ok!(Marketplace::<T>::set_fee_signer_address(
+			RawOrigin::Signed(admin.clone()).into(),
+			admin.clone(),
+		));
+		assert_ok!(Marketplace::<T>::set_payout_address(
+			RawOrigin::Signed(admin.clone()).into(),
+			admin.clone(),
+		));
+
+		(admin, admin_pair)
+	}
 
 	#[benchmark]
 	fn force_set_authority() {
@@ -51,6 +201,84 @@ pub mod benchmarks {
 		_(RawOrigin::Signed(admin), payout_address.clone());
 
 		assert_last_event::<T>(Event::PayoutAddressUpdated { payout_address }.into());
+	}
+
+	// Benchmark `create_order` wxtrinsic with the worst possible conditions:
+	// Ask already exists
+	// Matching Bid is created and executed
+	#[benchmark]
+	fn create_order() {
+		// Nft setup
+		let item = T::BenchmarkHelper::item(0);
+		let seller = mint_nft::<T>(item.clone());
+		// Create ask order
+		let (_, fee_signer_pair) = admin_accounts_setup::<T>();
+
+		let price = BalanceOf::<T>::from(10000u16);
+		create_valid_order::<T>(OrderType::Ask, seller.clone(), price.clone(), fee_signer_pair.clone());
+
+		// Setup buyer
+		let buyer: T::AccountId = funded_and_whitelisted_account::<T>("buyer", 0);
+
+		let mut order = Order {
+			order_type: OrderType::Bid,
+			collection: T::BenchmarkHelper::collection(0),
+			item,
+			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
+			price,
+			fee_percent: BalanceOf::<T>::from(1u8),
+			signature_data: SignatureData {
+				signature: EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(
+					[0; 65],
+				)))
+				.into(),
+				nonce: vec![1],
+			},
+		};
+		append_valid_signature::<T>(fee_signer_pair, &mut order, Execution::AllowCreation);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(buyer.clone()), order.clone());
+
+		assert_last_event::<T>(
+			Event::OrderExecuted {
+				collection: order.collection,
+				item: order.item,
+				seller,
+				buyer,
+				price: order.price,
+			}
+			.into(),
+		);
+	}
+
+	// Benchmark `cancel_order` wxtrinsic with the worst possible conditions:
+	// Cancel a bid
+	#[benchmark]
+	fn cancel_order() {
+		// Nft Setup
+		let collection = T::BenchmarkHelper::collection(0);
+		let item = T::BenchmarkHelper::item(0);
+		let _ = mint_nft::<T>(item.clone());
+
+		// Setup Bid order
+		let price = BalanceOf::<T>::from(10000u16);
+
+		let bidder: T::AccountId = funded_and_whitelisted_account::<T>("bidder", 0);
+
+		let (_, fee_signer_public) = admin_accounts_setup::<T>();
+		create_valid_order::<T>(OrderType::Bid, bidder.clone(), price.clone(), fee_signer_public);
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Signed(bidder.clone()),
+			OrderType::Bid,
+			collection.clone(),
+			item.clone(),
+			price,
+		);
+
+		assert_last_event::<T>(Event::OrderCanceled { collection, item, who: bidder }.into());
 	}
 
 	impl_benchmark_test_suite!(Marketplace, crate::mock::new_test_ext(), crate::mock::Test);
