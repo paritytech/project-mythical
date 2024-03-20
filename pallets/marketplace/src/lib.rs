@@ -184,6 +184,8 @@ pub mod pallet {
 		InvalidFeePercent,
 		/// Ask or Bid with the same characteristics already exists.
 		OrderAlreadyExists,
+		/// A valid match must exist to execute the order
+		ValidMatchMustExist, 
 		/// Item can only be operated by the Item owner.
 		NotItemOwner,
 		/// Invalid Signed message
@@ -298,6 +300,7 @@ pub mod pallet {
 				T::Signature,
 				Vec<u8>,
 			>,
+			execution: Execution
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -363,6 +366,8 @@ pub mod pallet {
 							&order.fee_percent,
 						)?;
 					} else {
+						ensure!(execution == Execution::AllowCreation, Error::<T>::ValidMatchMustExist);
+
 						let ask = Ask {
 							seller: who,
 							price: order.price,
@@ -405,6 +410,8 @@ pub mod pallet {
 							&order.fee_percent,
 						)?;
 					} else {
+						ensure!(execution == Execution::AllowCreation, Error::<T>::ValidMatchMustExist);
+
 						let bid = Bid {
 							buyer: who,
 							expiration: order.expires_at,

@@ -132,7 +132,7 @@ pub fn create_valid_order(
 	};
 	append_valid_signature(fee_signer_pair, &mut order);
 
-	assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(who), order.clone()));
+	assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(who), order.clone(), Execution::AllowCreation));
 }
 
 mod force_set_authority {
@@ -304,7 +304,7 @@ mod create_order_initial_checks {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::ItemNotFound
 			);
 		})
@@ -334,7 +334,7 @@ mod create_order_initial_checks {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::InvalidPrice
 			);
 		})
@@ -364,7 +364,7 @@ mod create_order_initial_checks {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::InvalidExpiration
 			);
 		})
@@ -394,7 +394,7 @@ mod create_order_initial_checks {
 			};
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::BadSignedMessage
 			);
 		})
@@ -424,7 +424,7 @@ mod create_order_initial_checks {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::InvalidFeePercent
 			);
 		})
@@ -457,7 +457,7 @@ mod create_order_initial_checks {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::AlreadyUsedNonce
 			);
 		})
@@ -491,7 +491,7 @@ mod create_ask {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(2)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(2)), order, Execution::AllowCreation),
 				Error::<Test>::NotItemOwner
 			);
 		})
@@ -522,14 +522,14 @@ mod create_ask {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::ItemAlreadyLocked
 			);
 		})
 	}
 
 	#[test]
-	fn ask_created() {
+	fn ask_created_with_allow_creation() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
 			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
@@ -551,7 +551,7 @@ mod create_ask {
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone()));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::AllowCreation));
 
 			let ask = Ask {
 				seller: account(1),
@@ -562,6 +562,33 @@ mod create_ask {
 
 			assert!(Marketplace::asks(0, 0) == Some(ask));
 			assert!(!Nfts::can_transfer(&0, &0));
+		})
+	}
+
+	#[test]
+	fn ask_should_not_create_with_execution_force() {
+		new_test_ext().execute_with(|| {
+			let expires_at = get_valid_expiration();
+			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
+			mint_item(0, account(1));
+
+			let (_, fee_signer_pair) = admin_accounts_setup();
+
+			let mut order = Order {
+				order_type: OrderType::Ask,
+				collection: 0,
+				item: 0,
+				expires_at,
+				price: 10000,
+				fee_percent: max_basis_points,
+				signature_data: SignatureData {
+					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					nonce: <Vec<u8>>::new(),
+				},
+			};
+			append_valid_signature(fee_signer_pair, &mut order);
+
+			assert_noop!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::Force), Error::<Test>::ValidMatchMustExist);
 		})
 	}
 
@@ -590,7 +617,7 @@ mod create_ask {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::OrderAlreadyExists
 			);
 		})
@@ -601,7 +628,7 @@ mod create_bid {
 	use super::*;
 
 	#[test]
-	fn bid_created() {
+	fn bid_created_with_allow_creation() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
 			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
@@ -627,7 +654,7 @@ mod create_bid {
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone()));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::AllowCreation));
 
 			let bid =
 				Bid { buyer: account(1), expiration: order.expires_at, fee: order.fee_percent };
@@ -638,6 +665,35 @@ mod create_bid {
 				) == Marketplace::calc_bid_payment(&order.price, &order.fee_percent).ok()
 			);
 			assert!(Marketplace::bids((0, 0, order.price)) == Some(bid));
+		})
+	}
+
+	#[test]
+	fn bid_should_not_create_with_execution_force() {
+		new_test_ext().execute_with(|| {
+			let expires_at = get_valid_expiration();
+			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
+			mint_item(0, account(2));
+
+			let (_, fee_signer_pair) = admin_accounts_setup();
+
+			Balances::set_balance(&account(1), 100000);
+
+			let mut order = Order {
+				order_type: OrderType::Bid,
+				collection: 0,
+				item: 0,
+				expires_at,
+				price: 10000,
+				fee_percent: max_basis_points.clone(),
+				signature_data: SignatureData {
+					signature: MultiSignature::Ecdsa(Signature::from_raw([0; 65])),
+					nonce: <Vec<u8>>::new(),
+				},
+			};
+			append_valid_signature(fee_signer_pair, &mut order);
+
+			assert_noop!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::Force), Error::<Test>::ValidMatchMustExist);
 		})
 	}
 
@@ -666,7 +722,7 @@ mod create_bid {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone()),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::AllowCreation),
 				Error::<Test>::BidOnOwnedItem
 			);
 		})
@@ -697,7 +753,7 @@ mod create_bid {
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
 			// Create a bid
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone()));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::AllowCreation));
 
 			// Another account tries to create same bid
 			order.signature_data.nonce = vec![1]; //set an unused nonce
@@ -705,7 +761,7 @@ mod create_bid {
 
 			Balances::set_balance(&account(3), 1000);
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(3)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(3)), order, Execution::AllowCreation),
 				Error::<Test>::OrderAlreadyExists
 			);
 		})
@@ -745,7 +801,7 @@ mod create_bid {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone()),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order.clone(), Execution::AllowCreation),
 				Error::<Test>::InsufficientFunds
 			);
 		})
@@ -787,7 +843,8 @@ mod execute_ask_with_existing_bid {
 
 			assert_ok!(Marketplace::create_order(
 				RuntimeOrigin::signed(buyer.clone()),
-				bid.clone()
+				bid.clone(),
+				Execution::AllowCreation
 			));
 
 			let payout_address = Marketplace::payout_address().unwrap();
@@ -817,7 +874,7 @@ mod execute_ask_with_existing_bid {
 			let marketplace_pay = buyer_fee + seller_fee;
 			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
 
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order, Execution::AllowCreation));
 			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
 			assert!(Nfts::can_transfer(&0, &0));
 			assert_eq!(
@@ -861,7 +918,7 @@ mod execute_ask_with_existing_bid {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order),
+				Marketplace::create_order(RuntimeOrigin::signed(account(1)), order, Execution::AllowCreation),
 				Error::<Test>::BuyerIsSeller
 			);
 		})
@@ -905,7 +962,8 @@ mod execute_ask_with_existing_bid {
 
 			assert_ok!(Marketplace::create_order(
 				RuntimeOrigin::signed(buyer.clone()),
-				bid.clone()
+				bid.clone(),
+				Execution::AllowCreation
 			));
 
 			let ask_fee = 2;
@@ -924,7 +982,7 @@ mod execute_ask_with_existing_bid {
 			append_valid_signature(fee_signer_pair, &mut order);
 
 			assert_noop!(
-				Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order),
+				Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order, Execution::AllowCreation),
 				Error::<Test>::PayoutAddressNotSet
 			);
 		})
@@ -962,7 +1020,8 @@ mod execute_ask_with_existing_bid {
 
 			assert_ok!(Marketplace::create_order(
 				RuntimeOrigin::signed(buyer.clone()),
-				bid.clone()
+				bid.clone(),
+				Execution::AllowCreation
 			));
 
 			let payout_address = Marketplace::payout_address().unwrap();
@@ -992,7 +1051,7 @@ mod execute_ask_with_existing_bid {
 			let marketplace_pay = buyer_fee + seller_fee;
 			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
 
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order, Execution::AllowCreation));
 			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
 			assert!(Nfts::can_transfer(&0, &0));
 			assert_eq!(
@@ -1040,7 +1099,7 @@ mod execute_bid_with_existing_ask {
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order, Execution::AllowCreation));
 
 			Balances::set_balance(&buyer, 1000000);
 
@@ -1066,7 +1125,8 @@ mod execute_bid_with_existing_ask {
 
 			assert_ok!(Marketplace::create_order(
 				RuntimeOrigin::signed(buyer.clone()),
-				bid.clone()
+				bid.clone(),
+				Execution::AllowCreation
 			));
 
 			let buyer_fee = (price.clone() * bid_fee) / max_basis_points.clone();
@@ -1115,7 +1175,7 @@ mod execute_bid_with_existing_ask {
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
-			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order));
+			assert_ok!(Marketplace::create_order(RuntimeOrigin::signed(seller.clone()), order, Execution::AllowCreation));
 
 			Balances::set_balance(&buyer, 1000000);
 
@@ -1141,7 +1201,8 @@ mod execute_bid_with_existing_ask {
 
 			assert_ok!(Marketplace::create_order(
 				RuntimeOrigin::signed(buyer.clone()),
-				bid.clone()
+				bid.clone(),
+				Execution::AllowCreation
 			));
 
 			let buyer_fee = (price.clone() * bid_fee) / max_basis_points.clone();

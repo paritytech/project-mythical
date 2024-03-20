@@ -44,3 +44,11 @@ pub struct SignatureData<OffchainSignature, BoundedString> {
 	pub signature: OffchainSignature,
 	pub nonce: BoundedString,
 }
+
+#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+pub enum Execution {
+	/// The order must be executed otherwise it should fail
+	Force, 
+	/// If order execution is not possible create the order on storage
+	AllowCreation,
+}
