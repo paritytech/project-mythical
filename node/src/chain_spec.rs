@@ -77,7 +77,7 @@ pub fn testnet_session_keys(keys: AuraId) -> testnet_runtime::SessionKeys {
 }
 
 pub mod testnet {
-	const PARA_ID: u32 = 201804;
+	const PARA_ID: u32 = 3369;
 	use testnet_runtime::MUSE;
 
 	use super::*;

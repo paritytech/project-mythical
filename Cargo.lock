@@ -6659,25 +6659,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-marketplace"
-version = "0.0.1"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "pallet-nfts",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
-]
-
-[[package]]
 name = "pallet-membership"
 version = "28.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0#ec7817e5adc2f3a91dd94b0465dd61b4c1b07ab7"
@@ -6743,24 +6724,6 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io",
- "sp-runtime",
- "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
-]
-
-[[package]]
-name = "pallet-nfts"
-version = "22.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0#ec7817e5adc2f3a91dd94b0465dd61b4c1b07ab7"
-dependencies = [
- "enumflags2",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
@@ -6969,25 +6932,6 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-io",
- "sp-runtime",
- "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
-]
-
-[[package]]
-name = "pallet-safe-mode"
-version = "9.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0#ec7817e5adc2f3a91dd94b0465dd61b4c1b07ab7"
-dependencies = [
- "docify",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-balances",
- "pallet-proxy",
- "pallet-utility",
- "parity-scale-codec",
- "scale-info",
- "sp-arithmetic",
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
 ]
@@ -7251,24 +7195,6 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-runtime",
- "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
-]
-
-[[package]]
-name = "pallet-tx-pause"
-version = "9.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0#ec7817e5adc2f3a91dd94b0465dd61b4c1b07ab7"
-dependencies = [
- "docify",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-balances",
- "pallet-proxy",
- "pallet-utility",
- "parity-scale-codec",
- "scale-info",
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
 ]
@@ -13077,22 +13003,14 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
- "pallet-marketplace",
  "pallet-message-queue",
  "pallet-multisig",
- "pallet-nfts",
- "pallet-preimage",
- "pallet-proxy",
- "pallet-safe-mode",
- "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
- "pallet-tx-pause",
  "pallet-utility",
- "pallet-vesting",
  "pallet-xcm",
  "parachains-common",
  "parity-scale-codec",

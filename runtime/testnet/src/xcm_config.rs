@@ -10,28 +10,25 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
-use polkadot_parachain_primitives::primitives::Sibling;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	CreateMatcher, EnsureXcmOrigin, FixedWeightBounds, FrameTransactionalProcessor, MatchXcm,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, WithComputedOrigin,
-	WithUniqueTopic,
+	CreateMatcher, DescribeFamily, DescribeTerminus, EnsureXcmOrigin, FixedWeightBounds,
+	FrameTransactionalProcessor, HashedDescription, MatchXcm, RelayChainAsNative,
+	SiblingParachainAsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
+	WithComputedOrigin, WithUniqueTopic,
 };
-
-use xcm_primitives::SignedToAccountId20;
-
 use xcm_executor::traits::Properties;
 use xcm_executor::{traits::ShouldExecute, XcmExecutor};
+use xcm_primitives::SignedToAccountId20;
 
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const RelayNetwork: NetworkId = cumulus_primitives_core::Ethereum { chain_id: 132 }; // todo!();
-	pub SelfReserve: Location = Location { parents: 0, interior: Here };
-	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
+	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
+	pub SelfReserve: Location = Location::here();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub UniversalLocation: InteriorLocation = [Parachain(ParachainInfo::parachain_id().into())].into();
+	pub UniversalLocation: InteriorLocation =
+		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
@@ -39,10 +36,9 @@ parameter_types! {
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the parent `AccountId`.
-	ParentIsPreset<AccountId>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
-	SiblingParachainConvertsVia<Sibling, AccountId>,
-	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
+	HashedDescription<AccountId, DescribeFamily<DescribeTerminus>>,
+	// If we receive a Location of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 );
 
@@ -61,6 +57,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// recognized.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
 	// Native signed account converter; this just converts an `AccountId32` origin into a normal
+	// `RuntimeOrigin::Signed` origin of the same 32-byte value.
 	//TODO: Commented out until check how it should look for AccountId20
 	// SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
@@ -152,7 +149,7 @@ pub type Barrier = TrailingSetTopicAsId<
 			TakeWeightCredit,
 			WithComputedOrigin<
 				(
-					AllowTopLevelPaidExecutionFrom<Everything>,
+					AllowTopLevelPaidExecutionFrom<Nothing>,
 					// Parent and its exec plurality get free execution
 					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 				),
@@ -167,6 +164,7 @@ pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
+	// How to withdraw and deposit an asset.
 	type AssetTransactor = ();
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = ();
@@ -201,7 +199,7 @@ pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, R
 /// queues.
 pub type XcmRouter = WithUniqueTopic<(
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, (), ()>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, ()>,
 	// and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 )>;
