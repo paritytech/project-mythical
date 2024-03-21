@@ -3,6 +3,7 @@ use std::{net::SocketAddr, path::PathBuf};
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::info;
+use polkadot_service::GenericChainSpec;
 use runtime_common::Block;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -69,13 +70,17 @@ impl RuntimeResolver for PathBuf {
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		// Testnet - Muse
-		"" | "dev" | "testnet-local" | "local" => {
+		"" | "dev" | "testnet-local" | "local-v" => {
 			Box::new(chain_spec::testnet::development_config())
 		},
 		"muse" | "testnet" => Box::new(chain_spec::testnet::testnet_config()),
 		// Mainnet - Mythos
-		"main" | "mainnet-dev" | "local-v" => Box::new(chain_spec::mainnet::development_config()),
-		"mythos" | "mainnet" => Box::new(chain_spec::mainnet::mainnet_config()),
+		"main" | "mainnet-dev" | "mainnet-local-v" => {
+			Box::new(chain_spec::mainnet::development_config())
+		},
+		"mythos" | "mainnet" => Box::new(GenericChainSpec::from_json_bytes(
+			&include_bytes!("../../chainspecs/mythos-raw.json")[..],
+		)?),
 		path => {
 			let path: PathBuf = path.into();
 			match path.runtime() {

@@ -2,7 +2,7 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.91
+ZOMBIENET_V=v1.3.95
 POLKADOT_V=v1.8.0
 
 case "$(uname -s)" in
@@ -13,11 +13,13 @@ esac
 
 if [ $MACHINE = "Linux" ]; then
   ZOMBIENET_BIN=zombienet-linux-x64
+  IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
   ZOMBIENET_BIN=zombienet-macos
+  IS_LINUX=0
 fi
 
-BIN_DIR=bin-$POLKADOT_V
+BIN_DIR=bin
 
 build_polkadot(){
   echo "cloning polkadot repository..."
@@ -32,6 +34,20 @@ build_polkadot(){
       cp target/release/polkadot "$CWD/$BIN_DIR"
       cp target/release/polkadot-execute-worker "$CWD/$BIN_DIR"
       cp target/release/polkadot-prepare-worker "$CWD/$BIN_DIR"
+    popd
+  popd
+}
+
+build_chainspec_generator(){
+  echo "cloning chain-spec-generator..."
+  CWD=$(pwd)
+  mkdir -p "$BIN_DIR"
+  pushd /tmp
+    git clone https://github.com/polkadot-fellows/runtimes.git
+    pushd runtimes
+      echo "building chain-spec-generator..."
+      cargo build --release --features fast-runtime
+      cp target/release/chain-spec-generator "$CWD/$BIN_DIR"
     popd
   popd
 }
@@ -54,8 +70,15 @@ zombienet_init() {
     curl -LO https://github.com/paritytech/zombienet/releases/download/$ZOMBIENET_V/$ZOMBIENET_BIN
     chmod +x $ZOMBIENET_BIN
   fi
+   if [ ! -f $BIN_DIR/chain-spec-generator ]; then
+    build_chainspec_generator
+  fi
   if [ ! -f $BIN_DIR/polkadot ]; then
-    fetch_polkadot
+    if [ "$IS_LINUX" -eq 1 ]; then
+        fetch_polkadot
+    else
+        build_polkadot
+    fi
   fi
 }
 
