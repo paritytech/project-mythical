@@ -18,9 +18,6 @@ pub type MainChainSpec =
 pub type TestnetChainSpec =
 	sc_service::GenericChainSpec<testnet_runtime::RuntimeGenesisConfig, Extensions>;
 
-/// Generic chain spec for parachain runtimes.
-pub type GenericChainSpec = sc_service::GenericChainSpec<(), Extensions>;
-
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
