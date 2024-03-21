@@ -34,6 +34,8 @@ build_polkadot(){
       cp target/release/polkadot "$CWD/$BIN_DIR"
       cp target/release/polkadot-execute-worker "$CWD/$BIN_DIR"
       cp target/release/polkadot-prepare-worker "$CWD/$BIN_DIR"
+      cargo build --release -p polkadot-parachain-bin
+      cp target/release/polkadot-parachain "$CWD/$BIN_DIR"
     popd
   popd
 }
@@ -100,6 +102,13 @@ zombienet_testnet() {
   ./$ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
 }
 
+zombienet_testnet_asset_hub() {
+  zombienet_init
+  cargo build --release
+  echo "spawning rococo-local relay chain plus muse testnet as a parachain plus asset-hub..."
+  ./$ZOMBIENET_BIN spawn zombienet-config/testnet-asset-hub.toml -p native
+}
+
 zombienet_mainnet() {
   zombienet_init
   cargo build --release
@@ -107,14 +116,30 @@ zombienet_mainnet() {
   ./$ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
 }
 
+zombienet_mainnet() {
+  zombienet_init
+  cargo build --release
+  echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain..."
+  ./$ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
+}
+
+zombienet_mainnet_asset_hub() {
+  zombienet_init
+  cargo build --release
+  echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain plus asset-hub..."
+  ./$ZOMBIENET_BIN spawn zombienet-config/mainnet-asset-hub.toml -p native
+}
+
 
 print_help() {
   echo "This is a shell script to automate the execution of zombienet."
   echo ""
-  echo "$ ./zombienet.sh init         # fetches zombienet and polkadot executables"
-  echo "$ ./zombienet.sh build        # builds polkadot executables from source"
-  echo "$ ./zombienet.sh testnet      # spawns a rococo-local relay chain plus mythos testnet-local as a parachain"
-  echo "$ ./zombienet.sh mainnet      # spawns a polkadot-local relay chain plus mythos mainnet-local as a parachain"
+  echo "$ ./zombienet.sh init                   # fetches zombienet and polkadot executables"
+  echo "$ ./zombienet.sh build                  # builds polkadot executables from source"
+  echo "$ ./zombienet.sh testnet                # spawns a rococo-local relay chain plus muse testnet-local as a parachain"
+  echo "$ ./zombienet.sh testnet_asset_hub      # spawns a rococo-local relay chain plus muse testnet-local as a parachain plus asset-hub"
+  echo "$ ./zombienet.sh mainnet                # spawns a polkadot-local relay chain plus mythos mainnet-local as a parachain"
+  echo "$ ./zombienet.sh mainnet_asset_hub      # spawns a polkadot-local relay chain plus mythos mainnet-local as a parachain plus asset-hub"
 }
 
 SUBCOMMAND=$1
