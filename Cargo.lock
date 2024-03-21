@@ -6742,13 +6742,17 @@ dependencies = [
 name = "pallet-multibatching"
 version = "1.0.0-dev"
 dependencies = [
+ "account",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hex",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-io",
+ "sp-keystore",
  "sp-runtime",
 ]
 

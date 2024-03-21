@@ -1,15 +1,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use pallet::*;
-
 #[cfg(test)]
 mod mock;
-
 #[cfg(test)]
 mod tests;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+
+pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -67,6 +66,7 @@ pub mod pallet {
 		NoApprovals,
 		InvalidDomain,
 		DomainNotSet,
+		DomainAlreadySet,
 		InvalidCallOrigin(u16),
 		InvalidSignature(u16),
 	}
@@ -83,6 +83,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		BatchApplied { hash: T::Hash },
+		DomainSet { domain: [u8; 32] },
 	}
 
 	/// A batch of calls.
@@ -167,9 +168,29 @@ pub mod pallet {
 		/// of keccak256 hash of this call with empty `approvals` argument.
 		/// This is so that the participants could check the data they sign
 		/// through the Developer/Extrinsics/Decode tab on the parachain
-		/// explorer: https://polkadot.js.org/apps/#/extrinsics/decode
+		/// explorer: <https://polkadot.js.org/apps/#/extrinsics/decode>
 		#[pallet::call_index(0)]
-		#[pallet::weight({0})] // TODO: weight
+		#[pallet::weight({
+            /*
+			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();
+			let dispatch_weight = dispatch_infos.iter()
+				.map(|di| di.weight)
+				.fold(Weight::zero(), |total: Weight, weight: Weight| total.saturating_add(weight))
+				.saturating_add(T::WeightInfo::batch_all(calls.len() as u32));
+			let dispatch_class = {
+				let all_operational = dispatch_infos.iter()
+					.map(|di| di.class)
+					.all(|class| class == DispatchClass::Operational);
+				if all_operational {
+					DispatchClass::Operational
+				} else {
+					DispatchClass::Normal
+				}
+			};
+			(dispatch_weight, dispatch_class)
+            */
+            0
+        })] // TODO: weight
 		pub fn batch(
 			origin: OriginFor<T>,
 			domain: [u8; 32],
@@ -197,6 +218,7 @@ pub mod pallet {
 				None => return Err(Error::<T>::DomainNotSet.into()),
 			}
 
+            /*
 			let hash = {
 				let batch = Batch {
 					pallet_index: Self::index() as u8,
@@ -208,8 +230,22 @@ pub mod pallet {
 					approvals_zero: 0,
 				};
 				let bytes = batch.encode();
+                eprintln!("pallet bytes: {}", hex::encode(&bytes));
 				<T::Hashing>::hash(&bytes)
 			};
+            */
+            let bytes = Batch {
+                pallet_index: Self::index() as u8,
+                call_index: 0,
+                domain,
+                sender: sender.clone(),
+                bias,
+                calls: calls.clone(),
+                approvals_zero: 0,
+            }.encode();
+            let hash = <T::Hashing>::hash(&bytes);
+
+            eprintln!("pallet hash: {}", &hash);
 
 			if Applied::<T>::contains_key(&hash) {
 				return Err(Error::<T>::AlreadyApplied.into());
@@ -218,8 +254,10 @@ pub mod pallet {
 			Applied::<T>::insert(hash, ());
 
 			for (i, approval) in approvals.iter().enumerate() {
+                eprintln!("pallet from: {:?}", &approval.from);
+                eprintln!("pallet  sig: {:?}", &approval.signature);
 				let ok =
-					approval.signature.verify(hash.as_ref(), &approval.from.clone().into_account());
+					approval.signature.verify(bytes.as_ref(), &approval.from.clone().into_account());
 				if !ok {
 					return Err(Error::<T>::InvalidSignature(i as u16).into());
 				}
@@ -258,6 +296,20 @@ pub mod pallet {
 			//let base_weight = T::WeightInfo::batch_all(calls_len as u32); // TODO
 			let base_weight = Weight::zero();
 			Ok(Some(base_weight.saturating_add(weight)).into())
+		}
+
+		#[pallet::call_index(1)]
+		#[pallet::weight({0})] // TODO: weight
+		pub fn force_set_domain(origin: OriginFor<T>, domain: [u8; 32]) -> DispatchResult {
+			ensure_root(origin)?;
+
+			if Domain::<T>::get() == Some(domain) {
+				return Err(Error::<T>::DomainAlreadySet.into());
+			}
+
+			Domain::<T>::put(domain);
+			Self::deposit_event(Event::DomainSet { domain });
+			Ok(())
 		}
 	}
 }
