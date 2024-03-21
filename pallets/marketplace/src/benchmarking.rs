@@ -254,10 +254,10 @@ pub mod benchmarks {
 				nonce: vec![1],
 			},
 		};
-		append_valid_signature::<T>(fee_signer_pair, &mut order, Execution::AllowCreation);
+		append_valid_signature::<T>(fee_signer_pair, &mut order);
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(buyer.clone()), order.clone());
+		_(RawOrigin::Signed(buyer.clone()), order.clone(), Execution::AllowCreation);
 
 		assert_last_event::<T>(
 			Event::OrderExecuted {
