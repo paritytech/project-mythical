@@ -115,8 +115,8 @@ pub type Executive = frame_executive::Executive<
 pub mod fee {
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE};
 	use frame_support::weights::{
-		FeePolynomial, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial, constants::WEIGHT_REF_TIME_PER_SECOND,
+		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	};
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
