@@ -228,7 +228,7 @@ parameter_types! {
 	pub const NativeAssetId: AssetId = AssetId(SelfReserve::get());
 	pub const NativeAssetFilter: AssetFilter = Wild(AllOf { fun: WildFungible, id: NativeAssetId::get() });
 	pub AssetHubTrustedTeleporter: (AssetFilter, Location) = (NativeAssetFilter::get(), AssetHubLocation::get());
-	pub RelayPerSecond: (AssetId, u128,u128) = (AssetId(Parent.into()), default_fee_per_second() * 70, 0u128);
+	pub RelayPerSecond: (AssetId, u128,u128) = (AssetId(Parent.into()), default_fee_per_second() * 10, 1024);
 }
 
 pub struct OnlyAssetHubPrefix;
