@@ -3,6 +3,7 @@ use crate::{mock::*, *};
 use account::{EthereumSignature, EthereumSigner};
 use frame_support::{
 	assert_noop, assert_ok,
+	crypto::ecdsa,
 	error::BadOrigin,
 	traits::{
 		fungible::{Inspect as InspectFungible, InspectHold, Mutate},
@@ -16,6 +17,7 @@ use sp_core::{
 	ecdsa::{Pair as KeyPair, Signature},
 	Get, Pair,
 };
+use sp_io::hashing::keccak_256;
 use sp_runtime::{traits::IdentifyAccount, BoundedVec, MultiSignature};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
@@ -84,12 +86,9 @@ fn append_valid_signature(
 	)
 		.encode();
 
-	let mut wrapped_data: Vec<u8> = Vec::new();
-	wrapped_data.extend(b"\x19Ethereum Signed Message:\n32");
-	wrapped_data.extend(&message);
+	let hashed = keccak_256(&message);
 
-	let signature =
-		EthereumSignature::from(MultiSignature::Ecdsa(fee_signer_pair.sign(&wrapped_data)));
+	let signature = EthereumSignature::from(fee_signer_pair.sign_prehashed(&hashed));
 	order.signature_data.signature = signature;
 }
 
@@ -106,7 +105,7 @@ fn mint_item(item: u32, owner: AccountIdOf<Test>) {
 }
 
 pub fn raw_signature(bytes: [u8; 65]) -> EthereumSignature {
-	EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(bytes)))
+	EthereumSignature::from(Signature::from_raw(bytes))
 }
 
 pub fn create_valid_order(

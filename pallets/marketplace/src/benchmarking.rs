@@ -1,8 +1,6 @@
 #![cfg(feature = "runtime-benchmarks")]
-
 use super::*;
 use crate::Pallet as Marketplace;
-
 use frame_benchmarking::v2::*;
 use frame_support::{
 	assert_ok,
@@ -85,12 +83,11 @@ fn mint_nft<T: Config>(nft_id: T::ItemId) -> T::AccountId {
 pub mod benchmarks {
 	use super::*;
 	use account::{AccountId20, EthereumSignature, EthereumSigner};
-	use hex;
 	use pallet_timestamp::Pallet as Timestamp;
 	use parity_scale_codec::Encode;
 	use scale_info::prelude::vec;
 	use sp_core::keccak_256;
-	use sp_runtime::{traits::IdentifyAccount, MultiSignature};
+	use sp_runtime::traits::IdentifyAccount;
 
 	fn create_valid_order<T: Config>(
 		order_type: OrderType,
@@ -108,10 +105,7 @@ pub mod benchmarks {
 			price,
 			fee_percent: BalanceOf::<T>::from(0u8),
 			signature_data: SignatureData {
-				signature: EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(
-					[0; 65],
-				)))
-				.into(),
+				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![0],
 			},
 		};
@@ -148,9 +142,9 @@ pub mod benchmarks {
 		)
 			.encode();
 
-		let signature = EthereumSignature::from(MultiSignature::Ecdsa(
-			fee_signer_pair.sign(&keccak_256(&message)),
-		));
+		let hashed = keccak_256(&message);
+
+		let signature = EthereumSignature::from(fee_signer_pair.sign_prehashed(&hashed));
 		order.signature_data.signature = signature.into();
 	}
 
@@ -158,13 +152,9 @@ pub mod benchmarks {
 	where
 		T::AccountId: From<AccountId20>,
 	{
-		let secret_key =
-			hex::decode("502f97299c472b88754accd412b7c9a6062ef3186fba0c0388365e1edec24875")
-				.unwrap();
-
-		let admin_pair = EthereumPair::from_seed_slice(&secret_key).unwrap();
+		let admin_pair = EthereumPair::from_string("//Alice", None).unwrap();
 		let admin_signer: EthereumSigner = admin_pair.public().into();
-		let admin: T::AccountId = admin_signer.into_account().into();
+		let admin: T::AccountId = admin_signer.clone().into_account().into();
 
 		let ed = <T as Config>::Currency::minimum_balance();
 		let multiplier = BalanceOf::<T>::from(10000u16);
@@ -179,7 +169,7 @@ pub mod benchmarks {
 		));
 		assert_ok!(Marketplace::<T>::set_payout_address(
 			RawOrigin::Signed(admin.clone()).into(),
-			admin.clone(),
+			admin.clone().into(),
 		));
 
 		(admin, admin_pair)
@@ -247,17 +237,14 @@ pub mod benchmarks {
 			price,
 			fee_percent: BalanceOf::<T>::from(1u8),
 			signature_data: SignatureData {
-				signature: EthereumSignature::from(MultiSignature::Ecdsa(Signature::from_raw(
-					[0; 65],
-				)))
-				.into(),
+				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![1],
 			},
 		};
-		append_valid_signature::<T>(fee_signer_pair, &mut order, Execution::AllowCreation);
+		append_valid_signature::<T>(fee_signer_pair, &mut order);
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(buyer.clone()), order.clone());
+		_(RawOrigin::Signed(buyer.clone()), order.clone(), Execution::AllowCreation);
 
 		assert_last_event::<T>(
 			Event::OrderExecuted {
