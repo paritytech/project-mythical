@@ -18,10 +18,11 @@ pub type MainChainSpec =
 pub type TestnetChainSpec =
 	sc_service::GenericChainSpec<testnet_runtime::RuntimeGenesisConfig, Extensions>;
 
+/// Generic chain spec for parachain runtimes.
+pub type GenericChainSpec = sc_service::GenericChainSpec<(), Extensions>;
+
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
-
-const LOCAL_PARA_ID: u32 = 2000;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -76,7 +77,7 @@ pub fn testnet_session_keys(keys: AuraId) -> testnet_runtime::SessionKeys {
 }
 
 pub mod testnet {
-	const PARA_ID: u32 = 201804;
+	const PARA_ID: u32 = 3369;
 	use testnet_runtime::MUSE;
 
 	use super::*;
@@ -141,7 +142,7 @@ pub mod testnet {
 				), // Faith
 			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			LOCAL_PARA_ID.into(),
+			PARA_ID.into(),
 		))
 		.with_properties(properties)
 		.build()
@@ -154,8 +155,6 @@ pub mod testnet {
 		properties.insert("tokenDecimals".into(), 18.into());
 		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
-
-		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(3);
 
 		TestnetChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
@@ -183,19 +182,12 @@ pub mod testnet {
 			],
 			vec![
 				(
-					AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
-					balance_per_account,
+					AccountId::from(hex!("16A5094837B65f1177824F0D36002f33d9A2Df7d")),
+					150_000_000 * MUSE,
 				),
-				(
-					AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
-					balance_per_account,
-				),
-				(
-					AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
-					balance_per_account,
-				),
+				(AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")), 1_000 * MUSE),
 			],
-			AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+			AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")),
 			PARA_ID.into(),
 		))
 		.with_protocol_id("muse")
@@ -262,7 +254,7 @@ pub mod mainnet {
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
 				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
-				para_id: LOCAL_PARA_ID,
+				para_id: PARA_ID,
 			},
 		)
 		// Name
@@ -309,13 +301,13 @@ pub mod mainnet {
 				), // Faith
 			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			LOCAL_PARA_ID.into(),
+			PARA_ID.into(),
 		))
 		.with_properties(properties)
 		.build()
 	}
 
-	pub fn mainnet_config() -> MainChainSpec {
+	pub fn _mainnet_config() -> MainChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());

@@ -43,8 +43,8 @@ cumulus_based = true
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
 [[parachains]]
-id = 2000
-chain = "local-v"
+id = 3369
+chain = "mainnet-local-v"
 cumulus_based = true
 
     [[parachains.collators]]

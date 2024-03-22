@@ -26,7 +26,6 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -113,8 +112,8 @@ pub type Executive = frame_executive::Executive<
 pub mod fee {
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_MYTH};
 	use frame_support::weights::{
-		FeePolynomial, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	};
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
@@ -183,6 +182,16 @@ pub mod fee {
 			}]
 		}
 	}
+
+	pub fn base_tx_fee() -> Balance {
+		MILLI_MYTH
+	}
+
+	pub fn default_fee_per_second() -> u128 {
+		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
+		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
+		base_tx_per_second * base_tx_fee()
+	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -214,7 +223,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("mythos"),
 	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
-	spec_version: 1000,
+	spec_version: 1001,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -270,16 +279,8 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 
-pub struct DisableTokenTxFilter;
-impl Contains<RuntimeCall> for DisableTokenTxFilter {
-	fn contains(call: &RuntimeCall) -> bool {
-		!matches!(call, RuntimeCall::Balances(_))
-	}
-}
-
 #[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = DisableTokenTxFilter;
 	/// Block & extrinsics weights: base values and limits.
 	type BlockWeights = RuntimeBlockWeights;
 	/// The maximum length of a block (in bytes).

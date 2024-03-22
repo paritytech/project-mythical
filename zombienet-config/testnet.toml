@@ -1,6 +1,6 @@
 [relaychain]
 chain = "rococo-local"
-default_command = "./bin-v1.8.0/polkadot"
+default_command = "./bin/polkadot"
 
 	[[relaychain.nodes]]
 	name = "alice"
@@ -11,7 +11,7 @@ default_command = "./bin-v1.8.0/polkadot"
 	validator = true
 
 [[parachains]]
-id = 201804
+id = 3369
 addToGenesis = true
 cumulus_based = true
 chain = "local-v"
