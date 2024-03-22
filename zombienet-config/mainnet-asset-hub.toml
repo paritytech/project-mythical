@@ -44,7 +44,7 @@ cumulus_based = true
 
 [[parachains]]
 id = 3369
-chain = "local-v"
+chain = "mainnet-local-v"
 cumulus_based = true
 
     [[parachains.collators]]
