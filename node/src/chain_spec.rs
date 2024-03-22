@@ -156,8 +156,6 @@ pub mod testnet {
 		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
-		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(3);
-
 		TestnetChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
@@ -184,19 +182,12 @@ pub mod testnet {
 			],
 			vec![
 				(
-					AccountId::from(hex!("ad49e6384184719D6ECC24DFEB61BF4D181138D8")),
-					balance_per_account,
+					AccountId::from(hex!("16A5094837B65f1177824F0D36002f33d9A2Df7d")),
+					150_000_000 * MUSE,
 				),
-				(
-					AccountId::from(hex!("90D157d5d32A01f7d518A804f821315f07DE2042")),
-					balance_per_account,
-				),
-				(
-					AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
-					balance_per_account,
-				),
+				(AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")), 1_000 * MUSE),
 			],
-			AccountId::from(hex!("4FbF551aF1269DEba03C85Dbe990bA10EA28BCc6")),
+			AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")),
 			PARA_ID.into(),
 		))
 		.with_protocol_id("muse")
