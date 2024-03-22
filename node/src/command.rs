@@ -3,7 +3,6 @@ use std::{net::SocketAddr, path::PathBuf};
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::info;
-use polkadot_service::GenericChainSpec;
 use runtime_common::Block;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -13,7 +12,7 @@ use sc_service::config::{BasePath, PrometheusConfig};
 use sp_runtime::traits::AccountIdConversion;
 
 use crate::{
-	chain_spec,
+	chain_spec::{self, GenericChainSpec},
 	cli::{Cli, RelayChainCli, Subcommand},
 	service::{new_partial, MainnetRuntimeExecutor, TestnetRuntimeExecutor},
 };
