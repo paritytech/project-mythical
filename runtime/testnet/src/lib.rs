@@ -26,7 +26,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::traits::{Contains, InstanceFilter, WithdrawReasons};
+use frame_support::traits::{InstanceFilter, WithdrawReasons};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -280,16 +280,8 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 
-pub struct DisableTokenTxFilter;
-impl Contains<RuntimeCall> for DisableTokenTxFilter {
-	fn contains(call: &RuntimeCall) -> bool {
-		!matches!(call, RuntimeCall::Balances(_))
-	}
-}
-
 #[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = DisableTokenTxFilter;
 	/// Block & extrinsics weights: base values and limits.
 	type BlockWeights = RuntimeBlockWeights;
 	/// The maximum length of a block (in bytes).
