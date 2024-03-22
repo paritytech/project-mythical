@@ -308,7 +308,7 @@ impl xcm_executor::Config for XcmConfig {
 	type TransactionalProcessor = FrameTransactionalProcessor;
 }
 
-/// No local origins on this chain are allowed to dispatch XCM sends/executions.
+/// Local origin to location conversion.
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
 pub type PriceForParentDelivery =
