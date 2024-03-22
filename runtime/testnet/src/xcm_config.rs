@@ -46,7 +46,7 @@ parameter_types! {
 	pub EthereumCurrencyLocation: Location = Location::new(2,
 		[
 			GlobalConsensus(EthereumNetwork::get()), // sepolia
-			AccountKey20 { network: None, key: hex!("c9F05326311bc2a55426761Bec20057685FB80f7") }
+			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
 		]);
 	// Arbitrary value to allow to test reserve transfers, only for testing.
 	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
