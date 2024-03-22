@@ -85,6 +85,15 @@ pub mod pallet {
 
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
+
+		#[cfg(feature = "runtime-benchmarks")]
+		/// A set of helper functions for benchmarking.
+		type BenchmarkHelper: BenchmarkHelper<
+			Self::CollectionId,
+			Self::ItemId,
+			Self::Moment,
+			Self::Signature,
+		>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.
@@ -675,19 +684,10 @@ pub mod pallet {
 			ensure!(Nonces::<T>::get(nonce.clone()) == false, Error::<T>::AlreadyUsedNonce);
 
 			let signer = FeeSigner::<T>::get().ok_or(Error::<T>::FeeSignerAddressNotSet)?;
-			if signature_data.signature.verify(&**message, &signer) {
-				return Ok(());
+
+			if !signature_data.signature.verify(message.as_ref(), &signer) {
+				return Err(Error::<T>::BadSignedMessage.into());
 			}
-
-			let prefix = "\x19Ethereum Signed Message:\n32".as_bytes();
-			let mut wrapped: Vec<u8> = Vec::with_capacity(message.len() + prefix.len());
-			wrapped.extend(prefix);
-			wrapped.extend(message);
-
-			ensure!(
-				signature_data.signature.verify(&*wrapped, &signer),
-				Error::<T>::BadSignedMessage
-			);
 
 			Nonces::<T>::set(nonce, true);
 			Ok(())

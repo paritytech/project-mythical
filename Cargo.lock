@@ -6668,9 +6668,11 @@ dependencies = [
 name = "pallet-marketplace"
 version = "0.0.1"
 dependencies = [
+ "account",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hex",
  "log",
  "pallet-balances",
  "pallet-nfts",
