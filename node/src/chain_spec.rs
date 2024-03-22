@@ -166,6 +166,14 @@ pub mod testnet {
 		.with_name("Muse Testnet")
 		.with_id("muse")
 		.with_chain_type(ChainType::Live)
+		.with_boot_nodes(vec![
+			"/dns/rococo-muse-collator-node-0.parity-testnet.parity.io/tcp/30333/p2p/12D3KooWMQz93xtrqmzMMB27Gk9cAG3vsZF7WHUDcAWQv57R5YkP"
+				.parse()
+				.expect("MultiaddrWithPeerId"),
+			"/dns/rococo-muse-collator-node-1.parity-testnet.parity.io/tcp/30333/p2p/12D3KooWFueUcDTkP9tJGCVFancDM3LgDBKEFpvr3jEzoXdMebdM"
+				.parse()
+				.expect("MultiaddrWithPeerId"),
+		])
 		.with_genesis_config_patch(testnet_genesis(
 			// initial collators.
 			vec![
