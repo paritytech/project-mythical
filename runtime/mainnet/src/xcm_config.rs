@@ -45,8 +45,8 @@ parameter_types! {
 	pub EthereumCurrencyLocation: Location = Location::new(2,
 		[
 			GlobalConsensus(NetworkId::Ethereum { chain_id: 1 }), // mainnet
-			//TODO: Replace with MYTH ERC20 contract address
-			AccountKey20 { network: None, key: hex!("c9F05326311bc2a55426761Bec20057685FB80f7") }
+			// MYTHOS ERC20
+			AccountKey20 { network: None, key: hex!("BA41Ddf06B7fFD89D1267b5A93BFeF2424eb2003") }
 		]);
 	// Arbitrary value to allow to test reserve transfers, only for testing.
 	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
