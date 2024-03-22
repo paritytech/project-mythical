@@ -185,10 +185,7 @@ pub mod testnet {
 					AccountId::from(hex!("16A5094837B65f1177824F0D36002f33d9A2Df7d")),
 					150_000_000 * MUSE,
 				),
-				(
-					AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")),
-					1_000 * MUSE,
-				),
+				(AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")), 1_000 * MUSE),
 			],
 			AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")),
 			PARA_ID.into(),
