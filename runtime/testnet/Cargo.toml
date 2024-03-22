@@ -83,6 +83,8 @@ cumulus-primitives-utility = { workspace = true, default-features = false }
 pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
+testnet-parachains-constants = { workspace = true, default-features = false, features = ["rococo"] }
+
 
 # Frontier
 fp-self-contained = { workspace = true, default-features = false, features = [
