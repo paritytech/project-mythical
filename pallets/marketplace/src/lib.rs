@@ -36,7 +36,7 @@ pub mod pallet {
 
 	use sp_runtime::{
 		traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, IdentifyAccount, Verify},
-		BoundedVec, DispatchError,
+		BoundedVec, DispatchError, Saturating,
 	};
 	use sp_std::vec::Vec;
 
@@ -104,24 +104,19 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn authority)]
 	pub type Authority<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn fee_signer)]
 	pub type FeeSigner<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nonces)]
 	pub type Nonces<T: Config> =
 		StorageMap<_, Identity, BoundedVec<u8, T::NonceStringLimit>, bool, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn payout_address)]
 	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn asks)]
 	pub type Asks<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
@@ -132,7 +127,6 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn bids)]
 	pub type Bids<T: Config> = StorageNMap<
 		_,
 		(
@@ -140,7 +134,7 @@ pub mod pallet {
 			NMapKey<Blake2_128Concat, T::ItemId>,
 			NMapKey<Blake2_128Concat, BalanceOf<T>>,
 		),
-		Bid<T::AccountId, T::Moment, BalanceOf<T>>,
+		Bid<T::AccountId, BalanceOf<T>, T::Moment>,
 	>;
 
 	#[pallet::event]
@@ -320,7 +314,8 @@ pub mod pallet {
 			ensure!(order.price.clone() >= T::MaxBasisPoints::get(), Error::<T>::InvalidPrice);
 			ensure!(
 				order.expires_at.clone()
-					> pallet_timestamp::Pallet::<T>::get() + T::MinOrderDuration::get(),
+					> pallet_timestamp::Pallet::<T>::get()
+						.saturating_add(T::MinOrderDuration::get()),
 				Error::<T>::InvalidExpiration
 			);
 			ensure!(
@@ -338,7 +333,6 @@ pub mod pallet {
 				order.signature_data.nonce.clone(),
 			);
 			Self::verify_fee_signer_signature(&message.encode(), order.signature_data)?;
-			//--------------------------------------------
 
 			Self::deposit_event(Event::OrderCreated {
 				who: who.clone(),
@@ -360,14 +354,14 @@ pub mod pallet {
 					pallet_nfts::Pallet::<T>::disable_transfer(&order.collection, &order.item)
 						.map_err(|_| Error::<T>::ItemAlreadyLocked)?;
 
-					if Self::valid_match_exists_for(
+					if let Some(exec_order) = Self::valid_match_exists_for(
 						OrderType::Ask,
 						&order.collection,
 						&order.item,
 						&order.price,
 					) {
 						Self::execute_order(
-							OrderType::Ask,
+							exec_order,
 							who,
 							order.collection,
 							order.item,
@@ -407,14 +401,14 @@ pub mod pallet {
 					)
 					.map_err(|_| Error::<T>::InsufficientFunds)?;
 
-					if Self::valid_match_exists_for(
+					if let Some(exec_order) = Self::valid_match_exists_for(
 						OrderType::Bid,
 						&order.collection,
 						&order.item,
 						&order.price,
 					) {
 						Self::execute_order(
-							OrderType::Bid,
+							exec_order,
 							who,
 							order.collection,
 							order.item,
@@ -515,34 +509,35 @@ pub mod pallet {
 			collection: &T::CollectionId,
 			item: &T::ItemId,
 			price: &BalanceOf<T>,
-		) -> bool {
+		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>> {
 			let timestamp = pallet_timestamp::Pallet::<T>::get();
+
 			match order_type {
 				OrderType::Ask => {
 					if let Some(bid) = Bids::<T>::get((collection, item, price)) {
 						if timestamp >= bid.expiration {
-							return false;
+							return None;
 						};
+						Some(ExecOrder::Bid(bid))
 					} else {
-						return false;
+						return None;
 					}
 				},
 				OrderType::Bid => {
 					if let Some(ask) = Asks::<T>::get(collection.clone(), item.clone()) {
 						if timestamp >= ask.expiration {
-							return false;
+							return None;
 						};
+						Some(ExecOrder::Ask(ask))
 					} else {
-						return false;
+						return None;
 					}
 				},
-			};
-
-			true
+			}
 		}
 
 		pub fn execute_order(
-			order_type: OrderType,
+			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>,
 			who: T::AccountId,
 			collection: T::CollectionId,
 			item: T::ItemId,
@@ -554,28 +549,17 @@ pub mod pallet {
 			let seller_fee: BalanceOf<T>;
 			let buyer_fee: BalanceOf<T>;
 
-			match order_type {
-				OrderType::Ask => {
-					let bid = Bids::<T>::get((collection, item, price))
-						.ok_or(Error::<T>::OrderNotFound)?;
+			match exec_order {
+				ExecOrder::Bid(bid) => {
 					ensure!(who.clone() != bid.buyer.clone(), Error::<T>::BuyerIsSeller);
-					ensure!(
-						bid.expiration >= pallet_timestamp::Pallet::<T>::get(),
-						Error::<T>::OrderExpired
-					);
 
 					seller = who;
 					buyer = bid.buyer;
 					seller_fee = *fee;
 					buyer_fee = bid.fee;
 				},
-				OrderType::Bid => {
-					let ask = Asks::<T>::get(collection, item).ok_or(Error::<T>::OrderNotFound)?;
+				ExecOrder::Ask(ask) => {
 					ensure!(who.clone() != ask.seller.clone(), Error::<T>::BuyerIsSeller);
-					ensure!(
-						ask.expiration >= pallet_timestamp::Pallet::<T>::get(),
-						Error::<T>::OrderExpired
-					);
 
 					seller = ask.seller;
 					buyer = who;

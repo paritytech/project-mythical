@@ -16,7 +16,7 @@ pub struct Ask<AccountId, Amount, Expiration> {
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
-pub struct Bid<AccountId, Expiration, Amount> {
+pub struct Bid<AccountId, Amount, Expiration> {
 	pub buyer: AccountId,
 	pub expiration: Expiration,
 	pub fee: Amount,
@@ -26,6 +26,12 @@ pub struct Bid<AccountId, Expiration, Amount> {
 pub enum OrderType {
 	Ask,
 	Bid,
+}
+
+#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+pub enum ExecOrder<AccountId, Amount, Expiration> {
+	Ask(Ask<AccountId, Amount, Expiration>),
+	Bid(Bid<AccountId, Amount, Expiration>),
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]

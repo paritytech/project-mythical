@@ -150,7 +150,7 @@ mod force_set_authority {
 	fn force_set_authoity_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), account(1)));
-			assert!(Marketplace::authority() == Some(account(1)));
+			assert!(Authority::<Test>::get() == Some(account(1)));
 		})
 	}
 
@@ -191,7 +191,7 @@ mod set_fee_signer {
 				RuntimeOrigin::signed(account(1)),
 				account(2)
 			));
-			assert!(Marketplace::fee_signer() == Some(account(2)));
+			assert!(FeeSigner::<Test>::get() == Some(account(2)));
 		})
 	}
 
@@ -245,7 +245,7 @@ mod set_payout_address {
 				RuntimeOrigin::signed(account(1)),
 				account(2)
 			));
-			assert!(Marketplace::payout_address() == Some(account(2)));
+			assert!(PayoutAddress::<Test>::get() == Some(account(2)));
 		})
 	}
 
@@ -604,7 +604,7 @@ mod create_ask {
 				fee: order.fee_percent,
 			};
 
-			assert!(Marketplace::asks(0, 0) == Some(ask));
+			assert!(Asks::<Test>::get(0, 0) == Some(ask));
 			assert!(!Nfts::can_transfer(&0, &0));
 		})
 	}
@@ -720,7 +720,7 @@ mod create_bid {
 						.saturating_sub(initial_reserved)
 				) == Marketplace::calc_bid_payment(&order.price, &order.fee_percent).ok()
 			);
-			assert!(Marketplace::bids((0, 0, order.price)) == Some(bid));
+			assert!(Bids::<Test>::get((0, 0, order.price)) == Some(bid));
 		})
 	}
 
@@ -926,7 +926,7 @@ mod execute_ask_with_existing_bid {
 				Execution::AllowCreation
 			));
 
-			let payout_address = Marketplace::payout_address().unwrap();
+			let payout_address = PayoutAddress::<Test>::get().unwrap();
 			let payout_address_balance_before = Balances::balance(&payout_address);
 			let seller_balance_before = Balances::balance(&seller);
 			let buyer_reserved_balance_before =
@@ -1106,7 +1106,7 @@ mod execute_ask_with_existing_bid {
 				Execution::AllowCreation
 			));
 
-			let payout_address = Marketplace::payout_address().unwrap();
+			let payout_address = PayoutAddress::<Test>::get().unwrap();
 			let payout_address_balance_before = Balances::balance(&payout_address);
 			let seller_balance_before = Balances::balance(&seller);
 			let buyer_reserved_balance_before =
@@ -1187,7 +1187,7 @@ mod execute_bid_with_existing_ask {
 
 			Balances::set_balance(&buyer, 1000000);
 
-			let payout_address = Marketplace::payout_address().unwrap();
+			let payout_address = PayoutAddress::<Test>::get().unwrap();
 			let payout_address_balance_before = Balances::balance(&payout_address);
 			let seller_balance_before = Balances::balance(&seller);
 			let buyer_balance_before = Balances::balance(&buyer);
@@ -1264,7 +1264,7 @@ mod execute_bid_with_existing_ask {
 
 			Balances::set_balance(&buyer, 1000000);
 
-			let payout_address = Marketplace::payout_address().unwrap();
+			let payout_address = PayoutAddress::<Test>::get().unwrap();
 			let payout_address_balance_before = Balances::balance(&payout_address);
 			let seller_balance_before = Balances::balance(&seller);
 			let buyer_balance_before = Balances::balance(&buyer);
@@ -1374,7 +1374,7 @@ mod cancel_ask {
 				0
 			));
 
-			assert!(Marketplace::asks(0, 0) == None);
+			assert!(Asks::<Test>::get(0, 0) == None);
 			assert!(Nfts::can_transfer(&0, &0));
 		})
 	}
@@ -1395,7 +1395,7 @@ mod cancel_ask {
 				0
 			));
 
-			assert!(Marketplace::asks(0, 0) == None);
+			assert!(Asks::<Test>::get(0, 0) == None);
 			assert!(Nfts::can_transfer(&0, &0));
 		})
 	}
@@ -1471,7 +1471,7 @@ mod cancel_bid {
 			));
 
 			let fee = <Test as Config>::MaxBasisPoints::get();
-			assert!(Marketplace::asks(0, 0) == None);
+			assert!(Asks::<Test>::get(0, 0) == None);
 
 			let bid_payment = Marketplace::calc_bid_payment(&price, &fee).unwrap_or_default();
 			assert!(
@@ -1503,7 +1503,7 @@ mod cancel_bid {
 			));
 
 			let fee = <Test as Config>::MaxBasisPoints::get();
-			assert!(Marketplace::asks(0, 0) == None);
+			assert!(Asks::<Test>::get(0, 0) == None);
 
 			let bid_payment = Marketplace::calc_bid_payment(&price, &fee).unwrap_or_default();
 			assert!(

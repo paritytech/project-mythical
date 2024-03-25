@@ -13,8 +13,8 @@ use frame_support::{
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 
 use sp_core::{
+	crypto::Pair,
 	ecdsa::{Pair as EthereumPair, Signature},
-	Pair,
 };
 
 const SEED: u32 = 0;
@@ -85,8 +85,8 @@ pub mod benchmarks {
 	use account::{AccountId20, EthereumSignature, EthereumSigner};
 	use pallet_timestamp::Pallet as Timestamp;
 	use parity_scale_codec::Encode;
-	use scale_info::prelude::vec;
-	use sp_core::keccak_256;
+	use scale_info::prelude::vec::Vec;
+	use sp_core::hashing::keccak_256;
 	use sp_runtime::traits::IdentifyAccount;
 
 	fn create_valid_order<T: Config>(
