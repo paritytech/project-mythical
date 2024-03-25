@@ -31,9 +31,12 @@ sp-std = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false}
 pallet-balances = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
+
+[dev_dependencies]
+sp-io = { workspace = true }
 
 [features]
 default = ["std"]

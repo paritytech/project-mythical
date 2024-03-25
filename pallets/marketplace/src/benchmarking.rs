@@ -11,11 +11,14 @@ use frame_support::{
 	},
 };
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
-
-use sp_core::{
-	crypto::Pair,
-	ecdsa::{Pair as EthereumPair, Signature},
+use sp_core::ecdsa::Public;
+use sp_io::{
+	crypto::{ecdsa_generate, ecdsa_sign_prehashed},
+	hashing::keccak_256,
 };
+use sp_std::{vec, vec::Vec};
+
+use sp_core::ecdsa::Signature;
 
 const SEED: u32 = 0;
 
@@ -85,15 +88,14 @@ pub mod benchmarks {
 	use account::{AccountId20, EthereumSignature, EthereumSigner};
 	use pallet_timestamp::Pallet as Timestamp;
 	use parity_scale_codec::Encode;
-	use scale_info::prelude::vec::Vec;
-	use sp_core::hashing::keccak_256;
+
 	use sp_runtime::traits::IdentifyAccount;
 
 	fn create_valid_order<T: Config>(
 		order_type: OrderType,
 		caller: T::AccountId,
 		price: BalanceOf<T>,
-		fee_signer_pair: EthereumPair,
+		fee_signer: Public,
 	) where
 		T::Signature: From<EthereumSignature>,
 	{
@@ -109,7 +111,7 @@ pub mod benchmarks {
 				nonce: vec![0],
 			},
 		};
-		append_valid_signature::<T>(fee_signer_pair, &mut order);
+		append_valid_signature::<T>(fee_signer, &mut order);
 
 		assert_ok!(Marketplace::<T>::create_order(
 			RawOrigin::Signed(caller).into(),
@@ -119,7 +121,7 @@ pub mod benchmarks {
 	}
 
 	fn append_valid_signature<T: Config>(
-		fee_signer_pair: EthereumPair,
+		fee_signer: Public,
 		order: &mut Order<
 			T::CollectionId,
 			T::ItemId,
@@ -144,16 +146,17 @@ pub mod benchmarks {
 
 		let hashed = keccak_256(&message);
 
-		let signature = EthereumSignature::from(fee_signer_pair.sign_prehashed(&hashed));
+		let signature =
+			EthereumSignature::from(ecdsa_sign_prehashed(0.into(), &fee_signer, &hashed).unwrap());
 		order.signature_data.signature = signature.into();
 	}
 
-	fn admin_accounts_setup<T: Config>() -> (T::AccountId, EthereumPair)
+	fn admin_accounts_setup<T: Config>() -> (T::AccountId, Public)
 	where
 		T::AccountId: From<AccountId20>,
 	{
-		let admin_pair = EthereumPair::from_string("//Alice", None).unwrap();
-		let admin_signer: EthereumSigner = admin_pair.public().into();
+		let admin_public = ecdsa_generate(0.into(), None);
+		let admin_signer: EthereumSigner = admin_public.into();
 		let admin: T::AccountId = admin_signer.clone().into_account().into();
 
 		let ed = <T as Config>::Currency::minimum_balance();
@@ -172,7 +175,7 @@ pub mod benchmarks {
 			admin.clone().into(),
 		));
 
-		(admin, admin_pair)
+		(admin, admin_public)
 	}
 
 	#[benchmark]
@@ -216,15 +219,10 @@ pub mod benchmarks {
 		let item = T::BenchmarkHelper::item(0);
 		let seller = mint_nft::<T>(item.clone());
 		// Create ask order
-		let (_, fee_signer_pair) = admin_accounts_setup::<T>();
+		let (_, fee_signer) = admin_accounts_setup::<T>();
 
 		let price = BalanceOf::<T>::from(10000u16);
-		create_valid_order::<T>(
-			OrderType::Ask,
-			seller.clone(),
-			price.clone(),
-			fee_signer_pair.clone(),
-		);
+		create_valid_order::<T>(OrderType::Ask, seller.clone(), price.clone(), fee_signer.clone());
 
 		// Setup buyer
 		let buyer: T::AccountId = funded_and_whitelisted_account::<T>("buyer", 0);
@@ -241,7 +239,7 @@ pub mod benchmarks {
 				nonce: vec![1],
 			},
 		};
-		append_valid_signature::<T>(fee_signer_pair, &mut order);
+		append_valid_signature::<T>(fee_signer, &mut order);
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(buyer.clone()), order.clone(), Execution::AllowCreation);

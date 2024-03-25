@@ -3,7 +3,6 @@ use crate::{mock::*, *};
 use account::{EthereumSignature, EthereumSigner};
 use frame_support::{
 	assert_noop, assert_ok,
-	crypto::ecdsa,
 	error::BadOrigin,
 	traits::{
 		fungible::{Inspect as InspectFungible, InspectHold, Mutate},
@@ -18,7 +17,7 @@ use sp_core::{
 	Get, Pair,
 };
 use sp_io::hashing::keccak_256;
-use sp_runtime::{traits::IdentifyAccount, BoundedVec, MultiSignature};
+use sp_runtime::{traits::IdentifyAccount, BoundedVec};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 type CollectionId<Test> = <Test as pallet_nfts::Config>::CollectionId;
@@ -390,7 +389,6 @@ mod create_order_initial_checks {
 		})
 	}
 
-	// TODO: Order creation should fail if the signature is invalid - BadSignedMessage
 	#[test]
 	fn invalid_signed_message() {
 		new_test_ext().execute_with(|| {
