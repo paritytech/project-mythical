@@ -295,14 +295,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::create_order())]
 		pub fn create_order(
 			origin: OriginFor<T>,
-			order: Order<
-				T::CollectionId,
-				T::ItemId,
-				BalanceOf<T>,
-				T::Moment,
-				T::Signature,
-				Vec<u8>,
-			>,
+			order: OrderOf<T>,
 			execution: Execution,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -657,7 +650,7 @@ pub mod pallet {
 			let nonce: BoundedVec<u8, T::NonceStringLimit> =
 				signature_data.nonce.try_into().map_err(|_| Error::<T>::BadNonce)?;
 
-			ensure!(Nonces::<T>::get(nonce.clone()), Error::<T>::AlreadyUsedNonce);
+			ensure!(!Nonces::<T>::contains_key(nonce.clone()), Error::<T>::AlreadyUsedNonce);
 
 			let signer = FeeSigner::<T>::get().ok_or(Error::<T>::FeeSignerAddressNotSet)?;
 

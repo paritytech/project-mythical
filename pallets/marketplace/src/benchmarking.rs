@@ -16,7 +16,7 @@ use sp_io::{
 	crypto::{ecdsa_generate, ecdsa_sign_prehashed},
 	hashing::keccak_256,
 };
-use sp_std::{vec, vec::Vec};
+use sp_std::vec;
 
 use sp_core::ecdsa::Signature;
 
@@ -121,17 +121,8 @@ pub mod benchmarks {
 		));
 	}
 
-	fn append_valid_signature<T: Config>(
-		fee_signer: Public,
-		order: &mut Order<
-			T::CollectionId,
-			T::ItemId,
-			BalanceOf<T>,
-			T::Moment,
-			T::Signature,
-			Vec<u8>,
-		>,
-	) where
+	fn append_valid_signature<T: Config>(fee_signer: Public, order: &mut OrderOf<T>)
+	where
 		T::Signature: From<EthereumSignature>,
 	{
 		let message = (
