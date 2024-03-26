@@ -650,7 +650,7 @@ pub mod pallet {
 			let nonce: BoundedVec<u8, T::NonceStringLimit> =
 				signature_data.nonce.try_into().map_err(|_| Error::<T>::BadNonce)?;
 
-			ensure!(Nonces::<T>::get(nonce.clone()), Error::<T>::AlreadyUsedNonce);
+			ensure!(!Nonces::<T>::contains_key(nonce.clone()), Error::<T>::AlreadyUsedNonce);
 
 			let signer = FeeSigner::<T>::get().ok_or(Error::<T>::FeeSignerAddressNotSet)?;
 
