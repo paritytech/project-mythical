@@ -518,9 +518,7 @@ pub mod pallet {
 						if timestamp >= bid.expiration {
 							return None;
 						};
-						Some(ExecOrder::Bid(bid))
-					} else {
-						return None;
+						return Some(ExecOrder::Bid(bid));
 					}
 				},
 				OrderType::Bid => {
@@ -528,12 +526,11 @@ pub mod pallet {
 						if timestamp >= ask.expiration {
 							return None;
 						};
-						Some(ExecOrder::Ask(ask))
-					} else {
-						return None;
+						return Some(ExecOrder::Ask(ask));
 					}
 				},
 			}
+			return None;
 		}
 
 		pub fn execute_order(
