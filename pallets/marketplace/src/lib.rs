@@ -295,14 +295,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::create_order())]
 		pub fn create_order(
 			origin: OriginFor<T>,
-			order: Order<
-				T::CollectionId,
-				T::ItemId,
-				BalanceOf<T>,
-				T::Moment,
-				T::Signature,
-				Vec<u8>,
-			>,
+			order: OrderOf<T>,
 			execution: Execution,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;

@@ -7,6 +7,15 @@ use crate::Config;
 pub type BalanceOf<T> =
 	<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
+pub type OrderOf<T> = Order<
+	<T as pallet_nfts::Config>::CollectionId,
+	<T as pallet_nfts::Config>::ItemId,
+	BalanceOf<T>,
+	<T as pallet_timestamp::Config>::Moment,
+	<T as Config>::Signature,
+	Vec<u8>,
+>;
+
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
 pub struct Ask<AccountId, Amount, Expiration> {
 	pub seller: AccountId,
