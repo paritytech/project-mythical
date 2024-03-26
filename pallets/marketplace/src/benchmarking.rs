@@ -53,7 +53,7 @@ fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> 
 	// Give the account half of the maximum value of the `Balance` type.
 	// Otherwise some transfers will fail with an overflow error.
 	let ed = <T as Config>::Currency::minimum_balance();
-	let multiplier = BalanceOf::<T>::from(10000u16);
+	let multiplier = BalanceOf::<T>::from(1000000u32);
 
 	<T as Config>::Currency::set_balance(&caller, ed * multiplier);
 	whitelist_account!(caller);

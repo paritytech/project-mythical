@@ -4,6 +4,7 @@ use frame_support::{
 };
 use frame_system as system;
 use sp_core::H256;
+use sp_keystore::{testing::MemoryKeystore, KeystoreExt};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Verify},
 	BuildStorage,
@@ -137,5 +138,9 @@ impl pallet_timestamp::Config for Test {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+	let t = system::GenesisConfig::<Test>::default().build_storage().unwrap();
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.register_extension(KeystoreExt::new(MemoryKeystore::new()));
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }
