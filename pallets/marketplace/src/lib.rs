@@ -307,29 +307,25 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let item_owner =
-				pallet_nfts::Pallet::<T>::owner(order.collection.clone(), order.item.clone())
-					.ok_or(Error::<T>::ItemNotFound)?;
+			let item_owner = pallet_nfts::Pallet::<T>::owner(order.collection, order.item)
+				.ok_or(Error::<T>::ItemNotFound)?;
 
-			ensure!(order.price.clone() >= T::MaxBasisPoints::get(), Error::<T>::InvalidPrice);
+			ensure!(order.price >= T::MaxBasisPoints::get(), Error::<T>::InvalidPrice);
 			ensure!(
-				order.expires_at.clone()
+				order.expires_at
 					> pallet_timestamp::Pallet::<T>::get()
 						.saturating_add(T::MinOrderDuration::get()),
 				Error::<T>::InvalidExpiration
 			);
-			ensure!(
-				order.fee_percent.clone() <= T::MaxBasisPoints::get(),
-				Error::<T>::InvalidFeePercent
-			);
+			ensure!(order.fee_percent <= T::MaxBasisPoints::get(), Error::<T>::InvalidFeePercent);
 
 			let message = (
 				order.order_type.clone(),
-				order.collection.clone(),
-				order.item.clone(),
-				order.price.clone(),
-				order.expires_at.clone(),
-				order.fee_percent.clone(),
+				order.collection,
+				order.item,
+				order.price,
+				order.expires_at,
+				order.fee_percent,
 				order.signature_data.nonce.clone(),
 			);
 			Self::verify_fee_signer_signature(&message.encode(), order.signature_data)?;
@@ -337,10 +333,10 @@ pub mod pallet {
 			Self::deposit_event(Event::OrderCreated {
 				who: who.clone(),
 				order_type: order.order_type.clone(),
-				collection: order.collection.clone(),
-				item: order.item.clone(),
-				price: order.price.clone(),
-				expires_at: order.expires_at.clone(),
+				collection: order.collection,
+				item: order.item,
+				price: order.price,
+				expires_at: order.expires_at,
 			});
 
 			match order.order_type {
@@ -456,21 +452,20 @@ pub mod pallet {
 			match order_type {
 				//Order type Ask
 				OrderType::Ask => {
-					let ask = Asks::<T>::get(collection.clone(), item.clone())
-						.ok_or(Error::<T>::OrderNotFound)?;
+					let ask = Asks::<T>::get(collection, item).ok_or(Error::<T>::OrderNotFound)?;
 					ensure!(
 						ask.seller.clone() == who.clone() || Some(who.clone()) == authority,
 						Error::<T>::NotOrderCreatorOrAdmin
 					);
 
-					Asks::<T>::remove(collection.clone(), item.clone());
+					Asks::<T>::remove(collection, item);
 
 					// Re enable item transfer
 					pallet_nfts::Pallet::<T>::enable_transfer(&collection, &item)?;
 				},
 				//Order type Bid
 				OrderType::Bid => {
-					let bid = Bids::<T>::get((collection.clone(), item.clone(), price.clone()))
+					let bid = Bids::<T>::get((collection, item, price))
 						.ok_or(Error::<T>::OrderNotFound)?;
 
 					ensure!(
@@ -478,7 +473,7 @@ pub mod pallet {
 						Error::<T>::NotOrderCreatorOrAdmin
 					);
 
-					Bids::<T>::remove((collection.clone(), item.clone(), price.clone()));
+					Bids::<T>::remove((collection, item, price));
 
 					let bid_payment = Self::calc_bid_payment(&price, &bid.fee)?;
 					<T as crate::Config>::Currency::release(
@@ -522,7 +517,7 @@ pub mod pallet {
 					}
 				},
 				OrderType::Bid => {
-					if let Some(ask) = Asks::<T>::get(collection.clone(), item.clone()) {
+					if let Some(ask) = Asks::<T>::get(collection, item) {
 						if timestamp >= ask.expiration {
 							return None;
 						};
@@ -530,7 +525,7 @@ pub mod pallet {
 					}
 				},
 			}
-			return None;
+			None
 		}
 
 		pub fn execute_order(
@@ -565,8 +560,8 @@ pub mod pallet {
 				},
 			};
 
-			Asks::<T>::remove(collection.clone(), item.clone());
-			Bids::<T>::remove((collection.clone(), item.clone(), price.clone()));
+			Asks::<T>::remove(collection, item);
+			Bids::<T>::remove((collection, item, *price));
 
 			Self::process_fees(&seller, seller_fee, &buyer, buyer_fee, *price)?;
 
@@ -636,7 +631,7 @@ pub mod pallet {
 
 			<T as crate::Config>::Currency::release(
 				&HoldReason::MarketplaceBid.into(),
-				&buyer,
+				buyer,
 				buyer_payment_amount,
 				Exact,
 			)?;
@@ -662,7 +657,7 @@ pub mod pallet {
 			let nonce: BoundedVec<u8, T::NonceStringLimit> =
 				signature_data.nonce.try_into().map_err(|_| Error::<T>::BadNonce)?;
 
-			ensure!(Nonces::<T>::get(nonce.clone()) == false, Error::<T>::AlreadyUsedNonce);
+			ensure!(Nonces::<T>::get(nonce.clone()), Error::<T>::AlreadyUsedNonce);
 
 			let signer = FeeSigner::<T>::get().ok_or(Error::<T>::FeeSignerAddressNotSet)?;
 

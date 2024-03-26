@@ -172,7 +172,7 @@ pub mod benchmarks {
 		));
 		assert_ok!(Marketplace::<T>::set_payout_address(
 			RawOrigin::Signed(admin.clone()).into(),
-			admin.clone().into(),
+			admin.clone(),
 		));
 
 		(admin, admin_public)
@@ -217,12 +217,12 @@ pub mod benchmarks {
 	fn create_order() {
 		// Nft setup
 		let item = T::BenchmarkHelper::item(0);
-		let seller = mint_nft::<T>(item.clone());
+		let seller = mint_nft::<T>(item);
 		// Create ask order
 		let (_, fee_signer) = admin_accounts_setup::<T>();
 
 		let price = BalanceOf::<T>::from(10000u16);
-		create_valid_order::<T>(OrderType::Ask, seller.clone(), price.clone(), fee_signer.clone());
+		create_valid_order::<T>(OrderType::Ask, seller.clone(), price, fee_signer);
 
 		// Setup buyer
 		let buyer: T::AccountId = funded_and_whitelisted_account::<T>("buyer", 0);
@@ -263,7 +263,7 @@ pub mod benchmarks {
 		// Nft Setup
 		let collection = T::BenchmarkHelper::collection(0);
 		let item = T::BenchmarkHelper::item(0);
-		let _ = mint_nft::<T>(item.clone());
+		let _ = mint_nft::<T>(item);
 
 		// Setup Bid order
 		let price = BalanceOf::<T>::from(10000u16);
@@ -271,16 +271,10 @@ pub mod benchmarks {
 		let bidder: T::AccountId = funded_and_whitelisted_account::<T>("bidder", 0);
 
 		let (_, fee_signer_public) = admin_accounts_setup::<T>();
-		create_valid_order::<T>(OrderType::Bid, bidder.clone(), price.clone(), fee_signer_public);
+		create_valid_order::<T>(OrderType::Bid, bidder.clone(), price, fee_signer_public);
 
 		#[extrinsic_call]
-		_(
-			RawOrigin::Signed(bidder.clone()),
-			OrderType::Bid,
-			collection.clone(),
-			item.clone(),
-			price,
-		);
+		_(RawOrigin::Signed(bidder.clone()), OrderType::Bid, collection, item, price);
 
 		assert_last_event::<T>(Event::OrderCanceled { collection, item, who: bidder }.into());
 	}
