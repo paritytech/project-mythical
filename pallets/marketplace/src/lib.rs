@@ -292,7 +292,7 @@ pub mod pallet {
 		///     - Fees go to payoutAddress
 		///
 		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::create_order())] //TODO: Write benchmark taking bid creation as the worst case
+		#[pallet::weight(<T as Config>::WeightInfo::create_order())]
 		pub fn create_order(
 			origin: OriginFor<T>,
 			order: Order<
@@ -442,7 +442,7 @@ pub mod pallet {
 		/// If the order is an Ask the item is unlocked
 		/// If the order is a Bid the bidders balance is unlocked
 		#[pallet::call_index(4)]
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_order())] //TODO: write benchmark taking bid cancel as the worst path
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_order())]
 		pub fn cancel_order(
 			origin: OriginFor<T>,
 			order_type: OrderType,

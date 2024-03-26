@@ -23,7 +23,6 @@ scale-info = { workspace = true, default-features = false, features = [
 # Primitives
 account = { workspace = true }
 
-hex = { workspace = true }
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
