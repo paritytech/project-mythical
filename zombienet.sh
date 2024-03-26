@@ -21,14 +21,13 @@ fi
 
 BIN_DIR=bin
 
-build_polkadot(){
+build_polkadot() {
   echo "cloning polkadot repository..."
   CWD=$(pwd)
   mkdir -p "$BIN_DIR"
   pushd /tmp
-    git clone https://github.com/paritytech/polkadot-sdk.git
+    git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git
     pushd polkadot-sdk
-      git checkout release-polkadot-$POLKADOT_V
       echo "building polkadot executable..."
       cargo build --release --features fast-runtime
       cp target/release/polkadot "$CWD/$BIN_DIR"
@@ -40,7 +39,7 @@ build_polkadot(){
   popd
 }
 
-build_chainspec_generator(){
+build_chainspec_generator() {
   echo "cloning chain-spec-generator..."
   CWD=$(pwd)
   mkdir -p "$BIN_DIR"
@@ -54,7 +53,7 @@ build_chainspec_generator(){
   popd
 }
 
-fetch_polkadot(){
+fetch_polkadot() {
   echo "fetching from polkadot repository..."
   echo $BIN_DIR
   mkdir -p "$BIN_DIR"
@@ -72,7 +71,7 @@ zombienet_init() {
     curl -LO https://github.com/paritytech/zombienet/releases/download/$ZOMBIENET_V/$ZOMBIENET_BIN
     chmod +x $ZOMBIENET_BIN
   fi
-   if [ ! -f $BIN_DIR/chain-spec-generator ]; then
+  if [ ! -f $BIN_DIR/chain-spec-generator ]; then
     build_chainspec_generator
   fi
   if [ ! -f $BIN_DIR/polkadot ]; then
