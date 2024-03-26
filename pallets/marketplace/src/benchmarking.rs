@@ -62,6 +62,7 @@ fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> 
 
 fn get_admin<T: Config>() -> T::AccountId {
 	let admin: T::AccountId = account("admin", 10, SEED);
+	whitelist_account!(admin);
 	assert_ok!(Marketplace::<T>::force_set_authority(RawOrigin::Root.into(), admin.clone()));
 
 	admin
