@@ -3,25 +3,6 @@
 # Helper script to open HRMP channels between Muse and Asset Hub.
 # This script is meant to be run after the relay chain and parachains are spawned.
 
-# Change for your bin path
-# POLKADOT_BIN=~/projects/mythical/bin/polkadot
-# POLKADOT_PARACHAIN_BIN=~/projects/mythical/bin/polkadot-parachain
-
-# function ensure_binaries() {
-#     echo "*** Checking for required binaries"
-#     if [[ ! -f "$POLKADOT_BIN" ]]; then
-#         echo "  Required polkadot binary '$POLKADOT_BIN' does not exist!"
-#         echo "  You need to build it and copy to this location!"
-#         exit 1
-#     fi
-#     if [[ ! -f "$POLKADOT_PARACHAIN_BIN" ]]; then
-#         echo "  Required polkadot-parachain binary '$POLKADOT_PARACHAIN_BIN' does not exist!"
-#         echo "  You need to build it and copy to this location!"
-#         exit 1
-#     fi
-#     echo "*** All required binaries are present"
-# }
-
 function ensure_polkadot_js_api() {
     echo "*** Checking for required polkadot-js-api"
     if ! which polkadot-js-api &>/dev/null; then
