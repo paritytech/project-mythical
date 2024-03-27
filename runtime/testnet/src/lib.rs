@@ -111,7 +111,8 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE};
+
+	use super::{Balance, ExtrinsicBaseWeight, MICRO_MUSE, MILLI_MUSE};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -185,7 +186,7 @@ pub mod fee {
 	}
 
 	pub fn base_tx_fee() -> Balance {
-		MILLI_MUSE
+		MICRO_MUSE / 1_000
 	}
 
 	pub fn default_fee_per_second() -> u128 {
