@@ -2,7 +2,7 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.95
+ZOMBIENET_V=v1.3.98
 POLKADOT_V=v1.8.0
 
 case "$(uname -s)" in
