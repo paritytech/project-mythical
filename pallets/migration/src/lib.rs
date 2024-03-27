@@ -6,12 +6,9 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::{pallet_prelude::*, traits::fungible::Inspect};
-	use frame_system::{
-		ensure_signed,
-		pallet_prelude::*,
-	};
-    use pallet_marketplace::{Ask, Asks, BalanceOf};
-    use pallet_nfts::NextCollectionId;
+	use frame_system::{ensure_signed, pallet_prelude::*};
+	use pallet_marketplace::{Ask, Asks, BalanceOf};
+	use pallet_nfts::NextCollectionId;
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 
@@ -41,9 +38,9 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// The pallet's migrator was updated.
 		MigratorUpdated(T::AccountId),
-        /// The NextCollectionId was overwriten with a new value
-        NextCollectionIdUpdated(T::CollectionId),
-        /// An ask was created
+		/// The NextCollectionId was overwriten with a new value
+		NextCollectionIdUpdated(T::CollectionId),
+		/// An ask was created
 		AskCreated {
 			collection: T::CollectionId,
 			item: T::ItemId,
@@ -55,8 +52,8 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// The caller is not the migrator account
 		NotMigrator,
-        ///
-        ItemNotFound,
+		///
+		ItemNotFound,
 	}
 
 	#[pallet::call]
@@ -98,14 +95,10 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			Self::ensure_migrator(&who)?;
 
-            pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
-					.ok_or(Error::<T>::ItemNotFound)?;
+			pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
+				.ok_or(Error::<T>::ItemNotFound)?;
 
-			pallet_marketplace::Asks::<T>::insert(
-				collection.clone(),
-				item.clone(),
-				ask.clone(),
-			);
+			pallet_marketplace::Asks::<T>::insert(collection.clone(), item.clone(), ask.clone());
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
 
 			Ok(())
