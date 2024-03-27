@@ -112,7 +112,7 @@ pub type Executive = frame_executive::Executive<
 
 pub mod fee {
 
-	use super::{Balance, ExtrinsicBaseWeight, MICRO_MUSE, MILLI_MUSE};
+	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -185,14 +185,14 @@ pub mod fee {
 		}
 	}
 
-	pub fn base_tx_fee() -> Balance {
-		MICRO_MUSE / 1_000
+	pub fn base_relay_tx_fee() -> Balance {
+		MILLI_ROC
 	}
 
 	pub fn default_fee_per_second() -> u128 {
 		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
-		base_tx_per_second * base_tx_fee()
+		base_tx_per_second * base_relay_tx_fee()
 	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -235,6 +235,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 pub const MICRO_MUSE: Balance = 1_000_000_000_000;
 pub const MILLI_MUSE: Balance = 1_000 * MICRO_MUSE;
 pub const MUSE: Balance = 1_000 * MILLI_MUSE;
+//ROC has 12 decimal places
+pub const MICRO_ROC: Balance = 1_000_000;
+pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
 pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MUSE;
 
