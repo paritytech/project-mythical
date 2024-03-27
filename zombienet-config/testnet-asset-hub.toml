@@ -56,14 +56,3 @@ cumulus_based = true
     command = "./target/release/mythos-node"
     args = ["-lxcm=trace", "--state-cache-size=0"]
 
-[[hrmp_channels]]
-sender = 1000
-recipient = 3369
-max_capacity = 4
-max_message_size = 524288
-
-[[hrmp_channels]]
-sender = 3369
-recipient = 1000
-max_capacity = 4
-max_message_size = 524288
