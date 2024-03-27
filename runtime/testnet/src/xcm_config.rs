@@ -229,7 +229,7 @@ parameter_types! {
 	pub const NativeAssetId: AssetId = AssetId(SelfReserve::get());
 	pub const NativeAssetFilter: AssetFilter = Wild(AllOf { fun: WildFungible, id: NativeAssetId::get() });
 	pub AssetHubTrustedTeleporter: (AssetFilter, Location) = (NativeAssetFilter::get(), AssetHubLocation::get());
-	pub RelayPerSecond: (AssetId, u128,u128) = (Location::new(1,Here).into(), default_fee_per_second() * 10, 1024);
+	pub RelayPerSecondAndByte: (AssetId, u128,u128) = (Location::new(1,Here).into(), default_fee_per_second() * 1, 1024);
 }
 
 pub struct OnlyAssetHubPrefix;
@@ -268,7 +268,7 @@ impl Contains<(Location, Vec<Asset>)> for OnlyTeleportNative {
 
 pub type Traders = (
 	//Relay token.
-	FixedRateOfFungible<RelayPerSecond, ()>,
+	FixedRateOfFungible<RelayPerSecondAndByte, ()>,
 	//Native asset.
 	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 );
