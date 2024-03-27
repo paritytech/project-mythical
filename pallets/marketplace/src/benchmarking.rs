@@ -106,7 +106,7 @@ pub mod benchmarks {
 			item: T::BenchmarkHelper::item(0),
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
-			fee_percent: BalanceOf::<T>::from(0u8),
+			fee: BalanceOf::<T>::from(0u8),
 			signature_data: SignatureData {
 				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![0],
@@ -131,7 +131,7 @@ pub mod benchmarks {
 			order.item,
 			order.price,
 			order.expires_at,
-			order.fee_percent,
+			order.fee,
 			order.signature_data.nonce.clone(),
 		)
 			.encode();
@@ -225,7 +225,7 @@ pub mod benchmarks {
 			item,
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
-			fee_percent: BalanceOf::<T>::from(1u8),
+			fee: BalanceOf::<T>::from(1u8),
 			signature_data: SignatureData {
 				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![1],

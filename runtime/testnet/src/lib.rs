@@ -606,7 +606,6 @@ impl pallet_marketplace::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
 	type Signature = Signature;

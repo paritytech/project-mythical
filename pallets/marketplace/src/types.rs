@@ -51,7 +51,7 @@ pub struct Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Bo
 	pub item: ItemId,
 	pub price: Amount,
 	pub expires_at: Expiration,
-	pub fee_percent: Amount,
+	pub fee: Amount,
 	pub signature_data: SignatureData<OffchainSignature, BoundedString>,
 }
 

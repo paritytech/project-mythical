@@ -35,7 +35,7 @@ pub mod pallet {
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 
 	use sp_runtime::{
-		traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, IdentifyAccount, Verify},
+		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
 		BoundedVec, DispatchError, Saturating,
 	};
 	use sp_std::vec::Vec;
@@ -64,10 +64,6 @@ pub mod pallet {
 		/// The minimum amount of time for an ask duration.
 		#[pallet::constant]
 		type MinOrderDuration: Get<Self::Moment>;
-
-		/// Used for calculation of fees
-		#[pallet::constant]
-		type MaxBasisPoints: Get<BalanceOf<Self>>;
 
 		/// Size of nonce StorageValue
 		#[pallet::constant]
@@ -303,14 +299,12 @@ pub mod pallet {
 			let item_owner = pallet_nfts::Pallet::<T>::owner(order.collection, order.item)
 				.ok_or(Error::<T>::ItemNotFound)?;
 
-			ensure!(order.price >= T::MaxBasisPoints::get(), Error::<T>::InvalidPrice);
 			ensure!(
 				order.expires_at
 					> pallet_timestamp::Pallet::<T>::get()
 						.saturating_add(T::MinOrderDuration::get()),
 				Error::<T>::InvalidExpiration
 			);
-			ensure!(order.fee_percent <= T::MaxBasisPoints::get(), Error::<T>::InvalidFeePercent);
 
 			let message = (
 				order.order_type.clone(),
@@ -318,7 +312,7 @@ pub mod pallet {
 				order.item,
 				order.price,
 				order.expires_at,
-				order.fee_percent,
+				order.fee,
 				order.signature_data.nonce.clone(),
 			);
 			Self::verify_fee_signer_signature(&message.encode(), order.signature_data)?;
@@ -355,7 +349,7 @@ pub mod pallet {
 							order.collection,
 							order.item,
 							&order.price,
-							&order.fee_percent,
+							&order.fee,
 						)?;
 					} else {
 						ensure!(
@@ -367,7 +361,7 @@ pub mod pallet {
 							seller: who,
 							price: order.price,
 							expiration: order.expires_at,
-							fee: order.fee_percent,
+							fee: order.fee,
 						};
 
 						Asks::<T>::insert(order.collection, order.item, ask);
@@ -382,7 +376,7 @@ pub mod pallet {
 					ensure!(item_owner != who.clone(), Error::<T>::BidOnOwnedItem);
 
 					//Reserve neccesary amount to pay for the item + fees
-					let bid_payment = Self::calc_bid_payment(&order.price, &order.fee_percent)?;
+					let bid_payment = Self::calc_bid_payment(&order.price, &order.fee)?;
 					<T as crate::Config>::Currency::hold(
 						&HoldReason::MarketplaceBid.into(),
 						&who,
@@ -402,7 +396,7 @@ pub mod pallet {
 							order.collection,
 							order.item,
 							&order.price,
-							&order.fee_percent,
+							&order.fee,
 						)?;
 					} else {
 						ensure!(
@@ -410,11 +404,7 @@ pub mod pallet {
 							Error::<T>::ValidMatchMustExist
 						);
 
-						let bid = Bid {
-							buyer: who,
-							expiration: order.expires_at,
-							fee: order.fee_percent,
-						};
+						let bid = Bid { buyer: who, expiration: order.expires_at, fee: order.fee };
 
 						Bids::<T>::insert((order.collection, order.item, order.price), bid);
 					}
@@ -579,14 +569,7 @@ pub mod pallet {
 			price: &BalanceOf<T>,
 			fee: &BalanceOf<T>,
 		) -> Result<BalanceOf<T>, Error<T>> {
-			let buyer_fee_amount = price
-				.clone()
-				.checked_mul(fee)
-				.ok_or(Error::<T>::Overflow)?
-				.checked_div(&T::MaxBasisPoints::get())
-				.ok_or(Error::<T>::Overflow)?;
-
-			price.checked_add(&buyer_fee_amount).ok_or(Error::<T>::Overflow)
+			price.checked_add(&fee).ok_or(Error::<T>::Overflow)
 		}
 
 		pub fn process_fees(
@@ -596,27 +579,13 @@ pub mod pallet {
 			buyer_fee: BalanceOf<T>,
 			price: BalanceOf<T>,
 		) -> Result<(), DispatchError> {
-			let max_basis_points = T::MaxBasisPoints::get();
-			let buyer_fee_amount = price
-				.clone()
-				.checked_mul(&buyer_fee)
-				.ok_or(Error::<T>::Overflow)?
-				.checked_div(&max_basis_points)
-				.ok_or(Error::<T>::Overflow)?;
-
-			let seller_fee_amount = price
-				.clone()
-				.checked_mul(&seller_fee)
-				.ok_or(Error::<T>::Overflow)?
-				.checked_div(&max_basis_points)
-				.ok_or(Error::<T>::Overflow)?;
-
 			//Amount to be payed by the buyer
-			let buyer_payment_amount =
-				price.checked_add(&buyer_fee_amount).ok_or(Error::<T>::Overflow)?;
+			let buyer_payment_amount = price.checked_add(&buyer_fee).ok_or(Error::<T>::Overflow)?;
+
 			//Amount to be payed to the marketplace at the payoutAddress
 			let marketplace_pay_amount =
-				buyer_fee_amount.checked_add(&seller_fee_amount).ok_or(Error::<T>::Overflow)?;
+				buyer_fee.checked_add(&seller_fee).ok_or(Error::<T>::Overflow)?;
+
 			//Amount to be payed to the seller (Earings - marketFees)
 			let seller_pay_amount = buyer_payment_amount
 				.checked_sub(&marketplace_pay_amount)

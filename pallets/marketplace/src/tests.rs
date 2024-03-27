@@ -80,7 +80,7 @@ fn append_valid_signature(
 		order.item,
 		order.price,
 		order.expires_at,
-		order.fee_percent,
+		order.fee,
 		order.signature_data.nonce.clone(),
 	)
 		.encode();
@@ -114,7 +114,6 @@ pub fn create_valid_order(
 ) {
 	let fee_signer_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
 	let expires_at = get_valid_expiration();
-	let max_basis_points: Balance<Test> = <Test as Config>::MaxBasisPoints::get();
 	mint_item(0, item_owner);
 
 	if order_type.clone() == OrderType::Bid {
@@ -127,7 +126,7 @@ pub fn create_valid_order(
 		item: 0,
 		expires_at,
 		price: 10000,
-		fee_percent: max_basis_points,
+		fee: 1,
 		signature_data: SignatureData {
 			signature: raw_signature([0; 65]),
 			nonce: <Vec<u8>>::new(),
@@ -293,7 +292,6 @@ mod create_order_initial_checks {
 	fn item_not_found() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let mut order = Order {
@@ -301,8 +299,8 @@ mod create_order_initial_checks {
 				collection: 0,
 				item: 0,
 				expires_at,
-				price: max_basis_points + 1,
-				fee_percent: 1,
+				price: 1,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -322,40 +320,6 @@ mod create_order_initial_checks {
 	}
 
 	#[test]
-	fn invalid_order_price() {
-		new_test_ext().execute_with(|| {
-			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
-			mint_item(0, account(1));
-
-			let (_, fee_signer_pair) = admin_accounts_setup();
-
-			let mut order = Order {
-				order_type: OrderType::Ask,
-				collection: 0,
-				item: 0,
-				expires_at,
-				price: max_basis_points - 1,
-				fee_percent: 1,
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: <Vec<u8>>::new(),
-				},
-			};
-			append_valid_signature(fee_signer_pair, &mut order);
-
-			assert_noop!(
-				Marketplace::create_order(
-					RuntimeOrigin::signed(account(1)),
-					order,
-					Execution::AllowCreation
-				),
-				Error::<Test>::InvalidPrice
-			);
-		})
-	}
-
-	#[test]
 	fn invalid_expires_at() {
 		new_test_ext().execute_with(|| {
 			let timestamp: u64 = Timestamp::get();
@@ -370,7 +334,7 @@ mod create_order_initial_checks {
 				item: 0,
 				expires_at: timestamp + min_order_duration,
 				price: 10000,
-				fee_percent: 1,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -393,7 +357,6 @@ mod create_order_initial_checks {
 	fn invalid_signed_message() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 
 			let _ = admin_accounts_setup();
@@ -403,8 +366,8 @@ mod create_order_initial_checks {
 				collection: 0,
 				item: 0,
 				expires_at,
-				price: max_basis_points + 1,
-				fee_percent: 1,
+				price: 1,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -423,40 +386,6 @@ mod create_order_initial_checks {
 	}
 
 	#[test]
-	fn invalid_fee_percent() {
-		new_test_ext().execute_with(|| {
-			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
-			mint_item(0, account(1));
-
-			let (_, fee_signer_pair) = admin_accounts_setup();
-
-			let mut order = Order {
-				order_type: OrderType::Ask,
-				collection: 0,
-				item: 0,
-				expires_at,
-				price: 10000,
-				fee_percent: max_basis_points + 1,
-				signature_data: SignatureData {
-					signature: raw_signature([0; 65]),
-					nonce: <Vec<u8>>::new(),
-				},
-			};
-			append_valid_signature(fee_signer_pair, &mut order);
-
-			assert_noop!(
-				Marketplace::create_order(
-					RuntimeOrigin::signed(account(1)),
-					order,
-					Execution::AllowCreation
-				),
-				Error::<Test>::InvalidFeePercent
-			);
-		})
-	}
-
-	#[test]
 	fn fee_signer_nonce_already_used() {
 		new_test_ext().execute_with(|| {
 			let nonce: BoundedVec<u8, ConstU32<50>> = vec![0u8].try_into().unwrap();
@@ -465,7 +394,6 @@ mod create_order_initial_checks {
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 
 			let mut order = Order {
@@ -474,7 +402,7 @@ mod create_order_initial_checks {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: vec![0u8],
@@ -501,7 +429,6 @@ mod create_ask {
 	fn ask_not_item_owner() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -512,7 +439,7 @@ mod create_ask {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -535,7 +462,6 @@ mod create_ask {
 	fn ask_item_locked() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 			Nfts::disable_transfer(&0, &0).unwrap();
 
@@ -547,7 +473,7 @@ mod create_ask {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -570,7 +496,6 @@ mod create_ask {
 	fn ask_created_with_allow_creation() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -581,7 +506,7 @@ mod create_ask {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -599,7 +524,7 @@ mod create_ask {
 				seller: account(1),
 				price: order.price,
 				expiration: order.expires_at,
-				fee: order.fee_percent,
+				fee: order.fee,
 			};
 
 			assert!(Asks::<Test>::get(0, 0) == Some(ask));
@@ -611,7 +536,6 @@ mod create_ask {
 	fn ask_should_not_create_with_execution_force() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -622,7 +546,7 @@ mod create_ask {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -649,7 +573,6 @@ mod create_ask {
 			create_valid_order(OrderType::Ask, account(1), account(1));
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
@@ -657,7 +580,7 @@ mod create_ask {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -681,7 +604,6 @@ mod create_bid {
 	fn bid_created_with_allow_creation() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(2));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -696,7 +618,7 @@ mod create_bid {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points.clone(),
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -710,13 +632,12 @@ mod create_bid {
 				Execution::AllowCreation
 			));
 
-			let bid =
-				Bid { buyer: account(1), expiration: order.expires_at, fee: order.fee_percent };
+			let bid = Bid { buyer: account(1), expiration: order.expires_at, fee: order.fee };
 			assert!(
 				Some(
 					Balances::balance_on_hold(&HoldReason::MarketplaceBid.into(), &account(1))
 						.saturating_sub(initial_reserved)
-				) == Marketplace::calc_bid_payment(&order.price, &order.fee_percent).ok()
+				) == Marketplace::calc_bid_payment(&order.price, &order.fee).ok()
 			);
 			assert!(Bids::<Test>::get((0, 0, order.price)) == Some(bid));
 		})
@@ -726,7 +647,6 @@ mod create_bid {
 	fn bid_should_not_create_with_execution_force() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(2));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -739,7 +659,7 @@ mod create_bid {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points.clone(),
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -762,7 +682,6 @@ mod create_bid {
 	fn bid_on_owned_item() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(1));
 			Balances::set_balance(&account(1), 100000);
 
@@ -774,7 +693,7 @@ mod create_bid {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -797,7 +716,6 @@ mod create_bid {
 	fn bid_already_exists() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(2));
 			Balances::set_balance(&account(1), 100000);
 
@@ -809,7 +727,7 @@ mod create_bid {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -853,7 +771,6 @@ mod create_bid {
 	fn bid_not_enough_balance() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			mint_item(0, account(2));
 			Balances::set_balance(&account(1), 1);
 
@@ -865,7 +782,7 @@ mod create_bid {
 				item: 0,
 				expires_at,
 				price: 10000000000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -895,7 +812,6 @@ mod execute_ask_with_existing_bid {
 			let seller = account(1);
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			let price = 10000;
 
 			mint_item(0, seller.clone());
@@ -910,7 +826,7 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price,
-				fee_percent: bid_fee,
+				fee: bid_fee,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -937,15 +853,13 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: ask_fee.clone(),
+				fee: ask_fee.clone(),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
-			let buyer_fee = (price.clone() * bid_fee) / max_basis_points.clone();
-			let seller_fee = (price.clone() * ask_fee) / max_basis_points.clone();
-			let buyer_payment = price + buyer_fee.clone();
-			let marketplace_pay = buyer_fee + seller_fee;
+			let buyer_payment = price + bid_fee;
+			let marketplace_pay = bid_fee + ask_fee;
 			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
 
 			assert_ok!(Marketplace::create_order(
@@ -979,7 +893,6 @@ mod execute_ask_with_existing_bid {
 			Bids::<Test>::set((0, 0, 10000), Some(bid.clone()));
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
@@ -987,7 +900,7 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price: 10000,
-				fee_percent: max_basis_points,
+				fee: 1,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -1031,7 +944,7 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: bid_fee,
+				fee: bid_fee,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1052,7 +965,7 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: ask_fee.clone(),
+				fee: ask_fee.clone(),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -1075,7 +988,6 @@ mod execute_ask_with_existing_bid {
 			let seller = account(1);
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			let price = 10000;
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -1090,7 +1002,7 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: bid_fee,
+				fee: bid_fee,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1117,15 +1029,13 @@ mod execute_ask_with_existing_bid {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: ask_fee.clone(),
+				fee: ask_fee.clone(),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
 
-			let buyer_fee = (price.clone() * bid_fee) / max_basis_points.clone();
-			let seller_fee = (price.clone() * ask_fee) / max_basis_points.clone();
-			let buyer_payment = price + buyer_fee.clone();
-			let marketplace_pay = buyer_fee + seller_fee;
+			let buyer_payment = price + bid_fee;
+			let marketplace_pay = bid_fee + ask_fee;
 			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
 
 			assert_ok!(Marketplace::create_order(
@@ -1158,7 +1068,6 @@ mod execute_bid_with_existing_ask {
 			let seller = account(1);
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			let price = 10000;
 
 			mint_item(0, seller.clone());
@@ -1172,7 +1081,7 @@ mod execute_bid_with_existing_ask {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: ask_fee.clone(),
+				fee: ask_fee.clone(),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
@@ -1197,7 +1106,7 @@ mod execute_bid_with_existing_ask {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: bid_fee,
+				fee: bid_fee,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1211,10 +1120,8 @@ mod execute_bid_with_existing_ask {
 				Execution::AllowCreation
 			));
 
-			let buyer_fee = (price.clone() * bid_fee) / max_basis_points.clone();
-			let seller_fee = (price.clone() * ask_fee) / max_basis_points.clone();
-			let buyer_payment = price + buyer_fee.clone();
-			let marketplace_pay = buyer_fee + seller_fee;
+			let buyer_payment = price + bid_fee;
+			let marketplace_pay = bid_fee + ask_fee;
 			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
 
 			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
@@ -1235,7 +1142,6 @@ mod execute_bid_with_existing_ask {
 			let seller = account(1);
 
 			let expires_at = get_valid_expiration();
-			let max_basis_points: u128 = <Test as Config>::MaxBasisPoints::get();
 			let price = 100000;
 
 			mint_item(0, seller.clone());
@@ -1249,7 +1155,7 @@ mod execute_bid_with_existing_ask {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: ask_fee.clone(),
+				fee: ask_fee.clone(),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
@@ -1274,7 +1180,7 @@ mod execute_bid_with_existing_ask {
 				item: 0,
 				expires_at,
 				price: price.clone(),
-				fee_percent: bid_fee,
+				fee: bid_fee,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1288,10 +1194,8 @@ mod execute_bid_with_existing_ask {
 				Execution::AllowCreation
 			));
 
-			let buyer_fee = (price.clone() * bid_fee) / max_basis_points.clone();
-			let seller_fee = (price.clone() * ask_fee) / max_basis_points.clone();
-			let buyer_payment = price + buyer_fee.clone();
-			let marketplace_pay = buyer_fee + seller_fee;
+			let buyer_payment = price + bid_fee;
+			let marketplace_pay = bid_fee + ask_fee;
 			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
 
 			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
@@ -1468,7 +1372,7 @@ mod cancel_bid {
 				price
 			));
 
-			let fee = <Test as Config>::MaxBasisPoints::get();
+			let fee = 1;
 			assert!(Asks::<Test>::get(0, 0) == None);
 
 			let bid_payment = Marketplace::calc_bid_payment(&price, &fee).unwrap_or_default();
@@ -1500,7 +1404,7 @@ mod cancel_bid {
 				price
 			));
 
-			let fee = <Test as Config>::MaxBasisPoints::get();
+			let fee = 1;
 			assert!(Asks::<Test>::get(0, 0) == None);
 
 			let bid_payment = Marketplace::calc_bid_payment(&price, &fee).unwrap_or_default();
