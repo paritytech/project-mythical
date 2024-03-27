@@ -306,15 +306,7 @@ pub mod pallet {
 				Error::<T>::InvalidExpiration
 			);
 
-			let message = (
-				order.order_type.clone(),
-				order.collection,
-				order.item,
-				order.price,
-				order.expires_at,
-				order.fee,
-				order.signature_data.nonce.clone(),
-			);
+			let message: OrderMessageOf<T> = order.clone().into();
 			Self::verify_fee_signer_signature(&message.encode(), order.signature_data)?;
 
 			Self::deposit_event(Event::OrderCreated {

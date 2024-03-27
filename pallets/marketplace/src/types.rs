@@ -17,6 +17,14 @@ pub type OrderOf<T> = Order<
 	Vec<u8>,
 >;
 
+pub type OrderMessageOf<T> = OrderMessage<
+	<T as pallet_nfts::Config>::CollectionId,
+	<T as pallet_nfts::Config>::ItemId,
+	BalanceOf<T>,
+	<T as pallet_timestamp::Config>::Moment,
+	Vec<u8>,
+>;
+
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
 pub struct Ask<AccountId, Amount, Expiration> {
 	pub seller: AccountId,
@@ -61,6 +69,35 @@ pub struct SignatureData<OffchainSignature, BoundedString> {
 	pub nonce: BoundedString,
 }
 
+///Message data to be signed by the fee_signer account
+#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+pub struct OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString> {
+	pub collection: CollectionId,
+	pub item: ItemId,
+	pub price: Amount,
+	pub expires_at: Expiration,
+	pub fee: Amount,
+	pub nonce: BoundedString,
+}
+
+impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>
+	From<Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>>
+	for OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString>
+{
+	fn from(
+		x: Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>,
+	) -> Self {
+		OrderMessage {
+			collection: x.collection,
+			item: x.item,
+			price: x.price,
+			expires_at: x.expires_at,
+			fee: x.fee,
+			nonce: x.signature_data.nonce,
+		}
+	}
+}
+
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
 pub enum Execution {
 	/// The order must be executed otherwise it should fail
@@ -68,7 +105,6 @@ pub enum Execution {
 	/// If order execution is not possible create the order on storage
 	AllowCreation,
 }
-
 #[cfg(feature = "runtime-benchmarks")]
 pub trait BenchmarkHelper<CollectionId, ItemId, Moment, OffchainSignature> {
 	/// Returns a collection id from a given integer.

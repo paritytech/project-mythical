@@ -25,6 +25,8 @@ type OffchainSignature<Test> = <Test as pallet_nfts::Config>::OffchainSignature;
 type ItemId<Test> = <Test as pallet_nfts::Config>::ItemId;
 type Moment<Test> = <Test as pallet_timestamp::Config>::Moment;
 type Balance<Test> = <Test as pallet_balances::Config>::Balance;
+type MessageOf<Test> =
+	OrderMessage<CollectionId<Test>, ItemId<Test>, BalanceOf<Test>, Moment<Test>, Vec<u8>>;
 
 fn account(id: u8) -> AccountIdOf<Test> {
 	[id; 20].into()
@@ -74,18 +76,8 @@ fn append_valid_signature(
 		Vec<u8>,
 	>,
 ) {
-	let message = (
-		order.order_type.clone(),
-		order.collection,
-		order.item,
-		order.price,
-		order.expires_at,
-		order.fee,
-		order.signature_data.nonce.clone(),
-	)
-		.encode();
-
-	let hashed = keccak_256(&message);
+	let message: MessageOf<Test> = order.clone().into();
+	let hashed = keccak_256(&message.encode());
 
 	let signature = EthereumSignature::from(fee_signer_pair.sign_prehashed(&hashed));
 	order.signature_data.signature = signature;

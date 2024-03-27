@@ -125,18 +125,9 @@ pub mod benchmarks {
 	where
 		T::Signature: From<EthereumSignature>,
 	{
-		let message = (
-			order.order_type.clone(),
-			order.collection,
-			order.item,
-			order.price,
-			order.expires_at,
-			order.fee,
-			order.signature_data.nonce.clone(),
-		)
-			.encode();
+		let message: OrderMessageOf<T> = order.clone().into();
 
-		let hashed = keccak_256(&message);
+		let hashed = keccak_256(&message.encode());
 
 		let signature =
 			EthereumSignature::from(ecdsa_sign_prehashed(0.into(), &fee_signer, &hashed).unwrap());
