@@ -30,15 +30,15 @@ chain = "asset-hub-rococo-local"
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "collator1"
+    name = "assethub-collator01"
     ws_port = 9910
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0" ]
+    args = ["-lxcm=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
-    name = "collator2"
+    name = "assethub-collator02"
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
 
 [[parachains]]
 id = 3369
@@ -46,12 +46,24 @@ chain = "local-v"
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "collator3"
+    name = "muse-collator01"
     ws_port = 9920
     command = "./target/release/mythos-node"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
-    name = "collator4"
+    name = "muse-collator02"
     command = "./target/release/mythos-node"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
+
+[[hrmp_channels]]
+sender = 1000
+recipient = 3369
+max_capacity = 4
+max_message_size = 524288
+
+[[hrmp_channels]]
+sender = 3369
+recipient = 1000
+max_capacity = 4
+max_message_size = 524288

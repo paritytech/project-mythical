@@ -17,14 +17,14 @@ cumulus_based = true
 chain = "local-v"
 
 	[[parachains.collators]]
-	name = "mythos-collator01"
+	name = "muse-collator01"
 	command = "./target/release/mythos-node"
 	ws_port = 9933
 	rpc_port = 8833
 	args = ["--rpc-max-connections 10000"]
 
 	[[parachains.collators]]
-	name = "mythos-collator02"
+	name = "muse-collator02"
 	ws_port = 9822
 	rpc_port = 8822
 	command = "./target/release/mythos-node"
