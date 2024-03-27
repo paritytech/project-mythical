@@ -1,4 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
+use sp_core::U256;
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
@@ -6,7 +9,7 @@ use sp_runtime::{
 
 pub use account::EthereumSignature;
 use frame_support::{
-	traits::{Currency, Imbalance, OnUnbalanced},
+	traits::{Currency, Imbalance, Incrementable, OnUnbalanced},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
 use pallet_balances::NegativeImbalance;
@@ -88,5 +91,19 @@ where
 	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
 		let staking_pot = <pallet_collator_selection::Pallet<R>>::account_id();
 		<pallet_balances::Pallet<R>>::resolve_creating(&staking_pot, amount);
+	}
+}
+
+#[derive(Clone, TypeInfo, Encode, PartialEq, Eq, Decode, Copy, MaxEncodedLen, Debug)]
+pub struct IncrementableU256(U256);
+
+impl Incrementable for IncrementableU256 {
+	fn increment(&self) -> Option<Self> {
+		let val = self.clone();
+		Some(Self(val.0.saturating_add(U256::one())))
+	}
+
+	fn initial_value() -> Option<Self> {
+		Some(Self(U256::zero()))
 	}
 }
