@@ -20,7 +20,7 @@ pub mod pallet {
 
 	use frame_support::{
 		dispatch::GetDispatchInfo,
-		traits::{tokens::Preservation::Preserve, UnfilteredDispatchable},
+		traits::{tokens::Preservation::Preserve, Incrementable, UnfilteredDispatchable},
 	};
 	use sp_runtime::Saturating;
 
@@ -109,7 +109,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
 		) -> DispatchResult {
-			let who = Self::ensure_migrator(origin);
+			let _who = Self::ensure_migrator(origin);
 
 			NextCollectionId::<T>::set(Some(collection_id.clone()));
 			Self::deposit_event(Event::NextCollectionIdUpdated(collection_id));
@@ -186,6 +186,13 @@ pub mod pallet {
 				Some(who) => Ok(who.clone()),
 				_ => Err(Error::<T>::NotMigrator.into()),
 			}
+		}
+
+		#[cfg(test)]
+		pub fn get_next_id() -> T::CollectionId {
+			NextCollectionId::<T>::get()
+				.or(T::CollectionId::initial_value())
+				.expect("Failed to get next collection ID")
 		}
 	}
 }

@@ -40,3 +40,27 @@ mod force_set_migrator {
 		})
 	}
 }
+
+mod set_next_collection_id {
+	use super::*;
+	// Force set Authority
+	#[test]
+	fn set_next_collection_id_works() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_ok!(Migration::set_next_collection_id(RuntimeOrigin::signed(account(1)), 25));
+			assert!(Migration::get_next_id() == 25);
+		})
+	}
+    //TODO: Failing test
+	#[test]
+	fn fails_no_migrator() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::set_next_collection_id(RuntimeOrigin::signed(account(2)), 1),
+				Error::<Test>::NotMigrator
+			);
+		})
+	}
+}
