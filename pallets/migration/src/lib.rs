@@ -20,7 +20,7 @@ pub mod pallet {
 
 	use frame_support::{
 		dispatch::GetDispatchInfo,
-		traits::{tokens::Preservation::Preserve, Incrementable, UnfilteredDispatchable},
+		traits::{tokens::Preservation::Preserve, nonfungibles_v2::Transfer, Incrementable, UnfilteredDispatchable},
 	};
 	use sp_runtime::Saturating;
 
@@ -136,7 +136,8 @@ pub mod pallet {
 				Error::<T>::InvalidExpiration
 			);
 
-			pallet_marketplace::Asks::<T>::insert(collection.clone(), item.clone(), ask.clone());
+			pallet_marketplace::Asks::<T>::insert(&collection, &item, ask.clone());
+			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
 
 			Ok(())
