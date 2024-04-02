@@ -5,12 +5,20 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{pallet_prelude::*, traits::fungible::Inspect};
+	use frame_support::{
+		pallet_prelude::*,
+		traits::fungible::{Inspect, Mutate},
+		PalletId,
+	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use pallet_marketplace::{Ask, Asks, BalanceOf};
+	use pallet_marketplace::{Ask, Asks, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::NextCollectionId;
 
-	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
+	use frame_support::{
+		dispatch::GetDispatchInfo,
+		traits::{tokens::Preservation::Preserve, UnfilteredDispatchable},
+	};
+	use sp_runtime::Saturating;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -27,11 +35,22 @@ pub mod pallet {
 		type RuntimeCall: Parameter
 			+ UnfilteredDispatchable<RuntimeOrigin = Self::RuntimeOrigin>
 			+ GetDispatchInfo;
+
+		/// The fungible trait use for balance holds and transfers.
+		type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
 	}
 
+	/// ID of this pallet.
+	pub const PALLET_ID: PalletId = PalletId(*b"py/migra");
+
+	pub type BalanceOf<T> =
+		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
+
 	#[pallet::storage]
-	#[pallet::getter(fn migrator)]
 	pub type Migrator<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
+
+	#[pallet::storage]
+	pub type Pot<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -44,7 +63,7 @@ pub mod pallet {
 		AskCreated {
 			collection: T::CollectionId,
 			item: T::ItemId,
-			ask: Ask<T::AccountId, BalanceOf<T>, T::Moment>,
+			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
 		},
 	}
 
@@ -54,6 +73,10 @@ pub mod pallet {
 		NotMigrator,
 		///
 		ItemNotFound,
+		///
+		InvalidExpiration,
+		///
+		PotAccountNotSet,
 	}
 
 	#[pallet::call]
@@ -75,8 +98,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			Self::ensure_migrator(&who)?;
+			let who = Self::ensure_migrator(origin);
 
 			NextCollectionId::<T>::set(Some(collection_id.clone()));
 			Self::deposit_event(Event::NextCollectionIdUpdated(collection_id));
@@ -90,25 +112,56 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 			item: T::ItemId,
-			ask: Ask<T::AccountId, BalanceOf<T>, T::Moment>,
+			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			Self::ensure_migrator(&who)?;
+			let who = Self::ensure_migrator(origin);
 
 			pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
 				.ok_or(Error::<T>::ItemNotFound)?;
+
+			ensure!(
+				ask.expiration > pallet_timestamp::Pallet::<T>::get(),
+				Error::<T>::InvalidExpiration
+			);
 
 			pallet_marketplace::Asks::<T>::insert(collection.clone(), item.clone(), ask.clone());
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
 
 			Ok(())
 		}
+
+		#[pallet::call_index(3)]
+		#[pallet::weight({0})]
+		pub fn purge_item_data(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			item: T::ItemId,
+		) -> DispatchResult {
+			todo!()
+		}
+
+		#[pallet::call_index(4)]
+		#[pallet::weight({0})]
+		pub fn send_funds_from_pot(
+			origin: OriginFor<T>,
+			recipient: T::AccountId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			Self::ensure_migrator(origin)?;
+
+			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
+			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
+
+			Ok(())
+		}
 	}
 	impl<T: Config> Pallet<T> {
-		pub fn ensure_migrator(who: &T::AccountId) -> Result<(), Error<T>> {
+		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
+			ensure_signed(origin)?;
+
 			match Migrator::<T>::get().as_ref() {
-				Some(who) => Ok(()),
-				_ => Err(Error::<T>::NotMigrator),
+				Some(who) => Ok(who.clone()),
+				_ => Err(Error::<T>::NotMigrator.into()),
 			}
 		}
 	}

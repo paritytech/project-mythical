@@ -615,6 +615,7 @@ impl pallet_marketplace::Config for Runtime {
 impl pallet_migration::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
 }
 
 parameter_types! {
