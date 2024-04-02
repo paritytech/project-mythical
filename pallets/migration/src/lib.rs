@@ -51,6 +51,7 @@ pub mod pallet {
 		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[pallet::storage]
+	#[pallet::getter(fn migrator)]
 	pub type Migrator<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
@@ -81,6 +82,8 @@ pub mod pallet {
 		InvalidExpiration,
 		///
 		PotAccountNotSet,
+		/// Tried to store an account that is already set for this storage value.
+		AccountAlreadySet,
 	}
 
 	#[pallet::call]
@@ -90,6 +93,10 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
+			ensure!(
+				Migrator::<T>::get().as_ref() != Some(&migrator),
+				Error::<T>::AccountAlreadySet
+			);
 
 			Migrator::<T>::put(migrator.clone());
 			Self::deposit_event(Event::MigratorUpdated(migrator));

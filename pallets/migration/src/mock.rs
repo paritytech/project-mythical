@@ -26,7 +26,7 @@ frame_support::construct_runtime!(
 		Balances: pallet_balances,
 		Timestamp: pallet_timestamp,
 		Nfts: pallet_nfts,
-        Marketplace: pallet_marketplace,
+		Marketplace: pallet_marketplace,
 	}
 );
 
@@ -132,7 +132,7 @@ impl pallet_timestamp::Config for Test {
 impl pallet_migration::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-    type Currency = Balances;
+	type Currency = Balances;
 }
 
 // Build genesis storage according to the mock runtime.
