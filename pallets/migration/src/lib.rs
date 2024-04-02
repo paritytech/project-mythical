@@ -155,17 +155,17 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(5)]
-		#[pallet::weight({0})]
-		pub fn create_collection(){
-			todo!()
-		}
+		// #[pallet::call_index(5)]
+		// #[pallet::weight({0})]
+		// pub fn create_collection(){
+		// 	todo!()
+		// }
 
-		#[pallet::call_index(6)]
-		#[pallet::weight({0})]
-		pub fn cleanup_admin_role(){
-			todo!()
-		}
+		// #[pallet::call_index(6)]
+		// #[pallet::weight({0})]
+		// pub fn cleanup_admin_role(){
+		// 	todo!()
+		// }
 	}
 	impl<T: Config> Pallet<T> {
 		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
