@@ -16,7 +16,7 @@ pub mod pallet {
 
 	use frame_support::{
 		dispatch::GetDispatchInfo,
-		traits::{tokens::Preservation::Preserve, UnfilteredDispatchable},
+		traits::{tokens::Preservation::Preserve, nonfungibles_v2::Transfer, UnfilteredDispatchable},
 	};
 	use sp_runtime::Saturating;
 
@@ -124,7 +124,8 @@ pub mod pallet {
 				Error::<T>::InvalidExpiration
 			);
 
-			pallet_marketplace::Asks::<T>::insert(collection.clone(), item.clone(), ask.clone());
+			pallet_marketplace::Asks::<T>::insert(&collection, &item, ask.clone());
+			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
 
 			Ok(())
@@ -153,18 +154,6 @@ pub mod pallet {
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
 
 			Ok(())
-		}
-
-		#[pallet::call_index(5)]
-		#[pallet::weight({0})]
-		pub fn create_collection(){
-			todo!()
-		}
-
-		#[pallet::call_index(6)]
-		#[pallet::weight({0})]
-		pub fn cleanup_admin_role(){
-			todo!()
 		}
 	}
 	impl<T: Config> Pallet<T> {
