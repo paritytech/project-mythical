@@ -111,9 +111,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
-			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
-			ensure!(sender == migrator, Error::<T>::NotMigrator);
+			let _who = Self::ensure_migrator(origin)?;
 			NextCollectionId::<T>::set(Some(collection_id.clone()));
 			Self::deposit_event(Event::NextCollectionIdUpdated(collection_id));
 
@@ -182,10 +180,12 @@ pub mod pallet {
 		// }
 	}
 	impl<T: Config> Pallet<T> {
-		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
+		
+		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<(), DispatchError> {
+			let sender = ensure_signed(origin.clone())?;
 			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
-			ensure!(ensure_signed(origin)? == migrator, Error::<T>::NotMigrator);
-			Ok(migrator)
+			ensure!(sender == migrator, Error::<T>::NotMigrator);
+			Ok(())
 		}
 
 		#[cfg(test)]
