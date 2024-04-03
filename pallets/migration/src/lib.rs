@@ -1,4 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 
 pub use pallet::*;
 
@@ -11,15 +15,16 @@ pub mod pallet {
 		PalletId,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use pallet_marketplace::{Ask, Asks, BalanceOf as MarketplaceBalanceOf};
+	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::NextCollectionId;
 
 	use frame_support::{
 		dispatch::GetDispatchInfo,
-		traits::{tokens::Preservation::Preserve, nonfungibles_v2::Transfer, UnfilteredDispatchable},
+		traits::{
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Incrementable,
+			UnfilteredDispatchable,
+		},
 	};
-	use sp_runtime::Saturating;
-
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -47,9 +52,11 @@ pub mod pallet {
 		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[pallet::storage]
+	#[pallet::getter(fn migrator)]
 	pub type Migrator<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn pot)]
 	pub type Pot<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::event]
@@ -77,6 +84,12 @@ pub mod pallet {
 		InvalidExpiration,
 		///
 		PotAccountNotSet,
+		/// Tried to store an account that is already set for this storage value.
+		AccountAlreadySet,
+		// Migrator is not set
+		MigratorNotSet,
+		/// Seller of ask is not the owner of the given item
+		SellerNotItemOwner,
 	}
 
 	#[pallet::call]
@@ -98,8 +111,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
 		) -> DispatchResult {
-			let who = Self::ensure_migrator(origin);
-
+			let _who = Self::ensure_migrator(origin)?;
 			NextCollectionId::<T>::set(Some(collection_id.clone()));
 			Self::deposit_event(Event::NextCollectionIdUpdated(collection_id));
 
@@ -114,16 +126,19 @@ pub mod pallet {
 			item: T::ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
 		) -> DispatchResult {
-			let who = Self::ensure_migrator(origin);
+			let _who = Self::ensure_migrator(origin)?;
 
-			pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
+			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
 				.ok_or(Error::<T>::ItemNotFound)?;
 
+			ensure!(owner == ask.seller, Error::<T>::SellerNotItemOwner);
 			ensure!(
 				ask.expiration > pallet_timestamp::Pallet::<T>::get(),
 				Error::<T>::InvalidExpiration
 			);
 
+			pallet_marketplace::Asks::<T>::insert(&collection, &item, ask.clone());
+			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
 			pallet_marketplace::Asks::<T>::insert(&collection, &item, ask.clone());
 			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
@@ -143,39 +158,40 @@ pub mod pallet {
 
 		#[pallet::call_index(4)]
 		#[pallet::weight({0})]
+		pub fn set_pot_account(origin: OriginFor<T>, pot: T::AccountId) -> DispatchResult {
+			let _who = Self::ensure_migrator(origin)?;
+			Pot::<T>::put(pot.clone());
+			Ok(())
+		}
+
+		#[pallet::call_index(5)]
+		#[pallet::weight({0})]
 		pub fn send_funds_from_pot(
 			origin: OriginFor<T>,
 			recipient: T::AccountId,
 			amount: BalanceOf<T>,
 		) -> DispatchResult {
-			Self::ensure_migrator(origin)?;
+			let _who = Self::ensure_migrator(origin)?;
 
 			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
 
 			Ok(())
 		}
-
-		// #[pallet::call_index(5)]
-		// #[pallet::weight({0})]
-		// pub fn create_collection(){
-		// 	todo!()
-		// }
-
-		// #[pallet::call_index(6)]
-		// #[pallet::weight({0})]
-		// pub fn cleanup_admin_role(){
-		// 	todo!()
-		// }
 	}
 	impl<T: Config> Pallet<T> {
-		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
-			ensure_signed(origin)?;
+		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<(), DispatchError> {
+			let sender = ensure_signed(origin.clone())?;
+			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
+			ensure!(sender == migrator, Error::<T>::NotMigrator);
+			Ok(())
+		}
 
-			match Migrator::<T>::get().as_ref() {
-				Some(who) => Ok(who.clone()),
-				_ => Err(Error::<T>::NotMigrator.into()),
-			}
+		#[cfg(test)]
+		pub fn get_next_id() -> T::CollectionId {
+			NextCollectionId::<T>::get()
+				.or(T::CollectionId::initial_value())
+				.expect("Failed to get next collection ID")
 		}
 	}
 }
