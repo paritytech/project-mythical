@@ -1,5 +1,9 @@
 use crate::{mock::*, *};
-use frame_support::{assert_noop, assert_ok, error::BadOrigin, traits::fungible::Mutate};
+use frame_support::{
+	assert_noop, assert_ok,
+	error::BadOrigin,
+	traits::{fungible::Mutate, nonfungibles_v2::Inspect},
+};
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_marketplace::{Ask, Asks};
 use pallet_nfts::{CollectionConfig, CollectionSettings, MintSettings};
@@ -142,6 +146,7 @@ mod create_ask {
 			let ask = Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 };
 			assert_ok!(Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()));
 			assert!(Asks::<Test>::get(0, 0) == Some(ask));
+			assert!(!Nfts::can_transfer(&0, &0));
 		})
 	}
 
