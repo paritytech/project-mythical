@@ -15,18 +15,16 @@ pub mod pallet {
 		PalletId,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use pallet_marketplace::{Ask, Asks, BalanceOf as MarketplaceBalanceOf};
+	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::NextCollectionId;
 
 	use frame_support::{
 		dispatch::GetDispatchInfo,
 		traits::{
-			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Incrementable,
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve,
 			UnfilteredDispatchable,
 		},
 	};
-	use sp_runtime::Saturating;
-
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
