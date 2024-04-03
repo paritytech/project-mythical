@@ -88,6 +88,8 @@ pub mod pallet {
 		AccountAlreadySet,
 		// Migrator is not set
 		MigratorNotSet,
+		/// Seller of ask is not the owner of the given item
+		SellerNotItemOwner,
 	}
 
 	#[pallet::call]
@@ -126,9 +128,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = Self::ensure_migrator(origin)?;
 
-			pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
+			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
 				.ok_or(Error::<T>::ItemNotFound)?;
 
+			ensure!(owner == ask.seller, Error::<T>::SellerNotItemOwner);
 			ensure!(
 				ask.expiration > pallet_timestamp::Pallet::<T>::get(),
 				Error::<T>::InvalidExpiration
