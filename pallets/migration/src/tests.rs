@@ -7,6 +7,7 @@ use frame_support::{
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_marketplace::{Ask, Asks};
 use pallet_nfts::{CollectionConfig, CollectionSettings, MintSettings};
+use sp_runtime::ArithmeticError;
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 type Balance<Test> = <Test as pallet_balances::Config>::Balance;
@@ -220,6 +221,22 @@ mod send_funds_from_pot {
 					10000
 				),
 				Error::<Test>::PotAccountNotSet
+			);
+		})
+	}
+
+	#[test]
+	fn pot_has_not_enough_funds_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(3)));
+			assert_noop!(
+				Migration::send_funds_from_pot(
+					RuntimeOrigin::signed(account(1)),
+					account(2),
+					10000
+				),
+				ArithmeticError::Underflow
 			);
 		})
 	}
