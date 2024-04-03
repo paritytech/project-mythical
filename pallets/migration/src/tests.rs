@@ -164,6 +164,23 @@ mod create_ask {
 			);
 		})
 	}
+
+	#[test]
+	fn ask_seller_is_not_nft_owner_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			assert_noop!(
+				Migration::create_ask(
+					RuntimeOrigin::signed(account(1)),
+					0,
+					0,
+					Ask { seller: account(2), price: 10000, expiration: 10000, fee: 1 }
+				),
+				Error::<Test>::SellerNotItemOwner
+			);
+		})
+	}
 }
 
 mod set_pot_account {
