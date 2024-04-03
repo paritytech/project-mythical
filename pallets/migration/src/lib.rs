@@ -21,7 +21,7 @@ pub mod pallet {
 	use frame_support::{
 		dispatch::GetDispatchInfo,
 		traits::{
-			nonfungibles_v2::Transfer, tokens::Preservation::Preserve,
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Incrementable,
 			UnfilteredDispatchable,
 		},
 	};
