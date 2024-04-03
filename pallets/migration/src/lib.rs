@@ -99,11 +99,6 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
-			//TODO: Decide if we should delete because we might need to change the migrator address
-			ensure!(
-				Migrator::<T>::get().as_ref() != Some(&migrator),
-				Error::<T>::AccountAlreadySet
-			);
 
 			Migrator::<T>::put(migrator.clone());
 			Self::deposit_event(Event::MigratorUpdated(migrator));

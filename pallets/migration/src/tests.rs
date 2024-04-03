@@ -53,18 +53,6 @@ mod force_set_migrator {
 			);
 		})
 	}
-
-	#[test]
-	fn fails_account_already_set() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-
-			assert_noop!(
-				Migration::force_set_migrator(RuntimeOrigin::root(), account(1)),
-				Error::<Test>::AccountAlreadySet
-			);
-		})
-	}
 }
 
 mod set_next_collection_id {
@@ -221,7 +209,11 @@ mod send_funds_from_pot {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::send_funds_from_pot(RuntimeOrigin::signed(account(1)), account(2), 10000),
+				Migration::send_funds_from_pot(
+					RuntimeOrigin::signed(account(1)),
+					account(2),
+					10000
+				),
 				Error::<Test>::PotAccountNotSet
 			);
 		})
@@ -233,10 +225,13 @@ mod send_funds_from_pot {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			Balances::set_balance(&account(1), 100000);
 			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)));
-			assert_ok!(Migration::send_funds_from_pot(RuntimeOrigin::signed(account(1)), account(2), 10000));
+			assert_ok!(Migration::send_funds_from_pot(
+				RuntimeOrigin::signed(account(1)),
+				account(2),
+				10000
+			));
 			assert!(Balances::free_balance(&account(1)) == 90000);
 			assert!(Balances::free_balance(&account(2)) == 10000);
 		})
 	}
-	
 }
