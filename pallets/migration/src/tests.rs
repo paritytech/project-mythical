@@ -52,13 +52,16 @@ mod set_next_collection_id {
 			assert!(Migration::get_next_id() == 25);
 		})
 	}
-    //TODO: Failing test
 	#[test]
 	fn fails_no_migrator() {
 		new_test_ext().execute_with(|| {
+			assert_noop!(
+				Migration::set_next_collection_id(RuntimeOrigin::signed(account(1)), 25),
+				Error::<Test>::MigratorNotSet
+			);
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::set_next_collection_id(RuntimeOrigin::signed(account(2)), 1),
+				Migration::set_next_collection_id(RuntimeOrigin::signed(account(2)), 25),
 				Error::<Test>::NotMigrator
 			);
 		})

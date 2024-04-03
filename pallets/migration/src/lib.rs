@@ -84,6 +84,8 @@ pub mod pallet {
 		PotAccountNotSet,
 		/// Tried to store an account that is already set for this storage value.
 		AccountAlreadySet,
+		// Migrator is not set
+		MigratorNotSet,
 	}
 
 	#[pallet::call]
@@ -109,8 +111,9 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
 		) -> DispatchResult {
-			let _who = Self::ensure_migrator(origin);
-
+			let sender = ensure_signed(origin.clone())?;
+			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
+			ensure!(sender == migrator, Error::<T>::NotMigrator);
 			NextCollectionId::<T>::set(Some(collection_id.clone()));
 			Self::deposit_event(Event::NextCollectionIdUpdated(collection_id));
 
@@ -180,12 +183,9 @@ pub mod pallet {
 	}
 	impl<T: Config> Pallet<T> {
 		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
-			ensure_signed(origin)?;
-
-			match Migrator::<T>::get().as_ref() {
-				Some(who) => Ok(who.clone()),
-				_ => Err(Error::<T>::NotMigrator.into()),
-			}
+			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
+			ensure!(ensure_signed(origin)? == migrator, Error::<T>::NotMigrator);
+			Ok(migrator)
 		}
 
 		#[cfg(test)]
