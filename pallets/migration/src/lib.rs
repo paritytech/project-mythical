@@ -139,6 +139,8 @@ pub mod pallet {
 
 			pallet_marketplace::Asks::<T>::insert(&collection, &item, ask.clone());
 			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
+			pallet_marketplace::Asks::<T>::insert(&collection, &item, ask.clone());
+			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
 
 			Ok(())
