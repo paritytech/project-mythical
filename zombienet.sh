@@ -115,20 +115,12 @@ zombienet_mainnet() {
   ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet.toml -p native
 }
 
-zombienet_mainnet() {
-  zombienet_init
-  cargo build --release
-  echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet.toml -p native
-}
-
 zombienet_mainnet_asset_hub() {
   zombienet_init
   cargo build --release
   echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain plus asset-hub..."
   ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet-asset-hub.toml -p native
 }
-
 
 print_help() {
   echo "This is a shell script to automate the execution of zombienet."
