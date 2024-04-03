@@ -1,15 +1,41 @@
 use crate::{mock::*, *};
-use frame_support::{assert_noop, assert_ok, error::BadOrigin};
+use frame_support::{assert_noop, assert_ok, error::BadOrigin, traits::fungible::Mutate};
+use frame_system::pallet_prelude::BlockNumberFor;
+use pallet_marketplace::{Ask, Asks};
+use pallet_nfts::{CollectionConfig, CollectionSettings, MintSettings};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
+type Balance<Test> = <Test as pallet_balances::Config>::Balance;
+type CollectionId<Test> = <Test as pallet_nfts::Config>::CollectionId;
 
 fn account(id: u8) -> AccountIdOf<Test> {
 	[id; 32].into()
 }
 
+fn mint_item(item: u32, owner: AccountIdOf<Test>) {
+	Balances::set_balance(&account(1), 100000);
+	if Nfts::collection_owner(0) == None {
+		assert_ok!(Nfts::create(
+			RuntimeOrigin::signed(account(1)),
+			account(1),
+			collection_config_with_all_settings_enabled()
+		));
+	};
+	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, item, owner, None));
+}
+
+fn collection_config_with_all_settings_enabled(
+) -> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
+	CollectionConfig {
+		settings: CollectionSettings::all_enabled(),
+		max_supply: None,
+		mint_settings: MintSettings::default(),
+	}
+}
+
 mod force_set_migrator {
 	use super::*;
-	// Force set Authority
+
 	#[test]
 	fn force_set_migrator_works() {
 		new_test_ext().execute_with(|| {
@@ -43,7 +69,7 @@ mod force_set_migrator {
 
 mod set_next_collection_id {
 	use super::*;
-	// Force set Authority
+
 	#[test]
 	fn set_next_collection_id_works() {
 		new_test_ext().execute_with(|| {
@@ -63,6 +89,84 @@ mod set_next_collection_id {
 			assert_noop!(
 				Migration::set_next_collection_id(RuntimeOrigin::signed(account(2)), 25),
 				Error::<Test>::NotMigrator
+			);
+		})
+	}
+}
+
+mod create_ask {
+	use super::*;
+
+	#[test]
+	fn creator_is_not_migrator_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::create_ask(
+					RuntimeOrigin::signed(account(2)),
+					0,
+					0,
+					Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 }
+				),
+				Error::<Test>::NotMigrator
+			);
+		})
+	}
+
+	#[test]
+	fn item_not_found_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::create_ask(
+					RuntimeOrigin::signed(account(1)),
+					0,
+					0,
+					Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 }
+				),
+				Error::<Test>::ItemNotFound
+			);
+		})
+	}
+
+	#[test]
+	fn invalid_expiration_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			assert_noop!(
+				Migration::create_ask(
+					RuntimeOrigin::signed(account(1)),
+					0,
+					0,
+					Ask { seller: account(1), price: 10000, expiration: 0, fee: 1 }
+				),
+				Error::<Test>::InvalidExpiration
+			);
+		})
+	}
+
+	#[test]
+	fn create_ask_passes() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			let ask = Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 };
+			assert_ok!(Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()));
+			assert!(Asks::<Test>::get(0, 0) == Some(ask));
+		})
+	}
+
+	#[test]
+	fn create_ask_on_disabled_transfer_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			let ask = Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 };
+			assert_ok!(Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()));
+			assert_noop!(
+				Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()),
+				pallet_nfts::Error::<Test>::ItemLocked
 			);
 		})
 	}

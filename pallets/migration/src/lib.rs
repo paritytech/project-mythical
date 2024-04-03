@@ -20,7 +20,10 @@ pub mod pallet {
 
 	use frame_support::{
 		dispatch::GetDispatchInfo,
-		traits::{tokens::Preservation::Preserve, nonfungibles_v2::Transfer, Incrementable, UnfilteredDispatchable},
+		traits::{
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Incrementable,
+			UnfilteredDispatchable,
+		},
 	};
 	use sp_runtime::Saturating;
 
@@ -126,7 +129,7 @@ pub mod pallet {
 			item: T::ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
 		) -> DispatchResult {
-			let who = Self::ensure_migrator(origin);
+			let _who = Self::ensure_migrator(origin)?;
 
 			pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
 				.ok_or(Error::<T>::ItemNotFound)?;
@@ -169,7 +172,6 @@ pub mod pallet {
 		}
 	}
 	impl<T: Config> Pallet<T> {
-		
 		pub fn ensure_migrator(origin: OriginFor<T>) -> Result<(), DispatchError> {
 			let sender = ensure_signed(origin.clone())?;
 			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
