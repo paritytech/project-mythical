@@ -58,6 +58,7 @@ pub mod pallet {
 	pub type Migrator<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn pot)]
 	pub type Pot<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::event]
@@ -98,6 +99,7 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
+			//TODO: Decide if we should delete because we might need to change the migrator address
 			ensure!(
 				Migrator::<T>::get().as_ref() != Some(&migrator),
 				Error::<T>::AccountAlreadySet
@@ -158,12 +160,20 @@ pub mod pallet {
 
 		#[pallet::call_index(4)]
 		#[pallet::weight({0})]
+		pub fn set_pot_account(origin: OriginFor<T>, pot: T::AccountId) -> DispatchResult {
+			let _who = Self::ensure_migrator(origin)?;
+			Pot::<T>::put(pot.clone());
+			Ok(())
+		}
+
+		#[pallet::call_index(5)]
+		#[pallet::weight({0})]
 		pub fn send_funds_from_pot(
 			origin: OriginFor<T>,
 			recipient: T::AccountId,
 			amount: BalanceOf<T>,
 		) -> DispatchResult {
-			Self::ensure_migrator(origin)?;
+			let _who = Self::ensure_migrator(origin)?;
 
 			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;

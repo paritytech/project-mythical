@@ -171,3 +171,72 @@ mod create_ask {
 		})
 	}
 }
+
+mod set_pot_account {
+	use super::*;
+
+	#[test]
+	fn set_pot_account_works() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)));
+			assert!(Migration::pot() == Some(account(1)));
+		})
+	}
+
+	#[test]
+	fn fails_no_migrator() {
+		new_test_ext().execute_with(|| {
+			assert_noop!(
+				Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)),
+				Error::<Test>::MigratorNotSet
+			);
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::set_pot_account(RuntimeOrigin::signed(account(2)), account(1)),
+				Error::<Test>::NotMigrator
+			);
+		})
+	}
+}
+mod send_funds_from_pot {
+	use super::*;
+
+	#[test]
+	fn sender_is_not_migrator_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::send_funds_from_pot(
+					RuntimeOrigin::signed(account(2)),
+					account(2),
+					10000
+				),
+				Error::<Test>::NotMigrator
+			);
+		})
+	}
+	#[test]
+	fn pot_not_set_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::send_funds_from_pot(RuntimeOrigin::signed(account(1)), account(2), 10000),
+				Error::<Test>::PotAccountNotSet
+			);
+		})
+	}
+
+	#[test]
+	fn send_funds_from_pot_passes() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			Balances::set_balance(&account(1), 100000);
+			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)));
+			assert_ok!(Migration::send_funds_from_pot(RuntimeOrigin::signed(account(1)), account(2), 10000));
+			assert!(Balances::free_balance(&account(1)) == 90000);
+			assert!(Balances::free_balance(&account(2)) == 10000);
+		})
+	}
+	
+}
