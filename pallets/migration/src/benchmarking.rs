@@ -2,10 +2,7 @@
 use super::*;
 use crate::Pallet as Migration;
 use frame_benchmarking::v2::*;
-use frame_support::{
-	assert_ok,
-	dispatch::RawOrigin,
-};
+use frame_support::{assert_ok, dispatch::RawOrigin};
 
 const SEED: u32 = 0;
 
