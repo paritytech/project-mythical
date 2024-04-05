@@ -17,6 +17,23 @@ fn get_migrator<T: Config>() -> T::AccountId {
 
 	migrator
 }
+
+impl<CollectionId, ItemId, Moment> BenchmarkHelper<CollectionId, ItemId, Moment> for ()
+where
+	CollectionId: From<u32>,
+	ItemId: From<u32>,
+	Moment: From<u64>,
+{
+	fn collection(id: u32) -> CollectionId {
+		id.into()
+	}
+	fn item(id: u32) -> ItemId {
+		id.into()
+	}
+	fn timestamp(value: u64) -> Moment {
+		value.into()
+	}
+}
 #[benchmarks()]
 pub mod benchmarks {
 	use super::*;
@@ -33,7 +50,7 @@ pub mod benchmarks {
 
 	#[benchmark]
 	fn set_next_collection_id() {
-		let next_collection_id: <T as pallet_nfts::Config>::CollectionId = (1 as u32).into();
+		let next_collection_id = T::BenchmarkHelper::collection(0);
 		let migrator: T::AccountId = get_migrator::<T>();
 
 		#[extrinsic_call]
