@@ -88,7 +88,6 @@ pub mod pallet {
 			Self::CollectionId,
 			Self::ItemId,
 			Self::Moment,
-			Self::Signature,
 		>;
 	}
 

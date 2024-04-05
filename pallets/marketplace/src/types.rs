@@ -105,8 +105,9 @@ pub enum Execution {
 	/// If order execution is not possible create the order on storage
 	AllowCreation,
 }
+
 #[cfg(feature = "runtime-benchmarks")]
-pub trait BenchmarkHelper<CollectionId, ItemId, Moment, OffchainSignature> {
+pub trait BenchmarkHelper<CollectionId, ItemId, Moment> {
 	/// Returns a collection id from a given integer.
 	fn collection(id: u32) -> CollectionId;
 	/// Returns an nft id from a given integer.

@@ -25,13 +25,12 @@ const SEED: u32 = 0;
 type BalanceOf<T> =
 	<<T as Config>::Currency as InspectFungible<<T as frame_system::Config>::AccountId>>::Balance;
 
-impl<CollectionId, ItemId, Moment, OffchainSignature>
-	BenchmarkHelper<CollectionId, ItemId, Moment, OffchainSignature> for ()
+impl<CollectionId, ItemId, Moment>
+	BenchmarkHelper<CollectionId, ItemId, Moment> for ()
 where
 	CollectionId: From<u32>,
 	ItemId: From<u32>,
 	Moment: From<u64>,
-	OffchainSignature: From<Signature>,
 {
 	fn collection(id: u32) -> CollectionId {
 		id.into()
