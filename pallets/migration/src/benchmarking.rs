@@ -23,5 +23,5 @@ pub mod benchmarks {
 		assert_last_event::<T>(Event::MigratorUpdated(migrator).into());
 	}
 
-    impl_benchmark_test_suite!(Marketplace, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
 }
