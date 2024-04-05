@@ -84,11 +84,7 @@ pub mod pallet {
 
 		#[cfg(feature = "runtime-benchmarks")]
 		/// A set of helper functions for benchmarking.
-		type BenchmarkHelper: BenchmarkHelper<
-			Self::CollectionId,
-			Self::ItemId,
-			Self::Moment,
-		>;
+		type BenchmarkHelper: BenchmarkHelper<Self::CollectionId, Self::ItemId, Self::Moment>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.

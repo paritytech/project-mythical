@@ -25,8 +25,7 @@ const SEED: u32 = 0;
 type BalanceOf<T> =
 	<<T as Config>::Currency as InspectFungible<<T as frame_system::Config>::AccountId>>::Balance;
 
-impl<CollectionId, ItemId, Moment>
-	BenchmarkHelper<CollectionId, ItemId, Moment> for ()
+impl<CollectionId, ItemId, Moment> BenchmarkHelper<CollectionId, ItemId, Moment> for ()
 where
 	CollectionId: From<u32>,
 	ItemId: From<u32>,
