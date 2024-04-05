@@ -2,7 +2,16 @@
 use super::*;
 use crate::Pallet as Migration;
 use frame_benchmarking::v2::*;
-use frame_support::{assert_ok, dispatch::RawOrigin};
+use frame_support::{
+	assert_ok,
+	dispatch::RawOrigin,
+	traits::{
+		fungible::{Inspect as InspectFungible, Mutate as MutateFungible},
+		tokens::nonfungibles_v2::{Create, Mutate},
+	},
+};
+use pallet_marketplace::Ask;
+use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 
 const SEED: u32 = 0;
 
@@ -34,6 +43,32 @@ where
 		value.into()
 	}
 }
+
+fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
+	let caller: T::AccountId = account(name, index, SEED);
+	// Give the account half of the maximum value of the `Balance` type.
+	let ed = <T as Config>::Currency::minimum_balance();
+	let multiplier = BalanceOf::<T>::from(1000000u32);
+
+	<T as Config>::Currency::set_balance(&caller, ed * multiplier);
+	whitelist_account!(caller);
+	caller
+}
+
+fn mint_nft<T: Config>(nft_id: T::ItemId) -> T::AccountId {
+	let caller: T::AccountId = funded_and_whitelisted_account::<T>("tokenOwner", 0);
+
+	let default_config = CollectionConfig {
+		settings: CollectionSettings::all_enabled(),
+		max_supply: None,
+		mint_settings: MintSettings::default(),
+	};
+
+	assert_ok!(Nfts::<T>::create_collection(&caller, &caller, &default_config));
+	let collection = T::BenchmarkHelper::collection(0);
+	assert_ok!(Nfts::<T>::mint_into(&collection, &nft_id, &caller, &ItemConfig::default(), true));
+	caller
+}
 #[benchmarks()]
 pub mod benchmarks {
 	use super::*;
@@ -58,6 +93,23 @@ pub mod benchmarks {
 
 		assert_last_event::<T>(Event::NextCollectionIdUpdated(next_collection_id).into());
 	}
+
+	// #[benchmark]
+	// fn create_ask() {
+	// 	let migrator: T::AccountId = get_migrator::<T>();
+	// 	// Nft Setup
+	// 	let collection = T::BenchmarkHelper::collection(0);
+	// 	let item = T::BenchmarkHelper::item(0);
+	// 	let caller = mint_nft::<T>(item);
+	// 	let price = BalanceOf::<T>::from(10000u16);
+
+	// 	#[extrinsic_call]
+	// 	_(RawOrigin::Signed(migrator), collection, item, ask);
+
+	// 	// assert_last_event::<T>(
+	// 	// 	Event::AskCreated(collection, item, seller, ask.price, ask.expiration).into(),
+	// 	// );
+	// }
 
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
 }
