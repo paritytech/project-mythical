@@ -13,6 +13,9 @@ use frame_support::{
 use pallet_marketplace::Ask;
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 
+// pub type BalanceOfMarketplace<T> =
+// <<T as Config>::Currency as Inspect<<T as pallet_marketplace::Config>::AccountId>>::Balance;
+
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -94,22 +97,25 @@ pub mod benchmarks {
 		assert_last_event::<T>(Event::NextCollectionIdUpdated(next_collection_id).into());
 	}
 
-	// #[benchmark]
-	// fn create_ask() {
-	// 	let migrator: T::AccountId = get_migrator::<T>();
-	// 	// Nft Setup
-	// 	let collection = T::BenchmarkHelper::collection(0);
-	// 	let item = T::BenchmarkHelper::item(0);
-	// 	let caller = mint_nft::<T>(item);
-	// 	let price = BalanceOf::<T>::from(10000u16);
+	#[benchmark]
+	fn create_ask() {
+		let migrator: T::AccountId = get_migrator::<T>();
+		// Nft Setup
+		let collection = T::BenchmarkHelper::collection(0);
+		let item = T::BenchmarkHelper::item(0);
+		let caller = mint_nft::<T>(item);
+		let ask = Ask {
+			seller: caller.clone(),
+			price: (1000 as u32).into(),
+			expiration: T::BenchmarkHelper::timestamp(100),
+			fee: (100 as u32).into(),
+		};
 
-	// 	#[extrinsic_call]
-	// 	_(RawOrigin::Signed(migrator), collection, item, ask);
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), collection.clone(), item.clone(), ask.clone());
 
-	// 	// assert_last_event::<T>(
-	// 	// 	Event::AskCreated(collection, item, seller, ask.price, ask.expiration).into(),
-	// 	// );
-	// }
+		assert_last_event::<T>(Event::AskCreated { collection, item, ask }.into());
+	}
 
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
 }
