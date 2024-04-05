@@ -117,5 +117,37 @@ pub mod benchmarks {
 		assert_last_event::<T>(Event::AskCreated { collection, item, ask }.into());
 	}
 
+	#[benchmark]
+	fn set_pot_account() {
+		let migrator: T::AccountId = get_migrator::<T>();
+		let pot: T::AccountId = account("pot", 0, SEED);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), pot.clone());
+
+		//TODO: Check event
+	}
+
+	#[benchmark]
+	fn send_funds_from_pot() {
+		let migrator: T::AccountId = get_migrator::<T>();
+		let pot: T::AccountId = account("pot", 0, SEED);
+		let receiver: T::AccountId = account("receiver", 0, SEED);
+		let ed = <T as Config>::Currency::minimum_balance();
+		let pot_multi = BalanceOf::<T>::from(1000u32);
+		let send_multi = BalanceOf::<T>::from(10u32);
+		let amount_to_send = ed * send_multi;
+		<T as Config>::Currency::set_balance(&pot, ed * pot_multi);
+		assert_ok!(Migration::<T>::set_pot_account(
+			RawOrigin::Signed(migrator.clone()).into(),
+			pot.clone()
+		));
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), receiver.clone(), amount_to_send);
+
+		//TODO: Add check
+	}
+
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
 }
