@@ -125,7 +125,7 @@ pub mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(migrator), pot.clone());
 
-		//TODO: Check event
+		assert_last_event::<T>(Event::PotUpdated(pot).into());
 	}
 
 	#[benchmark]
