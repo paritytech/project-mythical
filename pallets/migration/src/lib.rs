@@ -88,6 +88,8 @@ pub mod pallet {
 			item: T::ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
 		},
+		/// The pallet's Pot account was updated.
+		PotUpdated(T::AccountId),
 	}
 
 	#[pallet::error]
@@ -106,6 +108,8 @@ pub mod pallet {
 		MigratorNotSet,
 		/// Seller of ask is not the owner of the given item
 		SellerNotItemOwner,
+		///The account is already the owner of the item
+		AlreadyOwner,
 	}
 
 	#[pallet::call]
@@ -115,6 +119,11 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
+
+			ensure!(
+				Migrator::<T>::get().as_ref() != Some(&migrator),
+				Error::<T>::AccountAlreadySet
+			);
 
 			Migrator::<T>::put(migrator.clone());
 			Self::deposit_event(Event::MigratorUpdated(migrator));
@@ -174,7 +183,15 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn set_pot_account(origin: OriginFor<T>, pot: T::AccountId) -> DispatchResult {
 			let _who = Self::ensure_migrator(origin)?;
+			
+			ensure!(
+				Pot::<T>::get().as_ref() != Some(&pot),
+				Error::<T>::AccountAlreadySet
+			);
+			
 			Pot::<T>::put(pot.clone());
+
+			Self::deposit_event(Event::PotUpdated(pot));
 			Ok(())
 		}
 
@@ -189,6 +206,30 @@ pub mod pallet {
 
 			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
+
+			Ok(())
+		}
+
+		#[pallet::call_index(6)]
+		#[pallet::weight({0})]
+		pub fn set_item_owner(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			item: T::ItemId,
+			transfer_to: T::AccountId
+		) -> DispatchResult {
+			Self::ensure_migrator(origin)?;
+			
+			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
+			.ok_or(Error::<T>::ItemNotFound)?;
+
+			ensure!(owner != transfer_to, Error::<T>::AlreadyOwner);
+
+			<pallet_nfts::Pallet<T> as Transfer<T::AccountId>>::transfer(
+				&collection,
+				&item,
+				&transfer_to,
+			)?;
 
 			Ok(())
 		}
