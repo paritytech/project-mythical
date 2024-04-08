@@ -143,7 +143,21 @@ pub mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(migrator), receiver.clone(), amount_to_send);
 
-		assert_eq!(<T as Config>::Currency::balance(&receiver),amount_to_send);
+		assert_eq!(<T as Config>::Currency::balance(&receiver), amount_to_send);
+	}
+
+	#[benchmark]
+	fn set_item_owner() {
+		let migrator: T::AccountId = get_migrator::<T>();
+		let collection = T::BenchmarkHelper::collection(0);
+		let item = T::BenchmarkHelper::item(0);
+		let caller = mint_nft::<T>(item);
+		let receiver: T::AccountId = account("receiver", 0, SEED);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), collection.clone(), item.clone(), receiver.clone());
+
+		assert_eq!(Nfts::<T>::owner(collection, item), Some(receiver));
 	}
 
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
