@@ -814,6 +814,7 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
+		[pallet_migration, Migration]
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
