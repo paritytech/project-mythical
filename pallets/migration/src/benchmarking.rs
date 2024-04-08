@@ -13,9 +13,6 @@ use frame_support::{
 use pallet_marketplace::Ask;
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 
-// pub type BalanceOfMarketplace<T> =
-// <<T as Config>::Currency as Inspect<<T as pallet_marketplace::Config>::AccountId>>::Balance;
-
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -146,7 +143,7 @@ pub mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(migrator), receiver.clone(), amount_to_send);
 
-		//TODO: Add check
+		assert_eq!(<T as Config>::Currency::balance(&receiver),amount_to_send);
 	}
 
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
