@@ -183,12 +183,9 @@ pub mod pallet {
 		#[pallet::weight({0})]
 		pub fn set_pot_account(origin: OriginFor<T>, pot: T::AccountId) -> DispatchResult {
 			let _who = Self::ensure_migrator(origin)?;
-			
-			ensure!(
-				Pot::<T>::get().as_ref() != Some(&pot),
-				Error::<T>::AccountAlreadySet
-			);
-			
+
+			ensure!(Pot::<T>::get().as_ref() != Some(&pot), Error::<T>::AccountAlreadySet);
+
 			Pot::<T>::put(pot.clone());
 
 			Self::deposit_event(Event::PotUpdated(pot));
@@ -216,12 +213,12 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 			item: T::ItemId,
-			transfer_to: T::AccountId
+			transfer_to: T::AccountId,
 		) -> DispatchResult {
 			Self::ensure_migrator(origin)?;
-			
+
 			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
-			.ok_or(Error::<T>::ItemNotFound)?;
+				.ok_or(Error::<T>::ItemNotFound)?;
 
 			ensure!(owner != transfer_to, Error::<T>::AlreadyOwner);
 
