@@ -13,7 +13,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
@@ -45,7 +45,7 @@ use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
-	AccountId, Balance, BlockNumber, DealWithFees, Hash, Nonce, Signature,
+	AccountId, Balance, BlockNumber, DealWithFees, Hash, IncrementableU256, Nonce, Signature,
 	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MILLISECS_PER_BLOCK, MINUTES,
 	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
@@ -573,8 +573,8 @@ parameter_types! {
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
 }
 
-pub type CollectionId = u32;
-pub type ItemId = u32;
+pub type CollectionId = IncrementableU256;
+pub type ItemId = U256;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
