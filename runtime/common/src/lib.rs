@@ -109,9 +109,15 @@ impl Incrementable for IncrementableU256 {
 }
 
 //Needed for Pallet Nfts Benchmark Helper
-#[cfg(feature = "runtime-benchmarks")]
 impl From<u16> for IncrementableU256 {
 	fn from(value: u16) -> Self {
+		IncrementableU256(U256::from(value))
+	}
+}
+
+//Needed for Pallet Nfts Benchmark Helper
+impl From<u32> for IncrementableU256 {
+	fn from(value: u32) -> Self {
 		IncrementableU256(U256::from(value))
 	}
 }

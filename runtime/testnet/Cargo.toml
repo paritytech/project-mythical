@@ -163,6 +163,7 @@ runtime-benchmarks = [
   "pallet-collator-selection/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
+  "pallet-migration/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
