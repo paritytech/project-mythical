@@ -573,7 +573,7 @@ parameter_types! {
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
 }
 
-pub type CollectionId = u32;
+pub type CollectionId = IncrementableU256;
 pub type ItemId = U256;
 
 impl pallet_nfts::Config for Runtime {
