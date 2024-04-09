@@ -6668,6 +6668,7 @@ dependencies = [
 name = "pallet-marketplace"
 version = "0.0.1"
 dependencies = [
+ "account",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6679,6 +6680,7 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-io",
+ "sp-keystore",
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.8.0)",
 ]

@@ -32,7 +32,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
@@ -610,9 +610,13 @@ impl pallet_marketplace::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 parameter_types! {
@@ -811,6 +815,8 @@ mod benches {
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
+		[pallet_marketplace, Marketplace]
+		// TODO include this after https://github.com/polkadot-evm/frontier/pull/1295 gets merged
 		[pallet_nfts, Nfts]
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]
