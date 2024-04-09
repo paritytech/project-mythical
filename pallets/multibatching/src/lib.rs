@@ -72,11 +72,9 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn domain)]
 	pub type Domain<T: Config> = StorageValue<_, [u8; 32], OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn applied)]
 	pub type Applied<T: Config> = StorageMap<_, Identity, T::Hash, (), ValueQuery>;
 
 	#[pallet::event]
@@ -218,7 +216,7 @@ pub mod pallet {
 				None => return Err(Error::<T>::DomainNotSet.into()),
 			}
 
-            /*
+			/*
 			let hash = {
 				let batch = Batch {
 					pallet_index: Self::index() as u8,
@@ -230,22 +228,20 @@ pub mod pallet {
 					approvals_zero: 0,
 				};
 				let bytes = batch.encode();
-                eprintln!("pallet bytes: {}", hex::encode(&bytes));
 				<T::Hashing>::hash(&bytes)
 			};
-            */
-            let bytes = Batch {
-                pallet_index: Self::index() as u8,
-                call_index: 0,
-                domain,
-                sender: sender.clone(),
-                bias,
-                calls: calls.clone(),
-                approvals_zero: 0,
-            }.encode();
-            let hash = <T::Hashing>::hash(&bytes);
-
-            eprintln!("pallet hash: {}", &hash);
+			*/
+			let bytes = Batch {
+				pallet_index: Self::index() as u8,
+				call_index: 0,
+				domain,
+				sender: sender.clone(),
+				bias,
+				calls: calls.clone(),
+				approvals_zero: 0,
+			}
+			.encode();
+			let hash = <T::Hashing>::hash(&bytes);
 
 			if Applied::<T>::contains_key(&hash) {
 				return Err(Error::<T>::AlreadyApplied.into());
@@ -254,10 +250,9 @@ pub mod pallet {
 			Applied::<T>::insert(hash, ());
 
 			for (i, approval) in approvals.iter().enumerate() {
-                eprintln!("pallet from: {:?}", &approval.from);
-                eprintln!("pallet  sig: {:?}", &approval.signature);
-				let ok =
-					approval.signature.verify(bytes.as_ref(), &approval.from.clone().into_account());
+				let ok = approval
+					.signature
+					.verify(bytes.as_ref(), &approval.from.clone().into_account());
 				if !ok {
 					return Err(Error::<T>::InvalidSignature(i as u16).into());
 				}

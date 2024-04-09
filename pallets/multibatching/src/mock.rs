@@ -1,3 +1,4 @@
+use account::{AccountId20, EthereumSignature};
 use frame_support::{
 	derive_impl, parameter_types,
 	traits::{ConstU128, ConstU32, ConstU64},
@@ -9,7 +10,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Verify},
 	BuildStorage,
 };
-use account::{EthereumSignature, AccountId20};
 
 use crate::{self as pallet_multibatching};
 

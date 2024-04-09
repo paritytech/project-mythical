@@ -25,7 +25,7 @@ account = { workspace = true, optional = true }
 sp-core = { workspace = true, default-features = false, optional = true }
 sp-io = { workspace = true, default-features = false, optional = true }
 
-hex = { workspace = true, default-features = false } # TODO: for debugging, delete this later
+#hex = { workspace = true, default-features = false } # TODO: for debugging, delete this later
 
 [dev-dependencies]
 pallet-balances = { workspace = true, default-features = false }
