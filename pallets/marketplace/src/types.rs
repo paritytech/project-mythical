@@ -109,8 +109,8 @@ pub enum Execution {
 #[cfg(feature = "runtime-benchmarks")]
 pub trait BenchmarkHelper<CollectionId, ItemId, Moment> {
 	/// Returns a collection id from a given integer.
-	fn collection(id: u32) -> CollectionId;
+	fn collection(id: u16) -> CollectionId;
 	/// Returns an nft id from a given integer.
-	fn item(id: u32) -> ItemId;
+	fn item(id: u16) -> ItemId;
 	fn timestamp(value: u64) -> Moment;
 }
