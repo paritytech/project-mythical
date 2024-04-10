@@ -102,7 +102,7 @@ sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "releas
 sp-genesis-builder = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 sp-inherents = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
-sp-keystore = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0" }
+sp-keystore = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 sp-offchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 sp-runtime-interface = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }

@@ -4,17 +4,19 @@ use frame_support::{
 };
 use frame_system as system;
 use sp_core::H256;
+use sp_keystore::{testing::MemoryKeystore, KeystoreExt};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Verify},
-	BuildStorage, MultiSignature,
+	BuildStorage,
 };
+
+use account::EthereumSignature;
 
 use crate::{self as pallet_marketplace};
 use pallet_nfts::PalletFeatures;
 
-type Signature = MultiSignature;
-type AccountPublic = <Signature as Verify>::Signer;
-type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
+type Signature = EthereumSignature;
+pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
@@ -88,7 +90,7 @@ impl pallet_nfts::Config for Test {
 	type MaxAttributesPerCall = ConstU32<2>;
 	type Features = Features;
 	type OffchainSignature = Signature;
-	type OffchainPublic = AccountPublic;
+	type OffchainPublic = <Signature as Verify>::Signer;
 	type WeightInfo = ();
 	pallet_nfts::runtime_benchmarks_enabled! {
 		type Helper = ();
@@ -102,7 +104,12 @@ impl pallet_marketplace::Config for Test {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
-	type MaxBasisPoints = ConstU128<10000>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = ();
+	pallet_marketplace::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = ();
+	}
 }
 
 impl pallet_balances::Config for Test {
@@ -130,5 +137,9 @@ impl pallet_timestamp::Config for Test {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+	let t = system::GenesisConfig::<Test>::default().build_storage().unwrap();
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.register_extension(KeystoreExt::new(MemoryKeystore::new()));
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }

@@ -13,7 +13,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
@@ -32,7 +32,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
@@ -45,7 +45,7 @@ use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
-	AccountId, Balance, BlockNumber, DealWithFees, Hash, Nonce, Signature,
+	AccountId, Balance, BlockNumber, DealWithFees, Hash, IncrementableU256, Nonce, Signature,
 	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MILLISECS_PER_BLOCK, MINUTES,
 	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
@@ -111,7 +111,8 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE};
+
+	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -184,14 +185,14 @@ pub mod fee {
 		}
 	}
 
-	pub fn base_tx_fee() -> Balance {
-		MILLI_MUSE
+	pub fn base_relay_tx_fee() -> Balance {
+		MILLI_ROC
 	}
 
 	pub fn default_fee_per_second() -> u128 {
 		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
-		base_tx_per_second * base_tx_fee()
+		base_tx_per_second * base_relay_tx_fee()
 	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -234,6 +235,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 pub const MICRO_MUSE: Balance = 1_000_000_000_000;
 pub const MILLI_MUSE: Balance = 1_000 * MICRO_MUSE;
 pub const MUSE: Balance = 1_000 * MILLI_MUSE;
+//ROC has 12 decimal places
+pub const MICRO_ROC: Balance = 1_000_000;
+pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
 pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MUSE;
 
@@ -578,8 +582,8 @@ parameter_types! {
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
 }
 
-pub type CollectionId = u32;
-pub type ItemId = u32;
+pub type CollectionId = IncrementableU256;
+pub type ItemId = U256;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -615,9 +619,13 @@ impl pallet_marketplace::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 parameter_types! {
@@ -817,6 +825,8 @@ mod benches {
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
+		[pallet_marketplace, Marketplace]
+		// TODO include this after https://github.com/polkadot-evm/frontier/pull/1295 gets merged
 		[pallet_nfts, Nfts]
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]

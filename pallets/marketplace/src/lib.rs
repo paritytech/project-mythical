@@ -11,19 +11,35 @@ mod benchmarking;
 mod types;
 pub use types::*;
 
+pub mod weights;
+pub use weights::*;
+
 pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
+	use core::usize;
+
 	use super::*;
 	use frame_support::{
+		ensure,
 		pallet_prelude::*,
-		traits::fungible::{Inspect, Mutate, MutateHold},
+		traits::{
+			fungible::{Inspect, Mutate, MutateHold},
+			nonfungibles_v2::Transfer,
+			tokens::{Precision::Exact, Preservation::Preserve},
+		},
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
+
+	use sp_runtime::{
+		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
+		BoundedVec, DispatchError, Saturating,
+	};
 	use sp_std::vec::Vec;
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -37,7 +53,7 @@ pub mod pallet {
 			+ UnfilteredDispatchable<RuntimeOrigin = Self::RuntimeOrigin>
 			+ GetDispatchInfo;
 
-		/// The fungible trait use for balance holds and transfers.
+		/// The currency trait.
 		type Currency: Inspect<Self::AccountId>
 			+ Mutate<Self::AccountId>
 			+ MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
@@ -49,13 +65,26 @@ pub mod pallet {
 		#[pallet::constant]
 		type MinOrderDuration: Get<Self::Moment>;
 
-		/// Used for calculation of fees
-		#[pallet::constant]
-		type MaxBasisPoints: Get<BalanceOf<Self>>;
-
 		/// Size of nonce StorageValue
 		#[pallet::constant]
 		type NonceStringLimit: Get<u32>;
+
+		/// Off-Chain signature type.
+		///
+		/// Can verify whether a `Self::Signer` created a signature.
+		type Signature: Verify<Signer = Self::Signer> + Parameter;
+
+		/// Off-Chain public key.
+		///
+		/// Must identify as an on-chain `Self::AccountId`.
+		type Signer: IdentifyAccount<AccountId = Self::AccountId>;
+
+		/// Type representing the weight of this pallet
+		type WeightInfo: WeightInfo;
+
+		#[cfg(feature = "runtime-benchmarks")]
+		/// A set of helper functions for benchmarking.
+		type BenchmarkHelper: BenchmarkHelper<Self::CollectionId, Self::ItemId, Self::Moment>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.
@@ -66,24 +95,19 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn authority)]
 	pub type Authority<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn fee_signer)]
 	pub type FeeSigner<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn payout_address)]
-	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn nonces)]
 	pub type Nonces<T: Config> =
 		StorageMap<_, Identity, BoundedVec<u8, T::NonceStringLimit>, bool, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn asks)]
+	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
+
+	#[pallet::storage]
 	pub type Asks<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
@@ -94,7 +118,6 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn bids)]
 	pub type Bids<T: Config> = StorageNMap<
 		_,
 		(
@@ -102,7 +125,7 @@ pub mod pallet {
 			NMapKey<Blake2_128Concat, T::ItemId>,
 			NMapKey<Blake2_128Concat, BalanceOf<T>>,
 		),
-		Bid<T::AccountId, T::Moment, BalanceOf<T>>,
+		Bid<T::AccountId, BalanceOf<T>, T::Moment>,
 	>;
 
 	#[pallet::event]
@@ -155,6 +178,8 @@ pub mod pallet {
 		InvalidFeePercent,
 		/// Ask or Bid with the same characteristics already exists.
 		OrderAlreadyExists,
+		/// A valid match must exist to execute the order
+		ValidMatchMustExist,
 		/// Item can only be operated by the Item owner.
 		NotItemOwner,
 		/// Invalid Signed message
@@ -185,7 +210,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Sets authority role which has owner rights, its only callable by root origin
 		#[pallet::call_index(0)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::force_set_authority())]
 		pub fn force_set_authority(
 			origin: OriginFor<T>,
 			authority: T::AccountId,
@@ -204,7 +229,7 @@ pub mod pallet {
 
 		/// Allows authority account to set the account that signs fees.
 		#[pallet::call_index(1)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::set_fee_signer_address())]
 		pub fn set_fee_signer_address(
 			origin: OriginFor<T>,
 			fee_signer: T::AccountId,
@@ -224,7 +249,7 @@ pub mod pallet {
 
 		/// Allows authority account to set the payout address that receives fee payments from trades
 		#[pallet::call_index(2)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::set_payout_address())]
 		pub fn set_payout_address(
 			origin: OriginFor<T>,
 			payout_address: T::AccountId,
@@ -258,39 +283,119 @@ pub mod pallet {
 		///     - Fees go to payoutAddress
 		///
 		#[pallet::call_index(3)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::create_order())]
 		pub fn create_order(
 			origin: OriginFor<T>,
-			order: Order<
-				T::CollectionId,
-				T::ItemId,
-				BalanceOf<T>,
-				T::Moment,
-				T::OffchainSignature,
-				Vec<u8>,
-			>,
+			order: OrderOf<T>,
+			execution: Execution,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// Simulate events depending on orderTypes, just for the sake of experimenting.
-			// - If orderType Ask is received then an orderCreated event is emitted
-			//- If orderType Bid is received then an orderExecuted event is emitted
-			match order.clone().order_type {
-				OrderType::Ask => Self::deposit_event(Event::OrderCreated {
-					who,
-					order_type: order.order_type,
-					collection: order.collection,
-					item: order.item,
-					price: order.price,
-					expires_at: order.expires_at,
-				}),
-				OrderType::Bid => Self::deposit_event(Event::OrderExecuted {
-					collection: order.collection,
-					item: order.item,
-					seller: who.clone(),
-					buyer: who,
-					price: order.price,
-				}),
+			let item_owner = pallet_nfts::Pallet::<T>::owner(order.collection, order.item)
+				.ok_or(Error::<T>::ItemNotFound)?;
+
+			ensure!(
+				order.expires_at
+					> pallet_timestamp::Pallet::<T>::get()
+						.saturating_add(T::MinOrderDuration::get()),
+				Error::<T>::InvalidExpiration
+			);
+
+			let message: OrderMessageOf<T> = order.clone().into();
+			Self::verify_fee_signer_signature(&message.encode(), order.signature_data)?;
+
+			Self::deposit_event(Event::OrderCreated {
+				who: who.clone(),
+				order_type: order.order_type.clone(),
+				collection: order.collection,
+				item: order.item,
+				price: order.price,
+				expires_at: order.expires_at,
+			});
+
+			match order.order_type {
+				OrderType::Ask => {
+					ensure!(
+						!Asks::<T>::contains_key(order.collection, order.item),
+						Error::<T>::OrderAlreadyExists
+					);
+					ensure!(item_owner == who.clone(), Error::<T>::NotItemOwner);
+					//Check if item is locked
+					pallet_nfts::Pallet::<T>::disable_transfer(&order.collection, &order.item)
+						.map_err(|_| Error::<T>::ItemAlreadyLocked)?;
+
+					if let Some(exec_order) = Self::valid_match_exists_for(
+						OrderType::Ask,
+						&order.collection,
+						&order.item,
+						&order.price,
+					) {
+						Self::execute_order(
+							exec_order,
+							who,
+							order.collection,
+							order.item,
+							&order.price,
+							&order.fee,
+						)?;
+					} else {
+						ensure!(
+							execution == Execution::AllowCreation,
+							Error::<T>::ValidMatchMustExist
+						);
+
+						let ask = Ask {
+							seller: who,
+							price: order.price,
+							expiration: order.expires_at,
+							fee: order.fee,
+						};
+
+						Asks::<T>::insert(order.collection, order.item, ask);
+					}
+				},
+
+				OrderType::Bid => {
+					ensure!(
+						!Bids::<T>::contains_key((order.collection, order.item, order.price)),
+						Error::<T>::OrderAlreadyExists
+					);
+					ensure!(item_owner != who.clone(), Error::<T>::BidOnOwnedItem);
+
+					//Reserve neccesary amount to pay for the item + fees
+					let bid_payment = Self::calc_bid_payment(&order.price, &order.fee)?;
+					<T as crate::Config>::Currency::hold(
+						&HoldReason::MarketplaceBid.into(),
+						&who,
+						bid_payment,
+					)
+					.map_err(|_| Error::<T>::InsufficientFunds)?;
+
+					if let Some(exec_order) = Self::valid_match_exists_for(
+						OrderType::Bid,
+						&order.collection,
+						&order.item,
+						&order.price,
+					) {
+						Self::execute_order(
+							exec_order,
+							who,
+							order.collection,
+							order.item,
+							&order.price,
+							&order.fee,
+						)?;
+					} else {
+						ensure!(
+							execution == Execution::AllowCreation,
+							Error::<T>::ValidMatchMustExist
+						);
+
+						let bid = Bid { buyer: who, expiration: order.expires_at, fee: order.fee };
+
+						Bids::<T>::insert((order.collection, order.item, order.price), bid);
+					}
+				},
 			};
 
 			Ok(())
@@ -303,7 +408,7 @@ pub mod pallet {
 		/// If the order is an Ask the item is unlocked
 		/// If the order is a Bid the bidders balance is unlocked
 		#[pallet::call_index(4)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_order())]
 		pub fn cancel_order(
 			origin: OriginFor<T>,
 			order_type: OrderType,
@@ -312,10 +417,50 @@ pub mod pallet {
 			price: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+			let authority = Authority::<T>::get();
+
+			match order_type {
+				//Order type Ask
+				OrderType::Ask => {
+					let ask = Asks::<T>::get(collection, item).ok_or(Error::<T>::OrderNotFound)?;
+					ensure!(
+						ask.seller.clone() == who.clone() || Some(who.clone()) == authority,
+						Error::<T>::NotOrderCreatorOrAdmin
+					);
+
+					Asks::<T>::remove(collection, item);
+
+					// Re enable item transfer
+					pallet_nfts::Pallet::<T>::enable_transfer(&collection, &item)?;
+				},
+				//Order type Bid
+				OrderType::Bid => {
+					let bid = Bids::<T>::get((collection, item, price))
+						.ok_or(Error::<T>::OrderNotFound)?;
+
+					ensure!(
+						bid.buyer.clone() == who.clone() || Some(who.clone()) == authority,
+						Error::<T>::NotOrderCreatorOrAdmin
+					);
+
+					Bids::<T>::remove((collection, item, price));
+
+					let bid_payment = Self::calc_bid_payment(&price, &bid.fee)?;
+					<T as crate::Config>::Currency::release(
+						&HoldReason::MarketplaceBid.into(),
+						&bid.buyer,
+						bid_payment,
+						Exact,
+					)?;
+				},
+			}
+
 			Self::deposit_event(Event::OrderCanceled { collection, item, who });
+
 			Ok(())
 		}
 	}
+
 	impl<T: Config> Pallet<T> {
 		pub fn ensure_authority(who: &T::AccountId) -> Result<(), Error<T>> {
 			match Authority::<T>::get().as_ref() == Some(who) {
@@ -323,5 +468,156 @@ pub mod pallet {
 				_ => Err(Error::<T>::NotAuthority),
 			}
 		}
+
+		pub fn valid_match_exists_for(
+			order_type: OrderType,
+			collection: &T::CollectionId,
+			item: &T::ItemId,
+			price: &BalanceOf<T>,
+		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>> {
+			let timestamp = pallet_timestamp::Pallet::<T>::get();
+
+			match order_type {
+				OrderType::Ask => {
+					if let Some(bid) = Bids::<T>::get((collection, item, price)) {
+						if timestamp >= bid.expiration {
+							return None;
+						};
+						return Some(ExecOrder::Bid(bid));
+					}
+				},
+				OrderType::Bid => {
+					if let Some(ask) = Asks::<T>::get(collection, item) {
+						if timestamp >= ask.expiration {
+							return None;
+						};
+						return Some(ExecOrder::Ask(ask));
+					}
+				},
+			}
+			None
+		}
+
+		pub fn execute_order(
+			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>,
+			who: T::AccountId,
+			collection: T::CollectionId,
+			item: T::ItemId,
+			price: &BalanceOf<T>,
+			fee: &BalanceOf<T>,
+		) -> Result<(), DispatchError> {
+			let seller: T::AccountId;
+			let buyer: T::AccountId;
+			let seller_fee: BalanceOf<T>;
+			let buyer_fee: BalanceOf<T>;
+
+			match exec_order {
+				ExecOrder::Bid(bid) => {
+					ensure!(who.clone() != bid.buyer.clone(), Error::<T>::BuyerIsSeller);
+
+					seller = who;
+					buyer = bid.buyer;
+					seller_fee = *fee;
+					buyer_fee = bid.fee;
+				},
+				ExecOrder::Ask(ask) => {
+					ensure!(who.clone() != ask.seller.clone(), Error::<T>::BuyerIsSeller);
+
+					seller = ask.seller;
+					buyer = who;
+					seller_fee = ask.fee;
+					buyer_fee = *fee;
+				},
+			};
+
+			Asks::<T>::remove(collection, item);
+			Bids::<T>::remove((collection, item, *price));
+
+			Self::process_fees(&seller, seller_fee, &buyer, buyer_fee, *price)?;
+
+			pallet_nfts::Pallet::<T>::enable_transfer(&collection, &item)?;
+			<pallet_nfts::Pallet<T> as Transfer<T::AccountId>>::transfer(
+				&collection,
+				&item,
+				&buyer,
+			)?;
+
+			Self::deposit_event(Event::OrderExecuted {
+				collection,
+				item,
+				seller,
+				buyer,
+				price: *price,
+			});
+			Ok(())
+		}
+
+		pub fn calc_bid_payment(
+			price: &BalanceOf<T>,
+			fee: &BalanceOf<T>,
+		) -> Result<BalanceOf<T>, Error<T>> {
+			price.checked_add(&fee).ok_or(Error::<T>::Overflow)
+		}
+
+		pub fn process_fees(
+			seller: &T::AccountId,
+			seller_fee: BalanceOf<T>,
+			buyer: &T::AccountId,
+			buyer_fee: BalanceOf<T>,
+			price: BalanceOf<T>,
+		) -> Result<(), DispatchError> {
+			//Amount to be payed by the buyer
+			let buyer_payment_amount = price.checked_add(&buyer_fee).ok_or(Error::<T>::Overflow)?;
+
+			//Amount to be payed to the marketplace at the payoutAddress
+			let marketplace_pay_amount =
+				buyer_fee.checked_add(&seller_fee).ok_or(Error::<T>::Overflow)?;
+
+			//Amount to be payed to the seller (Earings - marketFees)
+			let seller_pay_amount = buyer_payment_amount
+				.checked_sub(&marketplace_pay_amount)
+				.ok_or(Error::<T>::Overflow)?;
+
+			<T as crate::Config>::Currency::release(
+				&HoldReason::MarketplaceBid.into(),
+				buyer,
+				buyer_payment_amount,
+				Exact,
+			)?;
+			// Pay fees to PayoutAddress
+			let payout_address =
+				PayoutAddress::<T>::get().ok_or(Error::<T>::PayoutAddressNotSet)?;
+			<T as crate::Config>::Currency::transfer(
+				buyer,
+				&payout_address,
+				marketplace_pay_amount,
+				Preserve,
+			)?;
+			//Pay earnings to seller
+			<T as crate::Config>::Currency::transfer(buyer, seller, seller_pay_amount, Preserve)?;
+
+			Ok(())
+		}
+
+		fn verify_fee_signer_signature(
+			message: &Vec<u8>,
+			signature_data: SignatureData<T::Signature, Vec<u8>>,
+		) -> Result<(), DispatchError> {
+			let nonce: BoundedVec<u8, T::NonceStringLimit> =
+				signature_data.nonce.try_into().map_err(|_| Error::<T>::BadNonce)?;
+
+			ensure!(!Nonces::<T>::contains_key(nonce.clone()), Error::<T>::AlreadyUsedNonce);
+
+			let signer = FeeSigner::<T>::get().ok_or(Error::<T>::FeeSignerAddressNotSet)?;
+
+			if !signature_data.signature.verify(message.as_ref(), &signer) {
+				return Err(Error::<T>::BadSignedMessage.into());
+			}
+
+			Nonces::<T>::set(nonce, true);
+			Ok(())
+		}
 	}
 }
+
+sp_core::generate_feature_enabled_macro!(runtime_benchmarks_enabled, feature = "runtime-benchmarks", $);
