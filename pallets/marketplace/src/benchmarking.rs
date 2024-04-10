@@ -27,14 +27,14 @@ type BalanceOf<T> =
 
 impl<CollectionId, ItemId, Moment> BenchmarkHelper<CollectionId, ItemId, Moment> for ()
 where
-	CollectionId: From<u32>,
-	ItemId: From<u32>,
+	CollectionId: From<u16>,
+	ItemId: From<u16>,
 	Moment: From<u64>,
 {
-	fn collection(id: u32) -> CollectionId {
+	fn collection(id: u16) -> CollectionId {
 		id.into()
 	}
-	fn item(id: u32) -> ItemId {
+	fn item(id: u16) -> ItemId {
 		id.into()
 	}
 	fn timestamp(value: u64) -> Moment {
