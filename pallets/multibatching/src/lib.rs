@@ -112,8 +112,13 @@ pub mod pallet {
 	impl<T: Config> core::fmt::Debug for Batch<T> {
 		fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
 			f.debug_struct("Batch")
+				.field("pallet_index", &self.pallet_index)
+				.field("call_index", &self.call_index)
+				.field("domain", &self.domain)
 				.field("sender", &self.sender)
+				.field("bias", &self.bias)
 				.field("calls", &self.calls)
+				.field("approvals_zero", &self.approvals_zero)
 				.finish()
 		}
 	}
@@ -163,7 +168,7 @@ pub mod pallet {
 		/// If one of the calls fails, the whole batch reverts.
 		///
 		/// For every unique call origin, `approvals` must contain a signature
-		/// of keccak256 hash of this call with empty `approvals` argument.
+		/// of a hash of this call with empty `approvals` argument.
 		/// This is so that the participants could check the data they sign
 		/// through the Developer/Extrinsics/Decode tab on the parachain
 		/// explorer: <https://polkadot.js.org/apps/#/extrinsics/decode>
@@ -216,21 +221,6 @@ pub mod pallet {
 				None => return Err(Error::<T>::DomainNotSet.into()),
 			}
 
-			/*
-			let hash = {
-				let batch = Batch {
-					pallet_index: Self::index() as u8,
-					call_index: 0,
-					domain,
-					sender: sender.clone(),
-					bias,
-					calls: calls.clone(),
-					approvals_zero: 0,
-				};
-				let bytes = batch.encode();
-				<T::Hashing>::hash(&bytes)
-			};
-			*/
 			let bytes = Batch {
 				pallet_index: Self::index() as u8,
 				call_index: 0,
@@ -293,6 +283,10 @@ pub mod pallet {
 			Ok(Some(base_weight.saturating_add(weight)).into())
 		}
 
+		/// Set the "domain" of this pallet instance.
+		///
+		/// The `domain` parameter in calls to `batch` must match the domain
+		/// set here.
 		#[pallet::call_index(1)]
 		#[pallet::weight({0})] // TODO: weight
 		pub fn force_set_domain(origin: OriginFor<T>, domain: [u8; 32]) -> DispatchResult {

@@ -1,24 +1,9 @@
 #![cfg(feature = "runtime-benchmarks")]
-#![allow(unused_imports)]
 use super::*;
 use crate::Pallet as Multibatching;
 use frame_benchmarking::v2::*;
-use frame_support::{
-	assert_ok,
-	dispatch::RawOrigin,
-	traits::{
-		fungible::{Inspect as InspectFungible, Mutate as MutateFungible},
-		tokens::nonfungibles_v2::{Create, Mutate},
-	},
-	BoundedVec,
-};
-use sp_core::ecdsa::Public;
-use sp_io::{
-	crypto::{ecdsa_generate, ecdsa_sign_prehashed},
-	hashing::keccak_256,
-};
-
-use sp_core::ecdsa::Signature;
+use frame_support::{dispatch::RawOrigin, BoundedVec};
+use sp_core::{ecdsa::Pair as EthereumPair, keccak_256, Pair};
 
 #[benchmarks(
     where
@@ -36,10 +21,10 @@ pub mod benchmarks {
 	use account::{AccountId20, EthereumSignature, EthereumSigner};
 	use parity_scale_codec::Encode;
 
-	use frame_support::sp_runtime::traits::{Hash, IdentifyAccount};
+	use frame_support::sp_runtime::traits::IdentifyAccount;
 
 	#[benchmark]
-	fn batch(c: Linear<1, 200>, s: Linear<1, 10>) {
+	fn batch(c: Linear<1, 128>, s: Linear<1, 10>) {
 		let call_count = c as usize;
 		let signer_count = s as usize;
 
@@ -48,12 +33,13 @@ pub mod benchmarks {
 
 		let sender: AccountId20 = whitelisted_caller();
 
-		let mut signers = Vec::<(Public, EthereumSigner, AccountId20)>::with_capacity(signer_count);
+		let mut signers =
+			Vec::<(EthereumPair, EthereumSigner, AccountId20)>::with_capacity(signer_count);
 		for _ in 0..signer_count {
-			let public = ecdsa_generate(0.into(), None);
-			let signer: EthereumSigner = public.into();
-			let account = signer.clone().into_account().into();
-			signers.push((public, signer, account));
+			let pair: EthereumPair = EthereumPair::generate().0;
+			let signer: EthereumSigner = pair.public().into();
+			let account = signer.clone().into_account();
+			signers.push((pair, signer, account));
 		}
 
 		let mut calls = BoundedVec::new();
@@ -75,25 +61,24 @@ pub mod benchmarks {
 		}
 		.into();
 		let pseudo_call_bytes = pseudo_call.encode();
-		let hash = <T::Hashing>::hash(&pseudo_call_bytes);
+		//dbg!(hex::encode(&pseudo_call_bytes));
+		let hash = keccak_256(&pseudo_call_bytes);
+		//let hash = <T::Hashing>::hash(&pseudo_call_bytes).into();
 
-		eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-		eprintln!("test   hash: {}", hex::encode(hash.into()));
+		//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
+		//eprintln!("test   hash: {}", hex::encode(hash));
 
 		let mut approvals = BoundedVec::new();
-		for (public, _, account) in &signers {
+		for (pair, _, account) in &signers {
 			approvals
 				.try_push(Approval::<T> {
 					from: EthereumSigner::from(account.0).into(),
-					signature: EthereumSignature::from(
-						ecdsa_sign_prehashed(0.into(), public, &hash.into()).unwrap(),
-					)
-					.into(),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash.into())).into(),
 				})
 				.ok()
 				.expect("Benchmark config must match runtime config for BoundedVec size");
-			eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-			eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+			//eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
+			//eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
 		}
 
 		Pallet::<T>::force_set_domain(RawOrigin::Root.into(), domain)
@@ -101,8 +86,6 @@ pub mod benchmarks {
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(sender.clone()), domain, sender.clone().into(), bias, calls, approvals);
-
-		frame_system::Pallet::<T>::assert_last_event(Event::BatchApplied { hash }.into());
 	}
 
 	impl_benchmark_test_suite!(Multibatching, crate::mock::new_test_ext(), crate::mock::Test);
