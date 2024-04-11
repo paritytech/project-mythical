@@ -1,5 +1,5 @@
-use pallet_treasury::ArgumentsFactory;
 use crate::AccountId;
+use pallet_treasury::ArgumentsFactory;
 
 pub struct TreasuryBenchmarkHelper;
 impl ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper {

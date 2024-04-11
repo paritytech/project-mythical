@@ -12,9 +12,7 @@ use sp_runtime::{
 };
 
 pub use account::EthereumSignature;
-use frame_support::traits::{Currency, Imbalance, Incrementable, OnUnbalanced};
-use pallet_balances::NegativeImbalance;
-use sp_std::marker::PhantomData;
+use frame_support::traits::Incrementable;
 
 // Cumulus types re-export
 // These types are shared between the mainnet and testnet runtimes
@@ -38,39 +36,6 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used by
 /// `Operational` extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-
-/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
-/// the result on to `ToStakingPot`.
-pub struct DealWithFees<R>(PhantomData<R>);
-impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
-where
-	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
-	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
-{
-	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
-		if let Some(mut fees) = fees_then_tips.next() {
-			if let Some(tips) = fees_then_tips.next() {
-				tips.merge_into(&mut fees);
-			}
-			<ToStakingPot<R> as OnUnbalanced<_>>::on_unbalanced(fees);
-		}
-	}
-}
-
-/// Implementation of `OnUnbalanced` that deposits the fees into a staking pot for later payout.
-pub struct ToStakingPot<R>(PhantomData<R>);
-impl<R> OnUnbalanced<NegativeImbalance<R>> for ToStakingPot<R>
-where
-	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
-	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
-{
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		let staking_pot = <pallet_collator_selection::Pallet<R>>::account_id();
-		<pallet_balances::Pallet<R>>::resolve_creating(&staking_pot, amount);
-	}
-}
 
 #[derive(Clone, TypeInfo, Encode, PartialEq, Eq, Decode, Copy, MaxEncodedLen, Debug)]
 pub struct IncrementableU256(U256);

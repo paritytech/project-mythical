@@ -1,6 +1,6 @@
 use core::{marker::PhantomData, ops::ControlFlow};
 
-use crate::fee::default_fee_per_second;
+use crate::fee::{default_fee_per_second, DealWithFees};
 use frame_support::traits::{Contains, ContainsPair, Get};
 use frame_support::{
 	parameter_types,
@@ -24,7 +24,6 @@ use xcm_builder::{
 use xcm_executor::traits::Properties;
 use xcm_executor::{traits::ShouldExecute, XcmExecutor};
 
-use runtime_common::DealWithFees;
 use xcm_primitives::SignedToAccountId20;
 
 use super::{

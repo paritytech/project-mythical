@@ -44,8 +44,8 @@ use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 pub use runtime_common::{
-	AccountId, Balance, BlockNumber, DealWithFees, Hash, Nonce, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
+	AccountId, Balance, BlockNumber, Hash, Nonce, Signature, AVERAGE_ON_INITIALIZE_RATIO,
+	NORMAL_DISPATCH_RATIO,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
@@ -134,12 +134,16 @@ pub type Executive = frame_executive::Executive<
 
 pub mod fee {
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_DOT, MILLI_MYTH};
+	use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
 	};
+	use pallet_balances::NegativeImbalance;
+	use runtime_common::{AccountId, AccountIdOf};
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
+	use sp_std::marker::PhantomData;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -214,6 +218,39 @@ pub mod fee {
 		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
 		base_tx_per_second * base_relay_tx_fee()
+	}
+
+	/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
+	/// the result on to `ToStakingPot`.
+	pub struct DealWithFees<R>(PhantomData<R>);
+	impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+	where
+		R: pallet_balances::Config + pallet_collator_selection::Config,
+		AccountIdOf<R>: From<AccountId> + Into<AccountId>,
+		<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
+	{
+		fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+			if let Some(mut fees) = fees_then_tips.next() {
+				if let Some(tips) = fees_then_tips.next() {
+					tips.merge_into(&mut fees);
+				}
+				<ToStakingPot<R> as OnUnbalanced<_>>::on_unbalanced(fees);
+			}
+		}
+	}
+
+	/// Implementation of `OnUnbalanced` that deposits the fees into a staking pot for later payout.
+	pub struct ToStakingPot<R>(PhantomData<R>);
+	impl<R> OnUnbalanced<NegativeImbalance<R>> for ToStakingPot<R>
+	where
+		R: pallet_balances::Config + pallet_collator_selection::Config,
+		AccountIdOf<R>: From<AccountId> + Into<AccountId>,
+		<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
+	{
+		fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+			let staking_pot = <pallet_collator_selection::Pallet<R>>::account_id();
+			<pallet_balances::Pallet<R>>::resolve_creating(&staking_pot, amount);
+		}
 	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -385,7 +422,7 @@ parameter_types! {
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction =
-		pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees<Runtime>>;
+		pallet_transaction_payment::CurrencyAdapter<Balances, fee::DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;

@@ -15,13 +15,19 @@ use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
-use sp_runtime::{create_runtime_str, generic, impl_opaque_keys, traits::{BlakeTwo256, Block as BlockT, Verify}, transaction_validity::{TransactionSource, TransactionValidity}, ApplyExtrinsicResult, ExtrinsicInclusionMode};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{BlakeTwo256, Block as BlockT, Verify},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, ExtrinsicInclusionMode,
+};
 
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{ConstU128, InstanceFilter, WithdrawReasons};
 use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
@@ -33,14 +39,16 @@ use frame_support::{
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned, EnsureWithSuccess};
+use frame_system::{
+	limits::{BlockLength, BlockWeights},
+	EnsureRoot, EnsureSigned, EnsureWithSuccess,
+};
 use pallet_nfts::PalletFeatures;
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
-	AccountId, Balance, BlockNumber, DealWithFees, Hash, IncrementableU256, Nonce, Signature,
+	AccountId, Balance, BlockNumber, Hash, IncrementableU256, Nonce, Signature,
 	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -128,14 +136,17 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
+	use frame_support::traits::{Imbalance, OnUnbalanced};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
 	};
+	use pallet_balances::NegativeImbalance;
+	use runtime_common::{AccountId, AccountIdOf};
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
+	use sp_std::marker::PhantomData;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -210,6 +221,26 @@ pub mod fee {
 		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
 		base_tx_per_second * base_relay_tx_fee()
+	}
+
+	/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
+	/// the result on to treasury.
+	pub struct DealWithFees<R>(PhantomData<R>);
+	impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+	where
+		R: pallet_balances::Config + pallet_treasury::Config,
+		pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
+		AccountIdOf<R>: From<AccountId> + Into<AccountId>,
+		<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
+	{
+		fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+			if let Some(mut fees) = fees_then_tips.next() {
+				if let Some(tips) = fees_then_tips.next() {
+					tips.merge_into(&mut fees);
+				}
+				<pallet_treasury::Pallet<R>>::on_unbalanced(fees);
+			}
+		}
 	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -381,7 +412,7 @@ parameter_types! {
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction =
-		pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees<Runtime>>;
+		pallet_transaction_payment::CurrencyAdapter<Balances, fee::DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
