@@ -128,6 +128,7 @@ std = [
   "pallet-xcm/std",
   "pallet-proxy/std",
   "pallet-vesting/std",
+  "pallet-treasury/std",
   "parachain-info/std",
   "parachains-common/std",
   "polkadot-parachain-primitives/std",
@@ -170,6 +171,7 @@ runtime-benchmarks = [
   "pallet-xcm/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
   "pallet-vesting/runtime-benchmarks",
+  "pallet-treasury/runtime-benchmarks",
   "runtime-common/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
@@ -202,5 +204,6 @@ try-runtime = [
   "pallet-xcm/try-runtime",
   "pallet-proxy/try-runtime",
   "pallet-vesting/try-runtime",
+  "pallet-treasury/try-runtime",
   "parachain-info/try-runtime",
 ]
