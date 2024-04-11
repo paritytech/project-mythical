@@ -302,6 +302,9 @@ impl xcm_executor::Config for XcmConfig {
 	// Disallow Transacts execution.
 	type SafeCallFilter = Nothing;
 	type TransactionalProcessor = FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 /// Local origin to location conversion.
