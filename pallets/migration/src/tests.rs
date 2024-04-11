@@ -274,3 +274,52 @@ mod send_funds_from_pot {
 		})
 	}
 }
+
+mod set_item_owner {
+	use super::*;
+
+	#[test]
+	fn sender_is_not_migrator_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			assert_noop!(
+				Migration::set_item_owner(RuntimeOrigin::signed(account(2)), 0, 0, account(2)),
+				Error::<Test>::NotMigrator
+			);
+		})
+	}
+
+	#[test]
+	fn item_not_found_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(2)),
+				Error::<Test>::ItemNotFound
+			);
+		})
+	}
+
+	#[test]
+	fn already_owner_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			assert_noop!(
+				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(1)),
+				Error::<Test>::AlreadyOwner
+			);
+		})
+	}
+
+	#[test]
+	fn set_item_owner_passes() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			mint_item(0, account(1));
+			assert_ok!(Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(2)));
+			assert!(Nfts::owner(0, 0) == Some(account(2)));
+		})
+	}
+}
