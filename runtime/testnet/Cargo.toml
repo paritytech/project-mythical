@@ -48,6 +48,7 @@ pallet-multisig = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
 pallet-proxy = { workspace = true, default-features = false }
 pallet-vesting = { workspace = true, default-features = false }
+pallet-treasury = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
 sp-consensus-aura = { workspace = true, default-features = false }
@@ -169,6 +170,7 @@ runtime-benchmarks = [
   "pallet-xcm/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
   "pallet-vesting/runtime-benchmarks",
+  "runtime-common/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
