@@ -85,6 +85,7 @@ pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 testnet-parachains-constants = { workspace = true, default-features = false, features = ["rococo"] }
+polkadot-primitives = { workspace = true, default-features = false }
 
 
 # Frontier

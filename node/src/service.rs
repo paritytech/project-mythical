@@ -44,7 +44,10 @@ use runtime_common::{AccountId, AuraId, Balance, Block, Hash, Nonce};
 pub struct TestnetRuntimeExecutor;
 
 impl NativeExecutionDispatch for TestnetRuntimeExecutor {
-	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+	type ExtendHostFunctions = (
+		cumulus_client_service::storage_proof_size::HostFunctions,
+		frame_benchmarking::benchmarking::HostFunctions,
+	);
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
 		testnet_runtime::api::dispatch(method, data)
@@ -59,7 +62,10 @@ impl NativeExecutionDispatch for TestnetRuntimeExecutor {
 pub struct MainnetRuntimeExecutor;
 
 impl NativeExecutionDispatch for MainnetRuntimeExecutor {
-	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+	type ExtendHostFunctions = (
+		cumulus_client_service::storage_proof_size::HostFunctions,
+		frame_benchmarking::benchmarking::HostFunctions,
+	);
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
 		mainnet_runtime::api::dispatch(method, data)

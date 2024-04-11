@@ -3,6 +3,13 @@ default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "rococo-local"
 
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.scheduler_params]
+lookahead = 2
+
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.async_backing_params]
+max_candidate_depth = 3
+allowed_ancestry_len = 2
+
     [[relaychain.nodes]]
     name = "alice"
     ws_port = 9900
