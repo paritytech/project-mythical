@@ -3,7 +3,7 @@
 set -e
 
 ZOMBIENET_V=v1.3.98
-POLKADOT_V=v1.8.0
+POLKADOT_V=v1.9.0
 
 case "$(uname -s)" in
     Linux*)     MACHINE=Linux;;
