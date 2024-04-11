@@ -7,6 +7,9 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
+pub mod weights;
+pub use weights::*;
+
 pub use pallet::*;
 
 #[frame_support::pallet]
@@ -24,8 +27,7 @@ pub mod pallet {
 	use frame_support::{
 		dispatch::GetDispatchInfo,
 		traits::{
-			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Incrementable,
-			UnfilteredDispatchable,
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, UnfilteredDispatchable,
 		},
 	};
 	#[pallet::pallet]
@@ -46,6 +48,9 @@ pub mod pallet {
 
 		/// The fungible trait use for balance holds and transfers.
 		type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
+
+		/// Type representing the weight of this pallet
+		type WeightInfo: WeightInfo;
 
 		#[cfg(feature = "runtime-benchmarks")]
 		/// A set of helper functions for benchmarking.
@@ -116,7 +121,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Sets migrator role, only callable by root origin
 		#[pallet::call_index(0)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::force_set_migrator())]
 		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
@@ -131,7 +136,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(1)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::set_next_collection_id())]
 		pub fn set_next_collection_id(
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
@@ -144,7 +149,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::create_ask())]
 		pub fn create_ask(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
@@ -169,18 +174,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::call_index(3)]
-		#[pallet::weight({0})]
-		pub fn purge_item_data(
-			origin: OriginFor<T>,
-			collection: T::CollectionId,
-			item: T::ItemId,
-		) -> DispatchResult {
-			todo!()
-		}
-
 		#[pallet::call_index(4)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::set_pot_account())]
 		pub fn set_pot_account(origin: OriginFor<T>, pot: T::AccountId) -> DispatchResult {
 			let _who = Self::ensure_migrator(origin)?;
 
@@ -193,7 +188,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(5)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::send_funds_from_pot())]
 		pub fn send_funds_from_pot(
 			origin: OriginFor<T>,
 			recipient: T::AccountId,
@@ -208,7 +203,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(6)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::set_item_owner())]
 		pub fn set_item_owner(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,

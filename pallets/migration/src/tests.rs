@@ -318,7 +318,12 @@ mod set_item_owner {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			mint_item(0, account(1));
-			assert_ok!(Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(2)));
+			assert_ok!(Migration::set_item_owner(
+				RuntimeOrigin::signed(account(1)),
+				0,
+				0,
+				account(2)
+			));
 			assert!(Nfts::owner(0, 0) == Some(account(2)));
 		})
 	}
