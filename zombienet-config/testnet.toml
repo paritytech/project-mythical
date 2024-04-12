@@ -2,13 +2,6 @@
 chain = "rococo-local"
 default_command = "./bin/polkadot"
 
-[relaychain.genesis.runtimeGenesis.patch.configuration.config.scheduler_params]
-lookahead = 2
-
-[relaychain.genesis.runtimeGenesis.patch.configuration.config.async_backing_params]
-max_candidate_depth = 3
-allowed_ancestry_len = 2
-
 	[[relaychain.nodes]]
 	name = "alice"
 	validator = true
@@ -28,7 +21,7 @@ chain = "local-v"
 	command = "./target/release/mythos-node"
 	ws_port = 9933
 	rpc_port = 8833
-	args = ["--rpc-max-connections 10000"]
+	args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000"]
 
 	[[parachains.collators]]
 	name = "muse-collator02"

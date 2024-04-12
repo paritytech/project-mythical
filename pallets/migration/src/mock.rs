@@ -6,13 +6,15 @@ use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Verify},
-	BuildStorage, MultiSignature,
+	BuildStorage,
 };
+
+use account::EthereumSignature;
 
 use crate::{self as pallet_migration};
 use pallet_nfts::PalletFeatures;
 
-type Signature = MultiSignature;
+type Signature = EthereumSignature;
 type AccountPublic = <Signature as Verify>::Signer;
 type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -103,7 +105,12 @@ impl pallet_marketplace::Config for Test {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
-	type MaxBasisPoints = ConstU128<10000>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = ();
+	pallet_marketplace::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = ();
+	}
 }
 
 impl pallet_balances::Config for Test {

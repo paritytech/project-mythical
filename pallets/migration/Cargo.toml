@@ -30,6 +30,9 @@ pallet-timestamp = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 
+# Primitives
+account = { workspace = true }
+
 [dev-dependencies]
 sp-io = { workspace = true, default-features = false }
 
