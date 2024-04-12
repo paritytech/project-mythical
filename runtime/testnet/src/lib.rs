@@ -19,7 +19,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 
 use sp_std::prelude::*;
@@ -28,12 +28,13 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use frame_support::traits::{InstanceFilter, WithdrawReasons};
+use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
@@ -46,9 +47,8 @@ use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
-	AccountId, Balance, BlockNumber, DealWithFees, Hash, Nonce, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MILLISECS_PER_BLOCK, MINUTES,
-	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
+	AccountId, Balance, BlockNumber, DealWithFees, Hash, IncrementableU256, Nonce, Signature,
+	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::traits::ConvertInto;
@@ -82,6 +82,29 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
+/// This determines the average expected block time that we are targeting.
+/// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
+/// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
+/// up by `pallet_aura` to implement `fn slot_duration()`.
+///
+/// Change this to adjust the block time.
+const MILLISECS_PER_BLOCK: u64 = 6000;
+
+// NOTE: Currently it is not possible to change the slot duration after the chain has started.
+// Attempting to do so will brick block production.
+const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+
+// Time is measured by number of blocks.
+const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+const HOURS: BlockNumber = MINUTES * 60;
+const DAYS: BlockNumber = HOURS * 24;
+
+/// We allow for 2 of a second of compute with a 6-second average block time.
+const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+	polkadot_primitives::MAX_POV_SIZE as u64,
+);
+
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
@@ -112,7 +135,8 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE};
+
+	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -185,14 +209,14 @@ pub mod fee {
 		}
 	}
 
-	pub fn base_tx_fee() -> Balance {
-		MILLI_MUSE
+	pub fn base_relay_tx_fee() -> Balance {
+		MILLI_ROC
 	}
 
 	pub fn default_fee_per_second() -> u128 {
 		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
-		base_tx_per_second * base_tx_fee()
+		base_tx_per_second * base_relay_tx_fee()
 	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -235,6 +259,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 pub const MICRO_MUSE: Balance = 1_000_000_000_000;
 pub const MILLI_MUSE: Balance = 1_000 * MICRO_MUSE;
 pub const MUSE: Balance = 1_000 * MILLI_MUSE;
+//ROC has 12 decimal places
+pub const MICRO_ROC: Balance = 1_000_000;
+pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
 pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MUSE;
 
@@ -318,7 +345,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = Aura;
-	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
+	type MinimumPeriod = ConstU64<0>;
 	type WeightInfo = ();
 }
 
@@ -384,7 +411,7 @@ parameter_types! {
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
-const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the
 /// number of blocks authored per slot.
 const BLOCK_PROCESSING_VELOCITY: u32 = 1;
@@ -522,7 +549,7 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = ConstU32<100_000>;
 	type DisabledValidators = ();
-	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
@@ -607,9 +634,13 @@ impl pallet_marketplace::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxBasisPoints = ConstU128<10000>;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 impl pallet_migration::Config for Runtime {
@@ -819,6 +850,8 @@ mod benches {
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
+		[pallet_marketplace, Marketplace]
+		// TODO include this after https://github.com/polkadot-evm/frontier/pull/1295 gets merged
 		[pallet_nfts, Nfts]
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]
@@ -846,7 +879,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block)
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}

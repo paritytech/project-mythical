@@ -18,7 +18,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 
 use sp_std::prelude::*;
@@ -26,6 +26,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -44,8 +45,7 @@ use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 pub use runtime_common::{
 	AccountId, Balance, BlockNumber, DealWithFees, Hash, Nonce, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MILLISECS_PER_BLOCK, MINUTES,
-	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
+	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
@@ -79,6 +79,29 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
+/// This determines the average expected block time that we are targeting.
+/// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
+/// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
+/// up by `pallet_aura` to implement `fn slot_duration()`.
+///
+/// Change this to adjust the block time.
+pub const MILLISECS_PER_BLOCK: u64 = 12000;
+
+// NOTE: Currently it is not possible to change the slot duration after the chain has started.
+// Attempting to do so will brick block production.
+pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+
+// Time is measured by number of blocks.
+pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+pub const HOURS: BlockNumber = MINUTES * 60;
+pub const DAYS: BlockNumber = HOURS * 24;
+
+/// We allow for 0.5 of a second of compute with a 12-second average block time.
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_div(2),
+	polkadot_primitives::MAX_POV_SIZE as u64,
+);
+
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
@@ -110,7 +133,7 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-	use super::{Balance, ExtrinsicBaseWeight, MILLI_MYTH};
+	use super::{Balance, ExtrinsicBaseWeight, MILLI_DOT, MILLI_MYTH};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -183,14 +206,14 @@ pub mod fee {
 		}
 	}
 
-	pub fn base_tx_fee() -> Balance {
-		MILLI_MYTH
+	pub fn base_relay_tx_fee() -> Balance {
+		MILLI_DOT
 	}
 
 	pub fn default_fee_per_second() -> u128 {
 		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
-		base_tx_per_second * base_tx_fee()
+		base_tx_per_second * base_relay_tx_fee()
 	}
 }
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -233,6 +256,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 pub const MICRO_MYTH: Balance = 1_000_000_000_000;
 pub const MILLI_MYTH: Balance = 1_000 * MICRO_MYTH;
 pub const MYTH: Balance = 1_000 * MILLI_MYTH;
+// DOT has 10 decimal places
+pub const MICRO_DOT: Balance = 10_000;
+pub const MILLI_DOT: Balance = 1_000 * MICRO_DOT;
 
 pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MYTH;
 
@@ -676,7 +702,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block)
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}

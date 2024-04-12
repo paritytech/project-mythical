@@ -3,6 +3,13 @@ default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "rococo-local"
 
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.scheduler_params]
+lookahead = 2
+
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.async_backing_params]
+max_candidate_depth = 3
+allowed_ancestry_len = 2
+
     [[relaychain.nodes]]
     name = "alice"
     ws_port = 9900
@@ -30,15 +37,15 @@ chain = "asset-hub-rococo-local"
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "collator1"
+    name = "assethub-collator01"
     ws_port = 9910
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0" ]
+    args = ["-lxcm=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
-    name = "collator2"
+    name = "assethub-collator02"
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
 
 [[parachains]]
 id = 3369
@@ -46,12 +53,13 @@ chain = "local-v"
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "collator3"
+    name = "muse-collator01"
     ws_port = 9920
     command = "./target/release/mythos-node"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
-    name = "collator4"
+    name = "muse-collator02"
     command = "./target/release/mythos-node"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
+
