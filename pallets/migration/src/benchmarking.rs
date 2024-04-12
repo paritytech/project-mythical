@@ -12,7 +12,7 @@ use frame_support::{
 };
 use pallet_marketplace::Ask;
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
-
+use pallet_marketplace::BenchmarkHelper;
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -27,22 +27,6 @@ fn get_migrator<T: Config>() -> T::AccountId {
 	migrator
 }
 
-impl<CollectionId, ItemId, Moment> BenchmarkHelper<CollectionId, ItemId, Moment> for ()
-where
-	CollectionId: From<u32>,
-	ItemId: From<u32>,
-	Moment: From<u64>,
-{
-	fn collection(id: u32) -> CollectionId {
-		id.into()
-	}
-	fn item(id: u32) -> ItemId {
-		id.into()
-	}
-	fn timestamp(value: u64) -> Moment {
-		value.into()
-	}
-}
 
 fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -151,7 +135,7 @@ pub mod benchmarks {
 		let migrator: T::AccountId = get_migrator::<T>();
 		let collection = T::BenchmarkHelper::collection(0);
 		let item = T::BenchmarkHelper::item(0);
-		let caller = mint_nft::<T>(item);
+		let _ = mint_nft::<T>(item);
 		let receiver: T::AccountId = account("receiver", 0, SEED);
 
 		#[extrinsic_call]

@@ -52,9 +52,6 @@ pub mod pallet {
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
 
-		#[cfg(feature = "runtime-benchmarks")]
-		/// A set of helper functions for benchmarking.
-		type BenchmarkHelper: BenchmarkHelper<Self::CollectionId, Self::ItemId, Self::Moment>;
 	}
 
 	/// ID of this pallet.
@@ -63,14 +60,7 @@ pub mod pallet {
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
-	#[cfg(feature = "runtime-benchmarks")]
-	pub trait BenchmarkHelper<CollectionId, ItemId, Moment> {
-		/// Returns a collection id from a given integer.
-		fn collection(id: u32) -> CollectionId;
-		/// Returns an nft id from a given integer.
-		fn item(id: u32) -> ItemId;
-		fn timestamp(value: u64) -> Moment;
-	}
+
 
 	#[pallet::storage]
 	#[pallet::getter(fn migrator)]

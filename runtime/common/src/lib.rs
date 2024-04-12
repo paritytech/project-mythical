@@ -2,9 +2,6 @@
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::U256;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
-use sp_core::U256;
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
