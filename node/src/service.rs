@@ -45,6 +45,7 @@ pub struct TestnetRuntimeExecutor;
 
 impl NativeExecutionDispatch for TestnetRuntimeExecutor {
 	type ExtendHostFunctions = (
+		sp_io::SubstrateHostFunctions,
 		cumulus_client_service::storage_proof_size::HostFunctions,
 		frame_benchmarking::benchmarking::HostFunctions,
 	);
@@ -63,6 +64,7 @@ pub struct MainnetRuntimeExecutor;
 
 impl NativeExecutionDispatch for MainnetRuntimeExecutor {
 	type ExtendHostFunctions = (
+		sp_io::SubstrateHostFunctions,
 		cumulus_client_service::storage_proof_size::HostFunctions,
 		frame_benchmarking::benchmarking::HostFunctions,
 	);
