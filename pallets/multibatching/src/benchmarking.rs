@@ -1,9 +1,15 @@
 #![cfg(feature = "runtime-benchmarks")]
 use super::*;
+#[allow(unused_imports)]
 use crate::Pallet as Multibatching;
 use frame_benchmarking::v2::*;
 use frame_support::{dispatch::RawOrigin, BoundedVec};
-use sp_core::{ecdsa::Pair as EthereumPair, keccak_256, Pair};
+use sp_core::ecdsa::Public;
+use sp_io::{
+	crypto::{ecdsa_generate, ecdsa_sign_prehashed},
+	hashing::keccak_256,
+};
+use sp_std::vec::Vec;
 
 #[benchmarks(
     where
@@ -33,19 +39,18 @@ pub mod benchmarks {
 
 		let sender: AccountId20 = whitelisted_caller();
 
-		let mut signers =
-			Vec::<(EthereumPair, EthereumSigner, AccountId20)>::with_capacity(signer_count);
+		let mut signers = Vec::<(Public, EthereumSigner, AccountId20)>::with_capacity(signer_count);
 		for _ in 0..signer_count {
-			let pair: EthereumPair = EthereumPair::generate().0;
-			let signer: EthereumSigner = pair.public().into();
+			let public: Public = ecdsa_generate(0.into(), None);
+			let signer: EthereumSigner = public.into();
 			let account = signer.clone().into_account();
-			signers.push((pair, signer, account));
+			signers.push((public, signer, account));
 		}
 
 		let mut calls = BoundedVec::new();
 		let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
 		for (_, (_, signer, _)) in iter {
-			let call = frame_system::Call::remark { remark: vec![] }.into();
+			let call = frame_system::Call::remark { remark: Default::default() }.into();
 			calls
 				.try_push(BatchedCall::<T> { from: signer.clone().into(), call })
 				.ok()
@@ -69,11 +74,14 @@ pub mod benchmarks {
 		//eprintln!("test   hash: {}", hex::encode(hash));
 
 		let mut approvals = BoundedVec::new();
-		for (pair, _, account) in &signers {
+		for (public, _signer, account) in &signers {
 			approvals
 				.try_push(Approval::<T> {
 					from: EthereumSigner::from(account.0).into(),
-					signature: EthereumSignature::from(pair.sign_prehashed(&hash.into())).into(),
+					signature: EthereumSignature::from(
+						ecdsa_sign_prehashed(0.into(), public, &hash).unwrap(),
+					)
+					.into(),
 				})
 				.ok()
 				.expect("Benchmark config must match runtime config for BoundedVec size");

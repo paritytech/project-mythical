@@ -7,7 +7,6 @@ members = [
   "primitives/xcm",
   "runtime/mainnet",
   "runtime/testnet",
-  "pallets/multibatching",
 ]
 resolver = "2"
 
