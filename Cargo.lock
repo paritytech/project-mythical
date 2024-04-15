@@ -2237,6 +2237,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-primitives-storage-weight-reclaim"
+version = "1.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0#3c3d6fceb82372a3019b37117aa453d564b212de"
+dependencies = [
+ "cumulus-primitives-core",
+ "cumulus-primitives-proof-size-hostfunction",
+ "docify",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
+]
+
+[[package]]
 name = "cumulus-primitives-utility"
 version = "0.7.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0#3c3d6fceb82372a3019b37117aa453d564b212de"
@@ -12102,7 +12119,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -12164,7 +12181,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -12185,7 +12202,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.25.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -12404,7 +12421,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "24.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -12436,7 +12453,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "Inflector",
  "expander 2.1.0",
@@ -12529,7 +12546,7 @@ source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 
 [[package]]
 name = "sp-storage"
@@ -12547,7 +12564,7 @@ dependencies = [
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -12584,7 +12601,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "16.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "parity-scale-codec",
  "tracing",
@@ -12684,7 +12701,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "20.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#c1063a530e46c4af0a934ca50422b69182255e60"
+source = "git+https://github.com/paritytech/polkadot-sdk#a64009ae00f954acf907593309af2b1f1797e87d"
 dependencies = [
  "impl-trait-for-tuples",
  "log",
@@ -13182,6 +13199,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-aura",
  "cumulus-primitives-core",
+ "cumulus-primitives-storage-weight-reclaim",
  "cumulus-primitives-utility",
  "fp-self-contained",
  "frame-benchmarking",
