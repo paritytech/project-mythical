@@ -16,20 +16,22 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::{
-		pallet_prelude::*,
-		traits::fungible::{Inspect, Mutate},
-		PalletId,
-	};
-	use frame_system::{ensure_signed, pallet_prelude::*};
-	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
-	use pallet_nfts::NextCollectionId;
-
-	use frame_support::{
 		dispatch::GetDispatchInfo,
 		traits::{
 			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, UnfilteredDispatchable,
 		},
 	};
+	use frame_support::{
+		pallet_prelude::*,
+		traits::{
+			fungible::{Inspect, Mutate},
+			SortedMembers,
+		},
+	};
+	use frame_system::{ensure_signed, pallet_prelude::*};
+	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
+	use pallet_nfts::NextCollectionId;
+	use sp_std::{vec, vec::Vec};
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -51,20 +53,32 @@ pub mod pallet {
 
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
-
 	}
-
-	/// ID of this pallet.
-	pub const PALLET_ID: PalletId = PalletId(*b"py/migra");
 
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
-
-
 	#[pallet::storage]
 	#[pallet::getter(fn migrator)]
 	pub type Migrator<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
+
+	pub struct MigratorProvider<T: crate::Config>(sp_std::marker::PhantomData<T>);
+
+	impl<T: crate::Config> SortedMembers<T::AccountId> for MigratorProvider<T> {
+		fn sorted_members() -> Vec<T::AccountId> {
+			if let Some(migrator) = Migrator::<T>::get() {
+				return vec![migrator];
+			}
+			vec![]
+		}
+
+		fn contains(who: &T::AccountId) -> bool {
+			if let Some(migrator) = Migrator::<T>::get() {
+				return migrator == *who;
+			}
+			false
+		}
+	}
 
 	#[pallet::storage]
 	#[pallet::getter(fn pot)]

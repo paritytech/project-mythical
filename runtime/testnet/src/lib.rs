@@ -39,7 +39,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
+	pallet, EnsureRoot, EnsureSigned, EnsureSignedBy,
 };
 use pallet_nfts::PalletFeatures;
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
@@ -600,13 +600,16 @@ parameter_types! {
 pub type CollectionId = IncrementableU256;
 pub type ItemId = U256;
 
+//TODO: Change to EnsureRoot<AccountId> after migration
+pub type ForceOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
+
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type ItemId = ItemId;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
-	type ForceOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = ForceOrigin;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
@@ -648,7 +651,6 @@ impl pallet_migration::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type WeightInfo = pallet_migration::weights::SubstrateWeight<Runtime>;
-
 }
 
 parameter_types! {

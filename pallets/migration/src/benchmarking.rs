@@ -11,8 +11,8 @@ use frame_support::{
 	},
 };
 use pallet_marketplace::Ask;
-use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 use pallet_marketplace::BenchmarkHelper;
+use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -26,7 +26,6 @@ fn get_migrator<T: Config>() -> T::AccountId {
 
 	migrator
 }
-
 
 fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
