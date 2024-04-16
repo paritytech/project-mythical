@@ -1,9 +1,10 @@
 use sc_transaction_pool::BasicPool;
-use sc_transaction_pool::{ChainApi,FullChainApi};
+use sc_transaction_pool::{ChainApi,FullChainApi, graph};
 use sc_transaction_pool_api::{
 	ImportNotificationStream, PoolFuture, PoolStatus, ReadyTransactions, TransactionFor,
 	TransactionPool, TransactionSource, TransactionStatusStreamFor, TxHash,
 };
+use sp_core::traits::SpawnEssentialNamed;
 use sp_runtime::traits::{Block as BlockT, NumberFor};
 use futures::Future;
 use std::{collections::HashMap, pin::Pin, sync::Arc};
@@ -117,11 +118,11 @@ where
 	/// Create new basic transaction pool for a full node with the provided api.
 	pub fn new_full(
 		options: graph::Options,
-		is_validator: IsValidator,
+		is_validator: graph::IsValidator,
 		prometheus: Option<&PrometheusRegistry>,
 		spawner: impl SpawnEssentialNamed,
 		client: Arc<Client>,
 	) -> Arc<Self> {
-        self.inner_pool.new_full(options, is_validator, prometheus, spawner, client)
+        todo!()
 	}
 }
