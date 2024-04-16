@@ -2469,9 +2469,9 @@ name = "custom-pool"
 version = "0.1.0"
 dependencies = [
  "futures",
- "runtime-common",
  "sc-transaction-pool",
  "sc-transaction-pool-api",
+ "sp-runtime",
 ]
 
 [[package]]
