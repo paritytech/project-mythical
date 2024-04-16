@@ -1,0 +1,14 @@
+[package]
+name = "custom-pool"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures = { workspace = true }
+sc-transaction-pool = { workspace = true }
+sc-transaction-pool-api = { workspace = true }
+runtime-common = { workspace = true }
+
+[features]
+default = ["std"]
+std = []

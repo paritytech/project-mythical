@@ -2466,6 +2466,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "custom-pool"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "runtime-common",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+]
+
+[[package]]
 name = "cxx"
 version = "1.0.121"
 source = "registry+https://github.com/rust-lang/crates.io-index"

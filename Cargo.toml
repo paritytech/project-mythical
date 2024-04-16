@@ -3,10 +3,11 @@ panic = "unwind"
 
 [workspace]
 members = [
-	"node",
-	"primitives/xcm",
-	"runtime/mainnet",
-	"runtime/testnet",
+  "node",
+  "primitives/xcm",
+  "runtime/mainnet",
+  "runtime/testnet",
+  "primitives/custom-pool",
 ]
 
 resolver = "2"
@@ -157,3 +158,4 @@ xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/par
 # Primitives
 account = { path = "./primitives/account", default-features = false }
 fp-self-contained = { path = "./primitives/self-contained", default-features = false }
+custom-pool = { path = "./primitives/custom-pool", default-features = false }
