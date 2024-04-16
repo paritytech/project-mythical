@@ -2477,6 +2477,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-transaction-pool",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
