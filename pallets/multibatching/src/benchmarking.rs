@@ -34,7 +34,7 @@ pub mod benchmarks {
 	use frame_support::sp_runtime::traits::IdentifyAccount;
 
 	#[benchmark]
-	fn batch(c: Linear<1, 128>, s: Linear<1, 10>) {
+	fn batch(c: Linear<1, 128>, s: Linear<2, 10>) {
 		let call_count = c as usize;
 		let signer_count = s as usize;
 
@@ -94,15 +94,14 @@ pub mod benchmarks {
 	}
 
 	#[benchmark]
-	fn force_set_domain(c: Linear<1, u32::MAX>) {
-        let mut domain = [0; 32];
-        domain[..8].copy_from_slice(&c.to_le_bytes()[..]);
+	fn force_set_domain() {
+		let domain = [0; 32];
 
-        #[extrinsic_call]
-        _(RawOrigin::Root, domain);
+		#[extrinsic_call]
+		_(RawOrigin::Root, domain);
 
-        assert_last_event::<T>(Event::DomainSet { domain }.into());
-    }
+		assert_last_event::<T>(Event::DomainSet { domain }.into());
+	}
 
 	impl_benchmark_test_suite!(Multibatching, crate::mock::new_test_ext(), crate::mock::Test);
 }

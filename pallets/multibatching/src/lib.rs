@@ -8,6 +8,9 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
+pub mod weights;
+pub use weights::*;
+
 pub use pallet::*;
 
 #[frame_support::pallet]
@@ -19,7 +22,8 @@ pub mod pallet {
 		sp_runtime::traits::{Dispatchable, Hash, IdentifyAccount, Verify},
 		traits::{IsSubType, OriginTrait, UnfilteredDispatchable},
 	};
-	use frame_system::{pallet_prelude::*, WeightInfo};
+	use frame_system::pallet_prelude::*;
+	use sp_std::vec::Vec;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -174,12 +178,11 @@ pub mod pallet {
 		/// explorer: <https://polkadot.js.org/apps/#/extrinsics/decode>
 		#[pallet::call_index(0)]
 		#[pallet::weight({
-            /*
 			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();
 			let dispatch_weight = dispatch_infos.iter()
 				.map(|di| di.weight)
 				.fold(Weight::zero(), |total: Weight, weight: Weight| total.saturating_add(weight))
-				.saturating_add(T::WeightInfo::batch_all(calls.len() as u32));
+				.saturating_add(<T as Config>::WeightInfo::batch(calls.len() as u32, approvals.len() as u32));
 			let dispatch_class = {
 				let all_operational = dispatch_infos.iter()
 					.map(|di| di.class)
@@ -191,9 +194,7 @@ pub mod pallet {
 				}
 			};
 			(dispatch_weight, dispatch_class)
-            */
-            0
-        })] // TODO: weight
+        })]
 		pub fn batch(
 			origin: OriginFor<T>,
 			domain: [u8; 32],
@@ -250,6 +251,8 @@ pub mod pallet {
 
 			let mut weight = Weight::zero();
 
+			let calls_len = calls.len();
+
 			for (i, payload) in calls.into_iter().enumerate() {
 				let ok = approvals.iter().any(|int| int.from == payload.from);
 				if !ok {
@@ -268,8 +271,8 @@ pub mod pallet {
 				weight = weight.saturating_add(extract_actual_weight(&result, &info));
 				result.map_err(|mut err| {
 					// Take the weight of this function itself into account.
-					// let base_weight = T::WeightInfo::batch_all(i.saturating_add(1) as u32); // TODO
-					let base_weight = Weight::zero();
+					let base_weight =
+						T::WeightInfo::batch(i.saturating_add(1) as u32, approvals.len() as u32);
 					// Return the actual used weight + base_weight of this call.
 					err.post_info = Some(base_weight + weight).into();
 					err
@@ -278,8 +281,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::BatchApplied { hash });
 
-			//let base_weight = T::WeightInfo::batch_all(calls_len as u32); // TODO
-			let base_weight = Weight::zero();
+			let base_weight = T::WeightInfo::batch(calls_len as u32, approvals.len() as u32);
 			Ok(Some(base_weight.saturating_add(weight)).into())
 		}
 
@@ -288,7 +290,7 @@ pub mod pallet {
 		/// The `domain` parameter in calls to `batch` must match the domain
 		/// set here.
 		#[pallet::call_index(1)]
-		#[pallet::weight({0})] // TODO: weight
+		#[pallet::weight(<T as Config>::WeightInfo::force_set_domain())]
 		pub fn force_set_domain(origin: OriginFor<T>, domain: [u8; 32]) -> DispatchResult {
 			ensure_root(origin)?;
 
