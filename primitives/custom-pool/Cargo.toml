@@ -7,7 +7,8 @@ edition = "2021"
 futures = { workspace = true }
 sc-transaction-pool = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
-runtime-common = { workspace = true }
+sp-runtime = {workspace = true}
+
 
 [features]
 default = ["std"]
