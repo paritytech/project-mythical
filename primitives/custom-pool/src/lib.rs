@@ -1,9 +1,8 @@
-use runtime_common::Block;
+use sp_runtime::traits::Block as BlockT; 
 use sc_transaction_pool::BasicPool;
 use sc_transaction_pool::ChainApi;
-use sc_transaction_pool_api::error;
-use futures::Future;
 
-pub struct CustomPool<PoolApi> where PoolApi: ChainApi<Block = Block>{
+
+pub struct CustomPool<PoolApi,Block> where Block: BlockT, PoolApi: ChainApi<Block = Block>{
 	inner_pool: BasicPool<PoolApi, Block>,
 }
