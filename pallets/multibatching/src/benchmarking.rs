@@ -11,6 +11,10 @@ use sp_io::{
 };
 use sp_std::vec::Vec;
 
+fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
+	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+}
+
 #[benchmarks(
     where
         T::Signer: From<EthereumSigner>,
@@ -66,12 +70,7 @@ pub mod benchmarks {
 		}
 		.into();
 		let pseudo_call_bytes = pseudo_call.encode();
-		//dbg!(hex::encode(&pseudo_call_bytes));
 		let hash = keccak_256(&pseudo_call_bytes);
-		//let hash = <T::Hashing>::hash(&pseudo_call_bytes).into();
-
-		//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-		//eprintln!("test   hash: {}", hex::encode(hash));
 
 		let mut approvals = BoundedVec::new();
 		for (public, _signer, account) in &signers {
@@ -85,8 +84,6 @@ pub mod benchmarks {
 				})
 				.ok()
 				.expect("Benchmark config must match runtime config for BoundedVec size");
-			//eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-			//eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
 		}
 
 		Pallet::<T>::force_set_domain(RawOrigin::Root.into(), domain)
@@ -95,6 +92,17 @@ pub mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(sender.clone()), domain, sender.clone().into(), bias, calls, approvals);
 	}
+
+	#[benchmark]
+	fn force_set_domain(c: Linear<1, u32::MAX>) {
+        let mut domain = [0; 32];
+        domain[..8].copy_from_slice(&c.to_le_bytes()[..]);
+
+        #[extrinsic_call]
+        _(RawOrigin::Root, domain);
+
+        assert_last_event::<T>(Event::DomainSet { domain }.into());
+    }
 
 	impl_benchmark_test_suite!(Multibatching, crate::mock::new_test_ext(), crate::mock::Test);
 }
