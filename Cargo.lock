@@ -2474,6 +2474,7 @@ dependencies = [
  "sc-transaction-pool-api",
  "sp-api",
  "sp-blockchain",
+ "sp-core",
  "sp-runtime",
  "sp-transaction-pool",
 ]

@@ -12,6 +12,7 @@ sp-api = { workspace = true }
 sp-blockchain = { workspace = true }
 sp-runtime = {workspace = true}
 sp-transaction-pool = { workspace = true }
+sp-core ={ workspace = true }
 
 
 
