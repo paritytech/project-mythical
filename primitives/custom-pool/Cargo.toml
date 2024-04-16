@@ -5,9 +5,14 @@ edition = "2021"
 
 [dependencies]
 futures = { workspace = true }
+sc-client-api = { workspace = true }
 sc-transaction-pool = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
+sp-api = { workspace = true }
+sp-blockchain = { workspace = true }
 sp-runtime = {workspace = true}
+sp-transaction-pool = { workspace = true }
+
 
 
 [features]

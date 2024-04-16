@@ -1,5 +1,5 @@
 use sc_transaction_pool::BasicPool;
-use sc_transaction_pool::ChainApi;
+use sc_transaction_pool::{ChainApi,FullChainApi};
 use sc_transaction_pool_api::{
 	ImportNotificationStream, PoolFuture, PoolStatus, ReadyTransactions, TransactionFor,
 	TransactionPool, TransactionSource, TransactionStatusStreamFor, TxHash,
@@ -7,6 +7,8 @@ use sc_transaction_pool_api::{
 use sp_runtime::traits::{Block as BlockT, NumberFor};
 use futures::Future;
 use std::{collections::HashMap, pin::Pin, sync::Arc};
+
+pub type FullPool<Block, Client> = CustomPool<FullChainApi<Client, Block>, Block>;
 
 pub struct CustomPool<PoolApi, Block>
 where
@@ -94,5 +96,32 @@ impl<PoolApi: ChainApi<Block = Block> + 'static, Block: BlockT> TransactionPool
 
 	fn futures(&self) -> Vec<Self::InPoolTransaction> {
 		self.inner_pool.futures()
+	}
+}
+
+impl<Block, Client> FullPool<Block, Client>
+where
+	Block: BlockT,
+	Client: sp_api::ProvideRuntimeApi<Block>
+		+ sc_client_api::BlockBackend<Block>
+		+ sc_client_api::blockchain::HeaderBackend<Block>
+		+ sp_runtime::traits::BlockIdTo<Block>
+		+ sc_client_api::ExecutorProvider<Block>
+		+ sc_client_api::UsageProvider<Block>
+		+ sp_blockchain::HeaderMetadata<Block, Error = sp_blockchain::Error>
+		+ Send
+		+ Sync
+		+ 'static,
+	Client::Api: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>,
+{
+	/// Create new basic transaction pool for a full node with the provided api.
+	pub fn new_full(
+		options: graph::Options,
+		is_validator: IsValidator,
+		prometheus: Option<&PrometheusRegistry>,
+		spawner: impl SpawnEssentialNamed,
+		client: Arc<Client>,
+	) -> Arc<Self> {
+        self.inner_pool.new_full(options, is_validator, prometheus, spawner, client)
 	}
 }
