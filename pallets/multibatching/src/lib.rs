@@ -167,15 +167,47 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Execute multiple calls from multiple senders in a batch atomically.
+		/// Execute multiple calls from multiple callers in a single batch.
 		///
 		/// If one of the calls fails, the whole batch reverts.
 		///
-		/// For every unique call origin, `approvals` must contain a signature
-		/// of a hash of this call with empty `approvals` argument.
-		/// This is so that the participants could check the data they sign
-		/// through the Developer/Extrinsics/Decode tab on the parachain
-		/// explorer: <https://polkadot.js.org/apps/#/extrinsics/decode>
+		/// This utility is primarily intended to support cases where the calls
+		/// are interdependent - think a trade operation where Alice intends
+		/// to transfer an nft item X to Bob if and only if Bob sends an nft
+		/// item Y to Alice. For that reason it is designed in such a way
+		/// that every caller must sign the batch as a whole instead of only
+		/// their own calls. This has a pleasant side effect of reducing the
+		/// execution cost compared to signing each call separately, as only
+		/// one signature is required per each unique caller.
+		///
+		/// As the data signed by callers is a well-formed call, this allows
+		/// users to validate what they're signing by just decoding the data
+		/// using a third-party tool before signing them, e.g. by just going
+		/// to the decode tab on the official Parachain Explorer
+		/// <https://polkadot.js.org/apps/#/extrinsics/decode>.
+		///
+		/// # Arguments
+		///
+		/// - `domain` - the domain of this operation that must be unique per
+		/// pallet instance across networks.
+		/// - `sender` - must be the same as the sender of the transaction
+		/// - `bias` - an arbitrary 32 byte array that can be used to avoid
+		/// hash collisions.
+		/// - `calls` - a sequence of calls to execute on behalf of their
+		/// respective callers.
+		/// - `approvals` - a set of signatures, one signature per a unique
+		/// caller.
+		///
+		/// # Usage
+		///
+		/// - Prepare a complete `batch()` call with empty vec for `approvals`
+		/// parameter.
+		/// - Encode the call into scale-encoded bytes.
+		/// - Form the `approvals` array by having every caller that has
+		/// calls in the batch sign these bytes, one signature per caller.
+		/// - Send the `batch()` call with the same data and the collected
+		/// approvals.
+		///
 		#[pallet::call_index(0)]
 		#[pallet::weight({
 			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();
@@ -210,6 +242,7 @@ pub mod pallet {
 				return Err(Error::<T>::NoApprovals.into());
 			}
 
+			// Origin must be `sender`.
 			match ensure_signed(origin) {
 				Ok(account_id) if account_id == sender => account_id,
 				Ok(_) => return Err(Error::<T>::BatchSenderIsNotOrigin.into()),
@@ -240,6 +273,7 @@ pub mod pallet {
 
 			Applied::<T>::insert(hash, ());
 
+			// Check the signatures.
 			for (i, approval) in approvals.iter().enumerate() {
 				let ok = approval
 					.signature
@@ -253,6 +287,7 @@ pub mod pallet {
 
 			let calls_len = calls.len();
 
+			// Apply calls.
 			for (i, payload) in calls.into_iter().enumerate() {
 				let ok = approvals.iter().any(|int| int.from == payload.from);
 				if !ok {
@@ -287,8 +322,8 @@ pub mod pallet {
 
 		/// Set the "domain" of this pallet instance.
 		///
-		/// The `domain` parameter in calls to `batch` must match the domain
-		/// set here.
+		/// Only callable by Root origin. The `domain` parameter in calls
+		/// to `batch` must match the domain set by this call.
 		#[pallet::call_index(1)]
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_domain())]
 		pub fn force_set_domain(origin: OriginFor<T>, domain: [u8; 32]) -> DispatchResult {
