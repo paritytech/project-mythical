@@ -2476,7 +2476,6 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
- "sp-transaction-pool",
  "substrate-prometheus-endpoint",
 ]
 
@@ -5840,6 +5839,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
  "cumulus-relay-chain-rpc-interface",
+ "custom-pool",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures",

@@ -1,32 +1,29 @@
-use sc_transaction_pool::{BasicPool, RevalidationType};
-use sc_transaction_pool::{ChainApi,FullChainApi, Options};
+use futures::Future;
 use sc_transaction_pool_api::{
 	ImportNotificationStream, PoolFuture, PoolStatus, ReadyTransactions, TransactionFor,
 	TransactionPool, TransactionSource, TransactionStatusStreamFor, TxHash,
 };
-use sp_core::traits::SpawnEssentialNamed;
 use sp_runtime::traits::{Block as BlockT, NumberFor};
-use futures::Future;
-use substrate_prometheus_endpoint::Registry as PrometheusRegistry;
 use std::{collections::HashMap, pin::Pin, sync::Arc};
 
-pub type FullPool<Block, Client> = CustomPool<FullChainApi<Client, Block>, Block>;
-
-pub struct CustomPool<PoolApi, Block>
-where
-	Block: BlockT,
-	PoolApi: ChainApi<Block = Block>,
-{
-	inner_pool: BasicPool<PoolApi, Block>,
+pub struct CustomPool<I> {
+	inner_pool: Arc<I>,
 }
 
-impl<PoolApi: ChainApi<Block = Block> + 'static, Block: BlockT> TransactionPool
-	for CustomPool<PoolApi, Block>
+impl<I> CustomPool<I> {
+	pub fn new(inner_pool: Arc<I>) -> Self {
+		Self { inner_pool }
+	}
+}
+
+impl<I> TransactionPool for CustomPool<I>
+where
+	I: TransactionPool,
 {
-	type Block = <BasicPool<PoolApi, Block> as TransactionPool>::Block;
-	type Hash = <BasicPool<PoolApi, Block> as TransactionPool>::Hash;
-	type InPoolTransaction = <BasicPool<PoolApi, Block> as TransactionPool>::InPoolTransaction;
-	type Error = <BasicPool<PoolApi, Block> as TransactionPool>::Error;
+	type Block = I::Block;
+	type Hash = I::Hash;
+	type InPoolTransaction = I::InPoolTransaction;
+	type Error = I::Error;
 
 	fn submit_at(
 		&self,
@@ -52,11 +49,12 @@ impl<PoolApi: ChainApi<Block = Block> + 'static, Block: BlockT> TransactionPool
 		source: TransactionSource,
 		xt: TransactionFor<Self>,
 	) -> PoolFuture<Pin<Box<TransactionStatusStreamFor<Self>>>, Self::Error> {
-        self.inner_pool.submit_and_watch(at, source, xt)
+		self.inner_pool.submit_and_watch(at, source, xt)
 	}
 
-	fn remove_invalid(&self, hashes: &[TxHash<Self>]) -> Vec<Arc<Self::InPoolTransaction>> {
-		self.inner_pool.remove_invalid(hashes)
+	fn remove_invalid(&self, _: &[TxHash<Self>]) -> Vec<Arc<Self::InPoolTransaction>> {
+		// Don't do anything on purpose.
+		Vec::new()
 	}
 
 	fn status(&self) -> PoolStatus {
@@ -98,45 +96,5 @@ impl<PoolApi: ChainApi<Block = Block> + 'static, Block: BlockT> TransactionPool
 
 	fn futures(&self) -> Vec<Self::InPoolTransaction> {
 		self.inner_pool.futures()
-	}
-}
-
-impl<Block, Client> FullPool<Block, Client>
-where
-	Block: BlockT,
-	Client: sp_api::ProvideRuntimeApi<Block>
-		+ sc_client_api::BlockBackend<Block>
-		+ sc_client_api::blockchain::HeaderBackend<Block>
-		+ sp_runtime::traits::BlockIdTo<Block>
-		+ sc_client_api::ExecutorProvider<Block>
-		+ sc_client_api::UsageProvider<Block>
-		+ sp_blockchain::HeaderMetadata<Block, Error = sp_blockchain::Error>
-		+ Send
-		+ Sync
-		+ 'static,
-	Client::Api: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>,
-{
-	/// Create new basic transaction pool for a full node with the provided api.
-	pub fn new_full(
-		options: Options,
-		is_validator: IsValidator,
-		prometheus: Option<&PrometheusRegistry>,
-		spawner: impl SpawnEssentialNamed,
-		client: Arc<Client>,
-	) -> Arc<BasicPool<FullChainApi<Client, Block>, Block>> {
-        let pool_api = Arc::new(FullChainApi::new(client.clone(), prometheus, &spawner));
-		let pool = Arc::new(BasicPool::with_revalidation_type(
-			options,
-			is_validator,
-			pool_api,
-			prometheus,
-			RevalidationType::Full,
-			spawner,
-			client.usage_info().chain.best_number,
-			client.usage_info().chain.best_hash,
-			client.usage_info().chain.finalized_hash,
-		));
-
-		pool
 	}
 }

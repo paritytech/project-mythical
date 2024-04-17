@@ -473,7 +473,6 @@ where
 }
 
 #[allow(clippy::too_many_arguments)]
-
 fn start_consensus<RuntimeApi, Executor>(
 	client: Arc<ParachainClient<RuntimeApi, Executor>>,
 	backend: Arc<ParachainBackend>,
@@ -516,7 +515,7 @@ where
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
-		transaction_pool,
+		Arc::new(custom_pool::CustomPool::new(transaction_pool)),
 		prometheus_registry,
 		telemetry.clone(),
 	);
