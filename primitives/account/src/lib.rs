@@ -217,8 +217,10 @@ impl std::fmt::Display for EthereumSigner {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use sp_core::{ecdsa, Pair, H256};
-	use sp_runtime::traits::IdentifyAccount;
+	use hex::ToHex;
+	use sp_core::hexdisplay::AsBytesRef;
+	use sp_core::{Pair, H256};
+	use sp_runtime::traits::{IdentifyAccount, Verify};
 
 	#[test]
 	fn test_account_derivation_1() {
@@ -257,5 +259,30 @@ mod tests {
 		let old = AccountId20(H160::from(H256::from_slice(Keccak256::digest(&m).as_slice())).0);
 		let new = AccountId20(H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]).0);
 		assert_eq!(new, old);
+	}
+	#[test]
+	fn test_verify() {
+		let raw_message = b"Hello, world!";
+		let message_hash = Keccak256::digest(raw_message.as_bytes_ref());
+		assert_eq!(
+			message_hash.encode_hex::<String>(),
+			"b6e16d27ac5ab427a7f68900ac5559ce272dc6c37c82b3e052246c82244c50e4"
+		);
+
+		let private_key = "0xbbeca31142ae5cf58522af17442bd8a63b1aa7c485b266ce5256b6e2d6fb8fda";
+		let pair = ecdsa::Pair::from_string(private_key, None).expect("Invalid private key");
+		let ecdsa_signature = pair.sign_prehashed(message_hash.as_ref());
+		assert_eq!(ecdsa_signature.encode_hex::<String>(), "33f6526244820bf440604df9d2638461ee09477fa6b01c80321f63b9c9995a5971f7e28e9c6aeb52a89d605fb07f13e59cc8ec352ac78ebbc75af0543c1b3d3400");
+
+		let signer: EthereumSigner = pair.public().into();
+		let account = signer.into_account();
+		assert_eq!(
+			account.0.encode_hex::<String>(),
+			"C80AfE84e5E9e37bDF58855E5A0cB17a2bC70cfA".to_lowercase()
+		);
+
+		let ethereum_signature: EthereumSignature = ecdsa_signature.into();
+		let result = ethereum_signature.verify(raw_message.as_bytes_ref(), &account);
+		assert!(result);
 	}
 }
