@@ -253,7 +253,7 @@ pub mod mainnet {
 		MainChainSpec::builder(
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
-				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
+				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
 			},
 		)
