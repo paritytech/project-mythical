@@ -15,11 +15,12 @@ use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
-	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, CreateMatcher, DescribeFamily,
-	DescribeTerminus, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete, MatchXcm,
-	NativeAsset, RelayChainAsNative, SiblingParachainAsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, CreateMatcher,
+	DenyReserveTransferToRelayChain, DenyThenTry, DescribeFamily, DescribeTerminus,
+	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FrameTransactionalProcessor,
+	FungibleAdapter, HashedDescription, IsConcrete, MatchXcm, NativeAsset, RelayChainAsNative,
+	SiblingParachainAsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
+	UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
 use xcm_executor::traits::Properties;
 use xcm_executor::{traits::ShouldExecute, XcmExecutor};
@@ -122,70 +123,6 @@ pub struct ParentOrParentsExecutivePlurality;
 impl Contains<Location> for ParentOrParentsExecutivePlurality {
 	fn contains(l: &Location) -> bool {
 		matches!(l.unpack(), (1, []) | (1, [Plurality { id: BodyId::Executive, .. }]))
-	}
-}
-
-//TODO: move DenyThenTry to polkadot's xcm module.
-/// Deny executing the xcm message if it matches any of the Deny filter regardless of anything else.
-/// If it passes the Deny, and matches one of the Allow cases then it is let through.
-pub struct DenyThenTry<Deny, Allow>(PhantomData<Deny>, PhantomData<Allow>)
-where
-	Deny: ShouldExecute,
-	Allow: ShouldExecute;
-
-impl<Deny, Allow> ShouldExecute for DenyThenTry<Deny, Allow>
-where
-	Deny: ShouldExecute,
-	Allow: ShouldExecute,
-{
-	fn should_execute<RuntimeCall>(
-		origin: &Location,
-		instructions: &mut [Instruction<RuntimeCall>],
-		max_weight: Weight,
-		properties: &mut Properties,
-	) -> Result<(), ProcessMessageError> {
-		Deny::should_execute(origin, instructions, max_weight, properties)?;
-		Allow::should_execute(origin, instructions, max_weight, properties)
-	}
-}
-
-// See issue <https://github.com/paritytech/polkadot/issues/5233>
-pub struct DenyReserveTransferToRelayChain;
-impl ShouldExecute for DenyReserveTransferToRelayChain {
-	fn should_execute<RuntimeCall>(
-		origin: &Location,
-		instructions: &mut [Instruction<RuntimeCall>],
-		_max_weight: Weight,
-		_properties: &mut Properties,
-	) -> Result<(), ProcessMessageError> {
-		instructions.matcher().match_next_inst_while(
-			|_| true,
-			|inst| match inst {
-				InitiateReserveWithdraw {
-					reserve: Location { parents: 1, interior: Here },
-					..
-				}
-				| DepositReserveAsset { dest: Location { parents: 1, interior: Here }, .. }
-				| TransferReserveAsset { dest: Location { parents: 1, interior: Here }, .. } => {
-					Err(ProcessMessageError::Unsupported) // Deny
-				},
-				// An unexpected reserve transfer has arrived from the Relay Chain. Generally,
-				// `IsReserve` should not allow this, but we just log it here.
-				ReserveAssetDeposited { .. }
-					if matches!(origin, Location { parents: 1, interior: Here }) =>
-				{
-					log::warn!(
-						target: "xcm::barrier",
-						"Unexpected ReserveAssetDeposited from the Relay Chain",
-					);
-					Ok(ControlFlow::Continue(()))
-				},
-				_ => Ok(ControlFlow::Continue(())),
-			},
-		)?;
-
-		// Permit everything else
-		Ok(())
 	}
 }
 
