@@ -202,12 +202,9 @@ impl From<[u8; 20]> for EthereumSigner {
 
 impl From<ecdsa::Public> for EthereumSigner {
 	fn from(x: ecdsa::Public) -> Self {
-		let decompressed = libsecp256k1::PublicKey::parse_slice(
-			&x.0,
-			Some(libsecp256k1::PublicKeyFormat::Compressed),
-		)
-		.expect("Wrong compressed public key provided")
-		.serialize();
+		let decompressed = libsecp256k1::PublicKey::parse_compressed(&x.0)
+			.expect("Wrong compressed public key provided")
+			.serialize();
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&decompressed[1..65]);
 		let account = H160::from_slice(&Keccak256::digest(m).as_slice()[12..32]);
@@ -227,7 +224,7 @@ impl From<libsecp256k1::PublicKey> for EthereumSigner {
 #[cfg(feature = "std")]
 impl std::fmt::Display for EthereumSigner {
 	fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-		write!(fmt, "ethereum signature: {:?}", H160::from_slice(&self.0))
+		write!(fmt, "ethereum signer: {:?}", H160::from_slice(&self.0))
 	}
 }
 

@@ -2,7 +2,7 @@
 name = "account"
 authors = { workspace = true }
 edition = "2021"
-homepage = "https://moonbeam.network"
+homepage = "https://github.com/paritytech/project-mythical"
 license = "GPL-3.0-only"
 repository = { workspace = true }
 version = "0.1.1"
