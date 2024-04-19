@@ -34,6 +34,8 @@ use super::{
 	TransactionByteFee, WeightToFee, XcmpQueue,
 };
 
+/// Parachain ID of AssetHub, as defined here:
+/// https://github.com/polkadot-fellows/runtimes/blob/31ba26287ec752574244f0d690167f7ae8430c8b/relay/polkadot/constants/src/lib.rs#L127
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
 parameter_types! {
