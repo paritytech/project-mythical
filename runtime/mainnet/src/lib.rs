@@ -237,7 +237,7 @@ pub const MYTH: Balance = 1_000 * MILLI_MYTH;
 pub const MICRO_DOT: Balance = 10_000;
 pub const MILLI_DOT: Balance = 1_000 * MICRO_DOT;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MYTH;
+pub const EXISTENTIAL_DEPOSIT: Balance = MYTH;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	(items as Balance * 20 * MYTH + (bytes as Balance) * 100 * MICRO_MYTH) / 100

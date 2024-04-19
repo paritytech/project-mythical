@@ -239,7 +239,7 @@ pub const MUSE: Balance = 1_000 * MILLI_MUSE;
 pub const MICRO_ROC: Balance = 1_000_000;
 pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MUSE;
+pub const EXISTENTIAL_DEPOSIT: Balance = MUSE;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	(items as Balance * 20 * MUSE + (bytes as Balance) * 100 * MICRO_MUSE) / 100
