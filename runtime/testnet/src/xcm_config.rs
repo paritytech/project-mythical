@@ -56,10 +56,9 @@ parameter_types! {
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
-	// The parent (Relay-chain) origin converts to the parent `AccountId`.
-	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
+	// Here/local root location to `AccountId`.
 	HashedDescription<AccountId, DescribeFamily<DescribeTerminus>>,
-	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
+	// If we receive a Location of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 );
 
