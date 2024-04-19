@@ -27,6 +27,7 @@ use sp_core::{ecdsa, H160};
 
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sp_core::crypto::AccountId32;
+use sp_io::hashing::keccak_256;
 use sp_runtime::MultiSignature;
 
 /// The account type to be used in Moonbeam. It is a wrapper for 20 fixed bytes. We prefer to use
@@ -43,11 +44,28 @@ impl_serde::impl_fixed_hash_serde!(AccountId20, 20);
 
 #[cfg(feature = "std")]
 impl std::fmt::Display for AccountId20 {
-	//TODO This is a pretty quck-n-dirty implementation. Perhaps we should add
-	// checksum casing here? I bet there is a crate for that.
-	// Maybe this one https://github.com/miguelmota/rust-eth-checksum
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:?}", self.0)
+		let address = hex::encode(self.0).trim_start_matches("0x").to_lowercase();
+		let address_hash = hex::encode(keccak_256(address.as_bytes()));
+
+		let checksum: String =
+			address
+				.char_indices()
+				.fold(String::from("0x"), |mut acc, (index, address_char)| {
+					let n = u16::from_str_radix(&address_hash[index..index + 1], 16)
+						.expect("Keccak256 hashed; qed");
+
+					if n > 7 {
+						// make char uppercase if ith character is 9..f
+						acc.push_str(&address_char.to_uppercase().to_string())
+					} else {
+						// already lowercased
+						acc.push(address_char)
+					}
+
+					acc
+				});
+		write!(f, "{checksum}")
 	}
 }
 
