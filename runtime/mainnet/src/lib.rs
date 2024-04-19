@@ -171,7 +171,7 @@ pub mod fee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 			// Map 10kb proof to 1 CENT.
-			let p = MILLI_MYTH / 10;
+			let p = MILLI_MYTH * 10;
 			let q = 10_000;
 
 			smallvec![WeightToFeeCoefficient {
