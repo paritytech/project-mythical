@@ -155,8 +155,8 @@ pub mod fee {
 			let numerator = MILLI_MYTH / 10;
 			let denominator = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,  // lineal function
-				negative: false,  // positive growth
+				degree: 1,       // lineal function
+				negative: false, // positive growth
 				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
 				coeff_integer: numerator / denominator,
 			}]
@@ -173,8 +173,8 @@ pub mod fee {
 			let denominator = 10_000;
 
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,  // lineal function
-				negative: false,  // positive growth
+				degree: 1,       // lineal function
+				negative: false, // positive growth
 				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
 				coeff_integer: numerator / denominator,
 			}]

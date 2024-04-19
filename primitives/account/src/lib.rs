@@ -141,6 +141,9 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 	type Signer = EthereumSigner;
 	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &AccountId20) -> bool {
 		let mut m = [0u8; 32];
+		// Here we use the sha256 hashing algorithm instead of the expected blake2_256.
+		// The reason is that we intend to verify Ethereum signatures, which expect a keccak256
+		// digest instead of the expected blake2_256 one in secp256k1_ecdsa_recover.
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
