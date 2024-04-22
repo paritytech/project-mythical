@@ -590,8 +590,8 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	pub const NftsCollectionDeposit: Balance = MUSE / 10;
-	pub const NftsItemDeposit: Balance = MUSE / 1_000;
+	pub const NftsCollectionDeposit: Balance = 0;
+	pub const NftsItemDeposit: Balance = 0;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
@@ -601,15 +601,15 @@ pub type CollectionId = IncrementableU256;
 pub type ItemId = U256;
 
 //TODO: Change to EnsureRoot<AccountId> after migration
-pub type ForceOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
+pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type ItemId = ItemId;
 	type Currency = Balances;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
-	type ForceOrigin = ForceOrigin;
+	type CreateOrigin = MigratorOrigin;
+	type ForceOrigin = MigratorOrigin;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
