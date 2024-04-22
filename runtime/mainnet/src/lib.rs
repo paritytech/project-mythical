@@ -168,7 +168,7 @@ pub mod fee {
 	impl WeightToFeePolynomial for ProofSizeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// Map 10kb proof to 1/10 MILLI_MYTH.
+			// Map 10kb proof to 10 MILLI_MYTH.
 			let numerator = MILLI_MYTH * 10;
 			let denominator = 10_000;
 
