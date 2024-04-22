@@ -18,20 +18,21 @@ pub mod pallet {
 	use frame_support::{
 		dispatch::GetDispatchInfo,
 		traits::{
-			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, UnfilteredDispatchable,
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Currency, UnfilteredDispatchable
 		},
 	};
 	use frame_support::{
 		pallet_prelude::*,
 		traits::{
 			fungible::{Inspect, Mutate},
-			SortedMembers,
+			Incrementable, SortedMembers,
 		},
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
-	use pallet_nfts::NextCollectionId;
-	use sp_std::{vec, vec::Vec};
+	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
+	use sp_runtime::traits::StaticLookup;
+use sp_std::{vec, vec::Vec};
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -57,6 +58,10 @@ pub mod pallet {
 
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
+
+	pub type NftBalanceOf<T> = <<T as pallet_nfts::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
 
 	#[pallet::storage]
 	#[pallet::getter(fn migrator)]
@@ -126,7 +131,10 @@ pub mod pallet {
 		/// Sets migrator role, only callable by root origin
 		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_migrator())]
-		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
+		pub fn force_set_migrator(
+			origin: OriginFor<T>,
+			migrator: T::AccountId,
+		) -> DispatchResult {
 			ensure_root(origin)?;
 
 			ensure!(
@@ -144,12 +152,12 @@ pub mod pallet {
 		pub fn set_next_collection_id(
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 			NextCollectionId::<T>::set(Some(collection_id.clone()));
 			Self::deposit_event(Event::NextCollectionIdUpdated(collection_id));
 
-			Ok(())
+			Ok(Pays::No.into())
 		}
 
 		#[pallet::call_index(2)]
@@ -159,7 +167,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 
 			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
@@ -175,12 +183,15 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::disable_transfer(&collection, &item)?;
 			Self::deposit_event(Event::AskCreated { collection, item, ask });
 
-			Ok(())
+			Ok(Pays::No.into())
 		}
 
 		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_pot_account())]
-		pub fn set_pot_account(origin: OriginFor<T>, pot: T::AccountId) -> DispatchResult {
+		pub fn set_pot_account(
+			origin: OriginFor<T>,
+			pot: T::AccountId,
+		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 
 			ensure!(Pot::<T>::get().as_ref() != Some(&pot), Error::<T>::AccountAlreadySet);
@@ -188,7 +199,7 @@ pub mod pallet {
 			Pot::<T>::put(pot.clone());
 
 			Self::deposit_event(Event::PotUpdated(pot));
-			Ok(())
+			Ok(Pays::No.into())
 		}
 
 		#[pallet::call_index(5)]
@@ -197,13 +208,13 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			recipient: T::AccountId,
 			amount: BalanceOf<T>,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 
 			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
 
-			Ok(())
+			Ok(Pays::No.into())
 		}
 
 		#[pallet::call_index(6)]
@@ -213,7 +224,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 			transfer_to: T::AccountId,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin)?;
 
 			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
@@ -227,7 +238,67 @@ pub mod pallet {
 				&transfer_to,
 			)?;
 
-			Ok(())
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(7)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_create())]
+		pub fn force_create(
+			origin: OriginFor<T>,
+			owner: AccountIdLookupOf<T>,
+			config: CollectionConfig< NftBalanceOf<T>, BlockNumberFor<T>, T::CollectionId>
+		) -> DispatchResultWithPostInfo {
+			Self::ensure_migrator(origin.clone())?;
+
+			pallet_nfts::Pallet::<T>::force_create(origin, owner, config)?;
+
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(8)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_team())]
+		pub fn set_team(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			issuer: Option<AccountIdLookupOf<T>>,
+			admin: Option<AccountIdLookupOf<T>>,
+			freezer: Option<AccountIdLookupOf<T>>,
+		) -> DispatchResultWithPostInfo {
+			Self::ensure_migrator(origin.clone())?;
+
+			pallet_nfts::Pallet::<T>::set_team(origin, collection, issuer, admin, freezer)?;
+
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(9)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_collection_metadata())]
+		pub fn set_collection_metadata(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			data: BoundedVec<u8, T::StringLimit>,
+		) -> DispatchResultWithPostInfo {
+			Self::ensure_migrator(origin.clone())?;
+
+			pallet_nfts::Pallet::<T>::set_collection_metadata(origin, collection, data)?;
+
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(10)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
+		pub fn force_mint(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			item: T::ItemId,
+			mint_to: AccountIdLookupOf<T>,
+			item_config: ItemConfig,
+		) -> DispatchResultWithPostInfo {
+			Self::ensure_migrator(origin.clone())?;
+
+			pallet_nfts::Pallet::<T>::force_mint(origin, collection, item, mint_to, item_config)?;
+
+			Ok(Pays::No.into())
 		}
 	}
 	impl<T: Config> Pallet<T> {
