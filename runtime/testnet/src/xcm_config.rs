@@ -1,10 +1,10 @@
-use core::{marker::PhantomData, ops::ControlFlow};
+use core::marker::PhantomData;
 
 use crate::fee::default_fee_per_second;
 use frame_support::traits::{Contains, ContainsPair, Get};
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Everything, Nothing, ProcessMessageError},
+	traits::{ConstU32, Everything, Nothing},
 };
 use frame_system::EnsureRoot;
 use hex_literal::hex;
@@ -16,14 +16,14 @@ use testnet_parachains_constants::rococo::snowbridge::EthereumNetwork;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
-	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, CreateMatcher, DescribeFamily,
-	DescribeTerminus, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete, MatchXcm,
-	NativeAsset, RelayChainAsNative, SiblingParachainAsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
+	DenyReserveTransferToRelayChain, DenyThenTry, DescribeFamily, DescribeTerminus,
+	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FrameTransactionalProcessor,
+	FungibleAdapter, HashedDescription, IsConcrete, NativeAsset, RelayChainAsNative,
+	SiblingParachainAsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
+	UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
-use xcm_executor::traits::Properties;
-use xcm_executor::{traits::ShouldExecute, XcmExecutor};
+use xcm_executor::XcmExecutor;
 
 use runtime_common::DealWithFees;
 use xcm_primitives::SignedToAccountId20;
@@ -34,6 +34,8 @@ use super::{
 	TransactionByteFee, WeightToFee, XcmpQueue,
 };
 
+/// Parachain ID of AssetHub, as defined here:
+/// https://github.com/paritytech/polkadot-sdk/blob/eba3deca3e61855c237a33013e8a5e82c479e958/polkadot/runtime/rococo/constants/src/lib.rs#L110
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
 parameter_types! {
@@ -128,70 +130,6 @@ pub struct ParentOrParentsExecutivePlurality;
 impl Contains<Location> for ParentOrParentsExecutivePlurality {
 	fn contains(l: &Location) -> bool {
 		matches!(l.unpack(), (1, []) | (1, [Plurality { id: BodyId::Executive, .. }]))
-	}
-}
-
-//TODO: move DenyThenTry to polkadot's xcm module.
-/// Deny executing the xcm message if it matches any of the Deny filter regardless of anything else.
-/// If it passes the Deny, and matches one of the Allow cases then it is let through.
-pub struct DenyThenTry<Deny, Allow>(PhantomData<Deny>, PhantomData<Allow>)
-where
-	Deny: ShouldExecute,
-	Allow: ShouldExecute;
-
-impl<Deny, Allow> ShouldExecute for DenyThenTry<Deny, Allow>
-where
-	Deny: ShouldExecute,
-	Allow: ShouldExecute,
-{
-	fn should_execute<RuntimeCall>(
-		origin: &Location,
-		instructions: &mut [Instruction<RuntimeCall>],
-		max_weight: Weight,
-		properties: &mut Properties,
-	) -> Result<(), ProcessMessageError> {
-		Deny::should_execute(origin, instructions, max_weight, properties)?;
-		Allow::should_execute(origin, instructions, max_weight, properties)
-	}
-}
-
-// See issue <https://github.com/paritytech/polkadot/issues/5233>
-pub struct DenyReserveTransferToRelayChain;
-impl ShouldExecute for DenyReserveTransferToRelayChain {
-	fn should_execute<RuntimeCall>(
-		origin: &Location,
-		instructions: &mut [Instruction<RuntimeCall>],
-		_max_weight: Weight,
-		_properties: &mut Properties,
-	) -> Result<(), ProcessMessageError> {
-		instructions.matcher().match_next_inst_while(
-			|_| true,
-			|inst| match inst {
-				InitiateReserveWithdraw {
-					reserve: Location { parents: 1, interior: Here },
-					..
-				}
-				| DepositReserveAsset { dest: Location { parents: 1, interior: Here }, .. }
-				| TransferReserveAsset { dest: Location { parents: 1, interior: Here }, .. } => {
-					Err(ProcessMessageError::Unsupported) // Deny
-				},
-				// An unexpected reserve transfer has arrived from the Relay Chain. Generally,
-				// `IsReserve` should not allow this, but we just log it here.
-				ReserveAssetDeposited { .. }
-					if matches!(origin, Location { parents: 1, interior: Here }) =>
-				{
-					log::warn!(
-						target: "xcm::barrier",
-						"Unexpected ReserveAssetDeposited from the Relay Chain",
-					);
-					Ok(ControlFlow::Continue(()))
-				},
-				_ => Ok(ControlFlow::Continue(())),
-			},
-		)?;
-
-		// Permit everything else
-		Ok(())
 	}
 }
 

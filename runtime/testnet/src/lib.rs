@@ -154,15 +154,13 @@ pub mod fee {
 	impl WeightToFeePolynomial for RefTimeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_MUSE:
-			// in our template, we map to 1/10 of that, or 1/10 MILLI_MUSE
-			let p = MILLI_MUSE / 10;
-			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+			let numerator = MILLI_MUSE / 10;
+			let denominator = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,
-				negative: false,
-				coeff_frac: Perbill::from_rational(p % q, q),
-				coeff_integer: p / q,
+				degree: 1,       // lineal function
+				negative: false, // positive growth
+				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
+				coeff_integer: numerator / denominator,
 			}]
 		}
 	}
@@ -172,15 +170,15 @@ pub mod fee {
 	impl WeightToFeePolynomial for ProofSizeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// Map 10kb proof to 1 CENT.
-			let p = MILLI_MUSE * 10;
-			let q = 10_000;
+			// Map 10kb proof to 1/10 MILLI_MYTH.
+			let numerator = MILLI_MUSE * 10;
+			let denominator = 10_000;
 
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,
-				negative: false,
-				coeff_frac: Perbill::from_rational(p % q, q),
-				coeff_integer: p / q,
+				degree: 1,       // lineal function
+				negative: false, // positive growth
+				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
+				coeff_integer: numerator / denominator,
 			}]
 		}
 	}
@@ -241,8 +239,12 @@ pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
 pub const EXISTENTIAL_DEPOSIT: Balance = MUSE;
 
+/// Calculate the storage deposit based on the number of storage items and the
+/// combined byte size of those items.
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	(items as Balance * 20 * MUSE + (bytes as Balance) * 100 * MICRO_MUSE) / 100
+	let per_item_deposit = MUSE / 5;
+	let per_byte_deposit = MICRO_MUSE;
+	items as Balance * per_item_deposit + (bytes as Balance) * per_byte_deposit
 }
 
 /// The version information used to identify this runtime when compiled natively.
@@ -279,6 +281,7 @@ parameter_types! {
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
 	pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
+	/// SS58 prefix of the parachain. Used for address formatting.
 	pub const SS58Prefix: u16 = 29972;
 }
 
