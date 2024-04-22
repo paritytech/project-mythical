@@ -16,12 +16,11 @@ use testnet_parachains_constants::rococo::snowbridge::EthereumNetwork;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
-	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
-	DenyReserveTransferToRelayChain, DenyThenTry, DescribeFamily, DescribeTerminus,
-	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FrameTransactionalProcessor,
-	FungibleAdapter, HashedDescription, IsConcrete, NativeAsset, RelayChainAsNative,
-	SiblingParachainAsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
-	UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, DenyReserveTransferToRelayChain,
+	DenyThenTry, DescribeFamily, DescribeTerminus, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete,
+	NativeAsset, RelayChainAsNative, SiblingParachainAsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
 use xcm_executor::XcmExecutor;
 
@@ -118,7 +117,9 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
+	// One XCM operation is 1_000_000_000 weight - almost certainly a safe estimate.
+	// For reference some other parachains are charing only 200_000_000 per instruction
+	// and no weight per byte.
 	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000, 64 * 1024);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsIntoHolding: u32 = 64;
@@ -224,7 +225,6 @@ impl xcm_executor::Config for XcmConfig {
 	type Aliasers = Nothing;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
-	//TODO: Replace with benchmarked weights
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = Traders;
 	type ResponseHandler = PolkadotXcm;
@@ -276,7 +276,6 @@ impl pallet_xcm::Config for Runtime {
 	// All reserve transfers are allowed.
 	type XcmReserveTransferFilter = Everything;
 	// Use (conservative) bounds on estimating XCM execution on this chain.
-	//TODO: Replace with benchmarked weights
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
 	type RuntimeOrigin = RuntimeOrigin;
@@ -290,7 +289,6 @@ impl pallet_xcm::Config for Runtime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = LocationToAccountId;
 	type MaxLockers = ConstU32<8>;
-	//TODO: Replace with benchmarked weights
 	type WeightInfo = pallet_xcm::TestWeightInfo;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
