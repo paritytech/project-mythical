@@ -317,7 +317,6 @@ pub mod pallet {
 		/// - Fees go to payoutAddress.
 		///
 		/// Parameters:
-		/// - `origin`: The origin of the transaction.
 		/// - `order`: The details of the order to be created (including type, collection, item, price, expiration, fee, and signature).
 		/// - `execution`: Execution mode to indicate whether order creation should proceed if a valid match exists.
 		///
@@ -451,7 +450,6 @@ pub mod pallet {
 		/// If the order is a Bid, the bidder's balance is unlocked.
 		///
 		/// Parameters:
-		/// - `origin`: The origin of the transaction.
 		/// - `order_type`: The type of the order to be canceled (Ask or Bid).
 		/// - `collection`: The collection ID of the NFT associated with the order.
 		/// - `item`: The item ID of the NFT associated with the order.
