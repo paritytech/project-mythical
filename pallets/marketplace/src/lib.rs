@@ -216,14 +216,14 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Sets the authority role, granting owner rights.
-		/// 
+		///
 		/// Only the root origin can execute this function.
-		/// 
+		///
 		/// Parameters:
 		/// - `authority`: The account ID of the administrator to be set as the pallet's authority.
-		/// 
+		///
 		/// Emits AuthorityUpdated when successful.
-		/// 
+		///
 		/// Weight: `WeightInfo::force_set_authority` (defined in the `Config` trait).
 		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_authority())]
@@ -244,11 +244,11 @@ pub mod pallet {
 		}
 
 		/// Sets the fee signer address, allowing the designated account that signs fees.
-		/// 
-    	/// Only an account with the authority role can execute this function. /// - `fee_signer`: The account ID of the fee signer to be set.
-		/// 
+		///
+		/// Only an account with the authority role can execute this function. /// - `fee_signer`: The account ID of the fee signer to be set.
+		///
 		/// Emits `FeeSignerAddressUpdate` event upon successful execution.
-		/// 
+		///
 		/// Weight: `WeightInfo::set_fee_signer_address` (defined in the `Config` trait).
 		#[pallet::call_index(1)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_fee_signer_address())]
@@ -270,14 +270,14 @@ pub mod pallet {
 		}
 
 		/// Allows the authority account to set the payout address, which receives fee payments from trades.
-		/// 
+		///
 		/// Only an account with the authority role can execute this function.
-		/// 
+		///
 		/// Parameters:
 		/// - `payout_address`: The account ID of the address to be set as the payout address.
-		/// 
+		///
 		/// Emits `PayoutAddressUpdated` event upon successful execution.
-		/// 
+		///
 		/// Weight: `WeightInfo::set_payout_address` (defined in the `Config` trait).
 		#[pallet::call_index(2)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_payout_address())]
@@ -299,30 +299,30 @@ pub mod pallet {
 		}
 
 		/// Create an Ask or Bid Order for a specific NFT (collection ID, Item ID).
-		/// 
+		///
 		/// Asks:
 		/// - An owner of an NFT can create an ask on the item with a price, expiration, and signature.
 		/// - The signature must come from the feeSigner account.
 		/// - The expiration must be above `MinOrderDuration`.
 		/// - After the ask is created, the NFT is locked so it can't be transferred.
-		/// 
+		///
 		/// Bids:
 		/// - A bid can be created on an existing item, with a price to pay, a fee, and expiration.
 		/// - The signature must come from the feeSigner account.
 		/// - The amount the bidder is willing to pay is locked from the user's Balance.
-		/// 
+		///
 		/// Match Exists:
 		/// - If a match between an Ask and Bid exists, the trade is triggered.
 		/// - The seller receives the funds, and the bidder receives the unlocked item.
 		/// - Fees go to payoutAddress.
-		/// 
+		///
 		/// Parameters:
 		/// - `origin`: The origin of the transaction.
 		/// - `order`: The details of the order to be created (including type, collection, item, price, expiration, fee, and signature).
 		/// - `execution`: Execution mode to indicate whether order creation should proceed if a valid match exists.
-		/// 
+		///
 		/// Emits `OrderCreated` event upon successful execution.
-		/// 
+		///
 		/// Weight: `WeightInfo::create_order` (defined in the `Config` trait).
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_order())]
@@ -444,21 +444,21 @@ pub mod pallet {
 		}
 
 		/// Cancelation of an Ask or Bid order.
-		/// 
+		///
 		/// Callable by either the authority or the order creator.
-		/// 
+		///
 		/// If the order is an Ask, the item is unlocked.
 		/// If the order is a Bid, the bidder's balance is unlocked.
-		/// 
+		///
 		/// Parameters:
 		/// - `origin`: The origin of the transaction.
 		/// - `order_type`: The type of the order to be canceled (Ask or Bid).
 		/// - `collection`: The collection ID of the NFT associated with the order.
 		/// - `item`: The item ID of the NFT associated with the order.
 		/// - `price`: The price associated with the order (used for Bid orders).
-		/// 
+		///
 		/// Emits `OrderCanceled` event upon successful execution.
-		/// 
+		///
 		/// Weight: `WeightInfo::cancel_order` (defined in the `Config` trait).
 		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_order())]
