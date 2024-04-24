@@ -235,7 +235,9 @@ pub const MYTH: Balance = 1_000 * MILLI_MYTH;
 pub const MICRO_DOT: Balance = 10_000;
 pub const MILLI_DOT: Balance = 1_000 * MICRO_DOT;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MYTH;
+// TODO: Update ED when marketplace launches based on
+// decision from Mythos.
+pub const EXISTENTIAL_DEPOSIT: Balance = MYTH / 10;
 
 /// Calculate the storage deposit based on the number of storage items and the
 /// combined byte size of those items.
@@ -358,8 +360,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICRO_MYTH;
+	pub const TransactionByteFee: Balance = 100 * MICRO_MYTH;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
