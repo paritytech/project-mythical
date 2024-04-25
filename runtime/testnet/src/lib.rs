@@ -387,6 +387,8 @@ impl pallet_multibatching::Config for Runtime {
 	type Signer = <Signature as Verify>::Signer;
 	type MaxCalls = ConstU32<128>;
 	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 parameter_types! {

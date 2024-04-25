@@ -1,7 +1,7 @@
 use account::{AccountId20, EthereumSignature};
 use frame_support::{
 	derive_impl, parameter_types,
-	traits::{ConstU128, ConstU32, ConstU64},
+	traits::{ConstU32, ConstU64},
 };
 use frame_system as system;
 use sp_core::H256;
@@ -22,7 +22,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system,
 		Multibatching: pallet_multibatching,
-		Balances: pallet_balances,
+        Timestamp: pallet_timestamp,
 	}
 );
 
@@ -49,7 +49,7 @@ impl frame_system::Config for Test {
 	type DbWeight = ();
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = pallet_balances::AccountData<u128>;
+	type AccountData = ();
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
@@ -58,20 +58,11 @@ impl frame_system::Config for Test {
 	type MaxConsumers = ConstU32<16>;
 }
 
-impl pallet_balances::Config for Test {
-	type MaxLocks = ();
-	type MaxReserves = ();
-	type ReserveIdentifier = [u8; 8];
-	type Balance = u128;
-	type DustRemoval = ();
-	type RuntimeEvent = RuntimeEvent;
-	type ExistentialDeposit = ConstU128<1>;
-	type AccountStore = System;
+impl pallet_timestamp::Config for Test {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = ConstU64<3>;
 	type WeightInfo = ();
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type RuntimeFreezeReason = ();
-	type FreezeIdentifier = ();
-	type MaxFreezes = ();
 }
 
 impl pallet_multibatching::Config for Test {
@@ -79,8 +70,11 @@ impl pallet_multibatching::Config for Test {
 	type RuntimeCall = RuntimeCall;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
-	type MaxCalls = ConstU32<128>;
+	type MaxCalls = ConstU32<1000>;
 	type WeightInfo = ();
+    pallet_multibatching::runtime_benchmarks_enabled! {
+        type BenchmarkHelper = ();
+    }
 }
 
 // Build genesis storage according to the mock runtime.

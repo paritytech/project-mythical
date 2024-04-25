@@ -6828,13 +6828,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-multibatching"
-version = "1.0.0-dev"
+version = "1.1.0-dev"
 dependencies = [
  "account",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-balances",
+ "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "sp-core",

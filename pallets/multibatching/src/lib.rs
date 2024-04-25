@@ -20,7 +20,7 @@ pub mod pallet {
 		dispatch::{extract_actual_weight, GetDispatchInfo, PostDispatchInfo},
 		pallet_prelude::*,
 		sp_runtime::traits::{Dispatchable, Hash, IdentifyAccount, Verify},
-		traits::{IsSubType, OriginTrait, UnfilteredDispatchable},
+		traits::{IsSubType, UnfilteredDispatchable},
 	};
 	use frame_system::pallet_prelude::*;
 	use sp_std::vec::Vec;
@@ -29,7 +29,7 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + pallet_timestamp::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		type RuntimeCall: Parameter
@@ -52,7 +52,9 @@ pub mod pallet {
 			+ Clone
 			+ Encode
 			+ Decode
-			+ Parameter;
+			+ Parameter
+			+ PartialOrd
+			+ Ord;
 
 		// TODO: this should really be a u16, but the trait bound on BoundedVec
 		// requires Get<u32>, which is not implemented for ConstU16.
@@ -60,6 +62,9 @@ pub mod pallet {
 		type MaxCalls: Get<u32>;
 
 		type WeightInfo: WeightInfo;
+
+        #[cfg(feature = "runtime-benchmarks")]
+        type BenchmarkHelper: BenchmarkHelper<Self::Moment>;
 	}
 
 	#[pallet::error]
@@ -73,58 +78,22 @@ pub mod pallet {
 		DomainAlreadySet,
 		InvalidCallOrigin(u16),
 		InvalidSignature(u16),
+		Expired,
+		UnsortedApprovals,
 	}
 
 	#[pallet::storage]
 	pub type Domain<T: Config> = StorageValue<_, [u8; 32], OptionQuery>;
 
 	#[pallet::storage]
-	pub type Applied<T: Config> = StorageMap<_, Identity, T::Hash, (), ValueQuery>;
+	pub type Applied<T: Config> =
+		StorageMap<_, Identity, <T as frame_system::Config>::Hash, (), ValueQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		BatchApplied { hash: T::Hash },
 		DomainSet { domain: [u8; 32] },
-	}
-
-	/// A batch of calls.
-	///
-	/// Every participant that has a call in this batch must sign the hash
-	/// of a batch in full, including the public key of the signer.
-	///
-	/// `sender` must be the origin of the `batch` extrinsic.
-	#[derive(Encode, Decode, TypeInfo, MaxEncodedLen)]
-	#[scale_info(skip_type_params(T))]
-	pub struct Batch<T: Config> {
-		pub pallet_index: u8,
-		pub call_index: u8,
-		pub domain: [u8; 32],
-		pub sender: T::AccountId,
-		pub bias: [u8; 32],
-		pub calls: BoundedVec<BatchedCall<T>, T::MaxCalls>,
-		pub approvals_zero: u8,
-	}
-
-	impl<T: Config> PartialEq for Batch<T> {
-		fn eq(&self, other: &Self) -> bool {
-			self.sender == other.sender && self.calls == other.calls
-		}
-	}
-
-	// TODO: remove this before signoff
-	impl<T: Config> core::fmt::Debug for Batch<T> {
-		fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
-			f.debug_struct("Batch")
-				.field("pallet_index", &self.pallet_index)
-				.field("call_index", &self.call_index)
-				.field("domain", &self.domain)
-				.field("sender", &self.sender)
-				.field("bias", &self.bias)
-				.field("calls", &self.calls)
-				.field("approvals_zero", &self.approvals_zero)
-				.finish()
-		}
 	}
 
 	/// A call in a batch.
@@ -137,15 +106,7 @@ pub mod pallet {
 		pub call: <T as Config>::RuntimeCall,
 	}
 
-	/// A signature of a batch by one of its participants.
-	#[derive(Clone, Encode, Decode, PartialEq, TypeInfo, MaxEncodedLen)]
-	#[scale_info(skip_type_params(T))]
-	pub struct Approval<T: Config> {
-		pub from: T::Signer,
-		pub signature: T::Signature,
-	}
-
-	// TODO: remove this before signoff
+	// Required for `Pallet::batch()` arguments.
 	impl<T: Config> core::fmt::Debug for BatchedCall<T> {
 		fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
 			f.debug_struct("BatchedCall")
@@ -155,14 +116,41 @@ pub mod pallet {
 		}
 	}
 
-	// TODO: remove this before signoff
+	/// A signature of a batch by one of its participants.
+	#[derive(Clone, Encode, Decode, PartialEq, TypeInfo, MaxEncodedLen)]
+	#[scale_info(skip_type_params(T))]
+	pub struct Approval<T: Config> {
+		pub from: T::Signer,
+		pub signature: T::Signature,
+	}
+
+	// Required for `Pallet::batch()` arguments.
 	impl<T: Config> core::fmt::Debug for Approval<T> {
 		fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
-			f.debug_struct("Approval")
+			f.debug_struct("BatchedCall")
 				.field("from", &self.from)
 				.field("signature", &self.signature)
 				.finish()
 		}
+	}
+
+	/// A batch of calls.
+	///
+	/// This structure is intended to mimic the structure of a full
+	/// formed call to `Pallet::batch` with empty approvals parameter.
+	///
+	/// TODO: find a better and more future-proof way to do this
+	#[derive(Encode, Decode, TypeInfo, MaxEncodedLen)]
+	#[scale_info(skip_type_params(T))]
+	struct Batch<T: Config> {
+		pub pallet_index: u8,
+		pub call_index: u8,
+		pub domain: [u8; 32],
+		pub sender: T::AccountId,
+		pub bias: [u8; 32],
+		pub expires_at: <T as pallet_timestamp::Config>::Moment,
+		pub calls: BoundedVec<BatchedCall<T>, T::MaxCalls>,
+		pub approvals_zero: u8,
 	}
 
 	#[pallet::call]
@@ -230,10 +218,11 @@ pub mod pallet {
 		pub fn batch(
 			origin: OriginFor<T>,
 			domain: [u8; 32],
-			sender: T::AccountId,
+			sender: <T as frame_system::Config>::AccountId,
 			bias: [u8; 32],
-			calls: BoundedVec<BatchedCall<T>, T::MaxCalls>,
-			approvals: BoundedVec<Approval<T>, T::MaxCalls>,
+			expires_at: <T as pallet_timestamp::Config>::Moment,
+			calls: BoundedVec<BatchedCall<T>, <T as Config>::MaxCalls>,
+			approvals: BoundedVec<Approval<T>, <T as Config>::MaxCalls>,
 		) -> DispatchResultWithPostInfo {
 			if calls.is_empty() {
 				return Err(Error::<T>::NoCalls.into());
@@ -242,12 +231,25 @@ pub mod pallet {
 				return Err(Error::<T>::NoApprovals.into());
 			}
 
+            if approvals.len() > 1 {
+                for pair in approvals.windows(2) {
+                    match pair {
+                        [a, b] if a.from < b.from => (),
+                        _ => return Err(Error::<T>::UnsortedApprovals.into()),
+                    };
+                }
+            }
+
 			// Origin must be `sender`.
 			match ensure_signed(origin) {
 				Ok(account_id) if account_id == sender => account_id,
 				Ok(_) => return Err(Error::<T>::BatchSenderIsNotOrigin.into()),
 				Err(e) => return Err(e.into()),
 			};
+
+			if pallet_timestamp::Pallet::<T>::get() > expires_at {
+				return Err(Error::<T>::Expired.into());
+			}
 
 			match Domain::<T>::get() {
 				Some(stored_domain) if stored_domain == domain => (),
@@ -261,11 +263,12 @@ pub mod pallet {
 				domain,
 				sender: sender.clone(),
 				bias,
+				expires_at,
 				calls: calls.clone(),
 				approvals_zero: 0,
 			}
 			.encode();
-			let hash = <T::Hashing>::hash(&bytes);
+			let hash = <<T as frame_system::Config>::Hashing>::hash(&bytes);
 
 			if Applied::<T>::contains_key(&hash) {
 				return Err(Error::<T>::AlreadyApplied.into());
@@ -289,25 +292,23 @@ pub mod pallet {
 
 			// Apply calls.
 			for (i, payload) in calls.into_iter().enumerate() {
-				let ok = approvals.iter().any(|int| int.from == payload.from);
+				let ok = approvals.binary_search_by_key(&&payload.from, |a| &a.from).is_ok();
 				if !ok {
 					return Err(Error::<T>::InvalidCallOrigin(i as u16).into());
 				}
 
 				let info = payload.call.get_dispatch_info();
-				let mut origin = <T::RuntimeOrigin>::from(frame_system::RawOrigin::Signed(
-					payload.from.into_account(),
-				));
-				origin.add_filter(move |c: &<T as frame_system::Config>::RuntimeCall| {
-					let c = <T as Config>::RuntimeCall::from_ref(c);
-					!matches!(c.is_sub_type(), Some(Call::batch { .. }))
-				});
+				let origin = <<T as frame_system::Config>::RuntimeOrigin>::from(
+					frame_system::RawOrigin::Signed(payload.from.into_account()),
+				);
 				let result = payload.call.dispatch(origin);
 				weight = weight.saturating_add(extract_actual_weight(&result, &info));
 				result.map_err(|mut err| {
 					// Take the weight of this function itself into account.
-					let base_weight =
-						T::WeightInfo::batch(i.saturating_add(1) as u32, approvals.len() as u32);
+					let base_weight = <T as Config>::WeightInfo::batch(
+						i.saturating_add(1) as u32,
+						approvals.len() as u32,
+					);
 					// Return the actual used weight + base_weight of this call.
 					err.post_info = Some(base_weight + weight).into();
 					err
@@ -316,7 +317,8 @@ pub mod pallet {
 
 			Self::deposit_event(Event::BatchApplied { hash });
 
-			let base_weight = T::WeightInfo::batch(calls_len as u32, approvals.len() as u32);
+			let base_weight =
+				<T as Config>::WeightInfo::batch(calls_len as u32, approvals.len() as u32);
 			Ok(Some(base_weight.saturating_add(weight)).into())
 		}
 
@@ -339,3 +341,9 @@ pub mod pallet {
 		}
 	}
 }
+
+pub trait BenchmarkHelper<Moment> {
+    fn timestamp(value: u64) -> Moment;
+}
+
+sp_core::generate_feature_enabled_macro!(runtime_benchmarks_enabled, feature = "runtime-benchmarks", $);
