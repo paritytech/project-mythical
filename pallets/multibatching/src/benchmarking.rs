@@ -63,12 +63,11 @@ pub mod benchmarks {
 		}
 
 		let mut calls = BoundedVec::new();
-		let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+		let iter = (0..call_count).zip(signers.iter().cycle());
 		for (_, (_, signer, _)) in iter {
 			let call = frame_system::Call::remark { remark: Default::default() }.into();
 			calls
 				.try_push(BatchedCall::<T> { from: signer.clone().into(), call })
-				.ok()
 				.expect("Benchmark config must match runtime config for BoundedVec size");
 		}
 
@@ -94,7 +93,6 @@ pub mod benchmarks {
 					)
 					.into(),
 				})
-				.ok()
 				.expect("Benchmark config must match runtime config for BoundedVec size");
 		}
 		approvals.sort_by_key(|a| a.from.clone());
@@ -104,9 +102,9 @@ pub mod benchmarks {
 
 		#[extrinsic_call]
 		_(
-			RawOrigin::Signed(sender.clone()),
+			RawOrigin::Signed(sender),
 			domain,
-			sender.clone().into(),
+			sender.into(),
 			bias,
 			expires_at,
 			calls,

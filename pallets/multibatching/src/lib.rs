@@ -270,7 +270,7 @@ pub mod pallet {
 			.encode();
 			let hash = <<T as frame_system::Config>::Hashing>::hash(&bytes);
 
-			if Applied::<T>::contains_key(&hash) {
+			if Applied::<T>::contains_key(hash) {
 				return Err(Error::<T>::AlreadyApplied.into());
 			}
 
