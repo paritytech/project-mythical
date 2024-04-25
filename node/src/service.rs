@@ -515,7 +515,7 @@ where
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
-		Arc::new(custom_pool::CustomPool::new(transaction_pool)),
+		transaction_pool,
 		prometheus_registry,
 		telemetry.clone(),
 	);
