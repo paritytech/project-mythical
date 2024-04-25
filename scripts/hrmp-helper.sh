@@ -43,9 +43,6 @@ function open_hrmp_channels() {
         ${max_message_size}
 }
 
-# Check for binaries
-ensure_binaries
-
 # Check for polkadot-js-api cli
 ensure_polkadot_js_api
 
