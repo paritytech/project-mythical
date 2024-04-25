@@ -101,15 +101,7 @@ pub mod benchmarks {
 			.expect("force_set_domain must succeed");
 
 		#[extrinsic_call]
-		_(
-			RawOrigin::Signed(sender),
-			domain,
-			sender.into(),
-			bias,
-			expires_at,
-			calls,
-			approvals,
-		);
+		_(RawOrigin::Signed(sender), domain, sender.into(), bias, expires_at, calls, approvals);
 	}
 
 	#[benchmark]
