@@ -63,8 +63,8 @@ pub mod pallet {
 
 		type WeightInfo: WeightInfo;
 
-        #[cfg(feature = "runtime-benchmarks")]
-        type BenchmarkHelper: BenchmarkHelper<Self::Moment>;
+		#[cfg(feature = "runtime-benchmarks")]
+		type BenchmarkHelper: BenchmarkHelper<Self::Moment>;
 	}
 
 	#[pallet::error]
@@ -231,14 +231,14 @@ pub mod pallet {
 				return Err(Error::<T>::NoApprovals.into());
 			}
 
-            if approvals.len() > 1 {
-                for pair in approvals.windows(2) {
-                    match pair {
-                        [a, b] if a.from < b.from => (),
-                        _ => return Err(Error::<T>::UnsortedApprovals.into()),
-                    };
-                }
-            }
+			if approvals.len() > 1 {
+				for pair in approvals.windows(2) {
+					match pair {
+						[a, b] if a.from < b.from => (),
+						_ => return Err(Error::<T>::UnsortedApprovals.into()),
+					};
+				}
+			}
 
 			// Origin must be `sender`.
 			match ensure_signed(origin) {
@@ -343,7 +343,7 @@ pub mod pallet {
 }
 
 pub trait BenchmarkHelper<Moment> {
-    fn timestamp(value: u64) -> Moment;
+	fn timestamp(value: u64) -> Moment;
 }
 
 sp_core::generate_feature_enabled_macro!(runtime_benchmarks_enabled, feature = "runtime-benchmarks", $);

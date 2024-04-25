@@ -13,11 +13,11 @@ use sp_std::vec::Vec;
 
 impl<Moment> BenchmarkHelper<Moment> for ()
 where
-    Moment: From<u64>
+	Moment: From<u64>,
 {
-    fn timestamp(value: u64) -> Moment {
-        value.into()
-    }
+	fn timestamp(value: u64) -> Moment {
+		value.into()
+	}
 }
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -38,10 +38,10 @@ fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 pub mod benchmarks {
 	use super::*;
 	use account::{AccountId20, EthereumSignature, EthereumSigner};
-	use parity_scale_codec::Encode;
 	use frame_support::sp_runtime::traits::IdentifyAccount;
+	use parity_scale_codec::Encode;
 
-    use pallet_timestamp::Pallet as Timestamp;
+	use pallet_timestamp::Pallet as Timestamp;
 
 	#[benchmark]
 	fn batch(c: Linear<1, 128>, s: Linear<1, 10>) {
@@ -50,7 +50,7 @@ pub mod benchmarks {
 
 		let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
 		let bias = [0u8; 32];
-        let expires_at = Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100_000);
+		let expires_at = Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100_000);
 
 		let sender: AccountId20 = whitelisted_caller();
 
@@ -76,7 +76,7 @@ pub mod benchmarks {
 			domain,
 			sender: sender.into(),
 			bias,
-            expires_at,
+			expires_at,
 			calls: calls.clone(),
 			approvals: BoundedVec::new(),
 		}
@@ -97,21 +97,21 @@ pub mod benchmarks {
 				.ok()
 				.expect("Benchmark config must match runtime config for BoundedVec size");
 		}
-        approvals.sort_by_key(|a| a.from.clone());
+		approvals.sort_by_key(|a| a.from.clone());
 
 		Pallet::<T>::force_set_domain(RawOrigin::Root.into(), domain)
 			.expect("force_set_domain must succeed");
 
 		#[extrinsic_call]
 		_(
-            RawOrigin::Signed(sender.clone()),
-            domain,
-            sender.clone().into(),
-            bias,
-            expires_at,
-            calls,
-            approvals,
-        );
+			RawOrigin::Signed(sender.clone()),
+			domain,
+			sender.clone().into(),
+			bias,
+			expires_at,
+			calls,
+			approvals,
+		);
 	}
 
 	#[benchmark]

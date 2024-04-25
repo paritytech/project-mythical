@@ -22,7 +22,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system,
 		Multibatching: pallet_multibatching,
-        Timestamp: pallet_timestamp,
+		Timestamp: pallet_timestamp,
 	}
 );
 
@@ -72,9 +72,9 @@ impl pallet_multibatching::Config for Test {
 	type Signer = <Signature as Verify>::Signer;
 	type MaxCalls = ConstU32<1000>;
 	type WeightInfo = ();
-    pallet_multibatching::runtime_benchmarks_enabled! {
-        type BenchmarkHelper = ();
-    }
+	pallet_multibatching::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = ();
+	}
 }
 
 // Build genesis storage according to the mock runtime.
