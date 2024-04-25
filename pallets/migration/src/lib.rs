@@ -18,7 +18,8 @@ pub mod pallet {
 	use frame_support::{
 		dispatch::GetDispatchInfo,
 		traits::{
-			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Currency, UnfilteredDispatchable
+			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Currency,
+			UnfilteredDispatchable,
 		},
 	};
 	use frame_support::{
@@ -32,7 +33,7 @@ pub mod pallet {
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
 	use sp_runtime::traits::StaticLookup;
-use sp_std::{vec, vec::Vec};
+	use sp_std::{vec, vec::Vec};
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -59,7 +60,9 @@ use sp_std::{vec, vec::Vec};
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
-	pub type NftBalanceOf<T> = <<T as pallet_nfts::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+	pub type NftBalanceOf<T> = <<T as pallet_nfts::Config>::Currency as Currency<
+		<T as frame_system::Config>::AccountId,
+	>>::Balance;
 
 	type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
 
@@ -139,10 +142,7 @@ use sp_std::{vec, vec::Vec};
 		/// Weight: `WeightInfo::force_set_migrator` (defined in the `Config` trait).
 		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_migrator())]
-		pub fn force_set_migrator(
-			origin: OriginFor<T>,
-			migrator: T::AccountId,
-		) -> DispatchResult {
+		pub fn force_set_migrator(origin: OriginFor<T>, migrator: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
 			ensure!(
@@ -157,7 +157,7 @@ use sp_std::{vec, vec::Vec};
 
 		/// Sets the NextCollectionId on pallet-nfts, to be used as the CollectionIdwhen the next collection is created.
 		///
-		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic 
+		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
 		///
 		/// Parameters:
 		/// - `collectin_id`: Id no be set as NextCollectinId.
@@ -219,10 +219,10 @@ use sp_std::{vec, vec::Vec};
 		/// Sets the pot account which will be used as the origin to send funds from on the send_funds_from_pot() extrinsic.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `pot`: The account ID to be set as the pallet's pot.
-		/// 
+		///
 		/// Emits `PotUpdated` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::set_pot_account` (defined in the `Config` trait).
@@ -245,11 +245,11 @@ use sp_std::{vec, vec::Vec};
 		/// Transfer funds to a recipient account from the pot account.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `recipient`: The account ID that will receive the funds.
 		/// - `amount`: Amount of funds to be transfered to the recipient
-		/// 
+		///
 		/// Emits `Transfer` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::send_funds_from_pot` (defined in the `Config` trait).
@@ -271,12 +271,12 @@ use sp_std::{vec, vec::Vec};
 		/// Transfers a given Nft to an AccountId.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `collection`: Id of the collection for the item.
 		/// - `item`: Id of the item.
 		/// - `transfer_to`: AccountId of the user that will receive the item
-		/// 
+		///
 		/// Emits `Transferred` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::set_item_owner` (defined in the `Config` trait).
@@ -307,21 +307,21 @@ use sp_std::{vec, vec::Vec};
 		/// Dispatches a call to pallet-nfts::force_create.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `owner`: The owner of this collection of items. The owner has full superuser
 		///   permissions over this item, but may later change and configure the permissions using
 		///   `transfer_ownership` and `set_team`.
 		///
 		/// Emits `ForceCreated` event when successful.
-		/// 
+		///
 		/// Weight: `WeightInfo::force_create` (defined in the `Config` trait).
 		#[pallet::call_index(7)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_create())]
 		pub fn force_create(
 			origin: OriginFor<T>,
 			owner: AccountIdLookupOf<T>,
-			config: CollectionConfig< NftBalanceOf<T>, BlockNumberFor<T>, T::CollectionId>
+			config: CollectionConfig<NftBalanceOf<T>, BlockNumberFor<T>, T::CollectionId>,
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin.clone())?;
 
@@ -333,7 +333,7 @@ use sp_std::{vec, vec::Vec};
 		/// Dispatches a call to pallet-nfts::set_team.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `collection`: The collection whose team should be changed.
 		/// - `issuer`: The new Issuer of this collection.
@@ -341,7 +341,7 @@ use sp_std::{vec, vec::Vec};
 		/// - `freezer`: The new Freezer of this collection.
 		///
 		/// Emits `TeamChanged`.
-		/// 
+		///
 		/// Weight: `WeightInfo::set_team` (defined in the `Config` trait).
 		#[pallet::call_index(8)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_team())]
@@ -362,13 +362,13 @@ use sp_std::{vec, vec::Vec};
 		/// Dispatches a call to pallet-nfts::set_collection_metadata.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `collection`: The identifier of the item whose metadata to update.
 		/// - `data`: The general information of this item. Limited in length by `StringLimit`.
 		///
 		/// Emits `CollectionMetadataSet`.
-		/// 
+		///
 		/// Weight: `WeightInfo::set_collection_metadata` (defined in the `Config` trait).
 		#[pallet::call_index(9)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_collection_metadata())]
@@ -387,7 +387,7 @@ use sp_std::{vec, vec::Vec};
 		/// Dispatches a call to pallet-nfts::force_mint.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		/// 
+		///
 		/// Parameters:
 		/// - `collection`: The collection of the item to be minted.
 		/// - `item`: An identifier of the new item.
@@ -395,7 +395,7 @@ use sp_std::{vec, vec::Vec};
 		/// - `item_config`: A config of the new item.
 		///
 		/// Emits `Issued` event when successful.
-		/// 
+		///
 		/// Weight: `WeightInfo::force_mint` (defined in the `Config` trait).
 		#[pallet::call_index(10)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]

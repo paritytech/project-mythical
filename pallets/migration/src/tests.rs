@@ -1,9 +1,9 @@
 use crate::{mock::*, *};
 use frame_support::{
 	assert_noop, assert_ok,
+	dispatch::Pays,
 	error::BadOrigin,
 	traits::{fungible::Mutate, nonfungibles_v2::Inspect},
-	dispatch::Pays
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_marketplace::{Ask, Asks};
@@ -72,11 +72,11 @@ mod set_next_collection_id {
 	fn set_next_collection_id_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			
+
 			let res = Migration::set_next_collection_id(RuntimeOrigin::signed(account(1)), 25);
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No);
-			
+
 			assert!(Migration::get_next_id() == 25);
 		})
 	}
@@ -154,7 +154,7 @@ mod create_ask {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			mint_item(0, account(1));
 			let ask = Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 };
-		
+
 			let res = Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone());
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No);
@@ -203,7 +203,7 @@ mod set_pot_account {
 	fn set_pot_account_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			
+
 			let res = Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1));
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No);
@@ -285,7 +285,7 @@ mod send_funds_from_pot {
 			let res = Migration::send_funds_from_pot(
 				RuntimeOrigin::signed(account(1)),
 				account(2),
-				10000
+				10000,
 			);
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No);
@@ -339,16 +339,12 @@ mod set_item_owner {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			mint_item(0, account(1));
-			
-			let res = Migration::set_item_owner(
-				RuntimeOrigin::signed(account(1)),
-				0,
-				0,
-				account(2)
-			);
+
+			let res =
+				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(2));
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No);
-			
+
 			assert!(Nfts::owner(0, 0) == Some(account(2)));
 		})
 	}
@@ -356,25 +352,33 @@ mod set_item_owner {
 
 mod force_create {
 
-use super::*;
-	
+	use super::*;
+
 	#[test]
-	fn sender_is_not_migrator_fails(){
+	fn sender_is_not_migrator_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::force_create(RuntimeOrigin::signed(account(2)), account(3), collection_config_with_all_settings_enabled()),
+				Migration::force_create(
+					RuntimeOrigin::signed(account(2)),
+					account(3),
+					collection_config_with_all_settings_enabled()
+				),
 				Error::<Test>::NotMigrator
 			);
 		})
 	}
 
 	#[test]
-	fn force_create_redispatch_works(){
+	fn force_create_redispatch_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
-			
-			let res = Migration::force_create(RuntimeOrigin::signed(account(2)), account(3), collection_config_with_all_settings_enabled());
+
+			let res = Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled(),
+			);
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No)
 		})
@@ -383,25 +387,41 @@ use super::*;
 
 mod set_team {
 	use super::*;
-	
+
 	#[test]
-	fn sender_is_not_migrator_fails(){
+	fn sender_is_not_migrator_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::set_team(RuntimeOrigin::signed(account(2)), 0, Some(account(3)), Some(account(3)), Some(account(3))),
+				Migration::set_team(
+					RuntimeOrigin::signed(account(2)),
+					0,
+					Some(account(3)),
+					Some(account(3)),
+					Some(account(3))
+				),
 				Error::<Test>::NotMigrator
 			);
 		})
 	}
 
 	#[test]
-	fn set_team_redispatch_works(){
+	fn set_team_redispatch_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
-			assert_ok!(Migration::force_create(RuntimeOrigin::signed(account(2)), account(3), collection_config_with_all_settings_enabled()));
+			assert_ok!(Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled()
+			));
 
-			let res = 	Migration::set_team(RuntimeOrigin::signed(account(2)), 0, Some(account(3)), Some(account(3)), Some(account(3)));
+			let res = Migration::set_team(
+				RuntimeOrigin::signed(account(2)),
+				0,
+				Some(account(3)),
+				Some(account(3)),
+				Some(account(3)),
+			);
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No)
 		})
@@ -411,26 +431,38 @@ mod set_team {
 mod set_collection_metadata {
 	use sp_runtime::BoundedVec;
 
-use super::*;
-	
+	use super::*;
+
 	#[test]
-	fn sender_is_not_migrator_fails(){
+	fn sender_is_not_migrator_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::set_collection_metadata(RuntimeOrigin::signed(account(2)), 0, BoundedVec::new()),
+				Migration::set_collection_metadata(
+					RuntimeOrigin::signed(account(2)),
+					0,
+					BoundedVec::new()
+				),
 				Error::<Test>::NotMigrator
 			);
 		})
 	}
 
 	#[test]
-	fn set_collection_metadata_redispatch_works(){
+	fn set_collection_metadata_redispatch_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
-			assert_ok!(Migration::force_create(RuntimeOrigin::signed(account(2)), account(3), collection_config_with_all_settings_enabled()));
-			
-			let res = Migration::set_collection_metadata(RuntimeOrigin::signed(account(2)), 0, BoundedVec::new());
+			assert_ok!(Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled()
+			));
+
+			let res = Migration::set_collection_metadata(
+				RuntimeOrigin::signed(account(2)),
+				0,
+				BoundedVec::new(),
+			);
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No)
 		})
@@ -439,27 +471,43 @@ use super::*;
 
 mod force_mint {
 	use super::*;
-	
+
 	#[test]
-	fn sender_is_not_migrator_fails(){
+	fn sender_is_not_migrator_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::force_mint(RuntimeOrigin::signed(account(2)), 0, 0, account(3), default_item_config()),
+				Migration::force_mint(
+					RuntimeOrigin::signed(account(2)),
+					0,
+					0,
+					account(3),
+					default_item_config()
+				),
 				Error::<Test>::NotMigrator
 			);
 		})
 	}
 
 	#[test]
-	fn force_mint_redispatch_works(){
+	fn force_mint_redispatch_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
-			assert_ok!(Migration::force_create(RuntimeOrigin::signed(account(2)), account(3), collection_config_with_all_settings_enabled()));
-			
-			let res = Migration::force_mint(RuntimeOrigin::signed(account(2)), 0, 0, account(3), default_item_config());
+			assert_ok!(Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled()
+			));
+
+			let res = Migration::force_mint(
+				RuntimeOrigin::signed(account(2)),
+				0,
+				0,
+				account(3),
+				default_item_config(),
+			);
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No)
 		})
 	}
-} 
+}
