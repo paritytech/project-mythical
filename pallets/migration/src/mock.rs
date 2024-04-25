@@ -1,6 +1,6 @@
 use frame_support::{
 	derive_impl, parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64},
+	traits::{ConstU128, ConstU32, ConstU64},
 };
 use frame_system as system;
 use sp_core::H256;
@@ -10,6 +10,7 @@ use sp_runtime::{
 };
 
 use account::EthereumSignature;
+use system::EnsureSignedBy;
 
 use crate::{self as pallet_migration};
 use pallet_nfts::PalletFeatures;
@@ -68,16 +69,18 @@ parameter_types! {
 	pub storage Features: PalletFeatures = PalletFeatures::all_enabled();
 }
 
+pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Test>, AccountId>;
+
 impl pallet_nfts::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = u32;
 	type ItemId = u32;
 	type Currency = Balances;
-	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<Self::AccountId>>;
-	type ForceOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type CreateOrigin = MigratorOrigin;
+	type ForceOrigin = MigratorOrigin;
 	type Locker = ();
-	type CollectionDeposit = ConstU128<2>;
-	type ItemDeposit = ConstU128<1>;
+	type CollectionDeposit = ConstU128<0>;
+	type ItemDeposit = ConstU128<0>;
 	type MetadataDepositBase = ConstU128<1>;
 	type AttributeDepositBase = ConstU128<1>;
 	type DepositPerByte = ConstU128<1>;
