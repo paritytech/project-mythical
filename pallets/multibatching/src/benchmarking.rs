@@ -44,7 +44,7 @@ pub mod benchmarks {
 	use pallet_timestamp::Pallet as Timestamp;
 
 	#[benchmark]
-	fn batch(c: Linear<1, 128>, s: Linear<1, 10>) {
+	fn batch(c: Linear<1, 1000>, s: Linear<1, 10>) {
 		let call_count = c as usize;
 		let signer_count = s as usize;
 
