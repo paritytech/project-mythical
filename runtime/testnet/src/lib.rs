@@ -237,7 +237,7 @@ pub const MUSE: Balance = 1_000 * MILLI_MUSE;
 pub const MICRO_ROC: Balance = 1_000_000;
 pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MUSE;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_MUSE;
 
 /// Calculate the storage deposit based on the number of storage items and the
 /// combined byte size of those items.

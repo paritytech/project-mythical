@@ -235,9 +235,7 @@ pub const MYTH: Balance = 1_000 * MILLI_MYTH;
 pub const MICRO_DOT: Balance = 10_000;
 pub const MILLI_DOT: Balance = 1_000 * MICRO_DOT;
 
-// TODO: Update ED when marketplace launches based on
-// decision from Mythos.
-pub const EXISTENTIAL_DEPOSIT: Balance = MYTH / 10;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_MYTH;
 
 /// Calculate the storage deposit based on the number of storage items and the
 /// combined byte size of those items.
