@@ -5861,6 +5861,7 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus-aura",
  "sp-core",
+ "sp-io",
  "sp-keystore",
  "sp-offchain",
  "sp-runtime",
@@ -6821,6 +6822,24 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-mmr-primitives",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
+]
+
+[[package]]
+name = "pallet-multibatching"
+version = "1.1.0-dev"
+dependencies = [
+ "account",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-keystore",
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
 ]
@@ -13217,6 +13236,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-marketplace",
  "pallet-message-queue",
+ "pallet-multibatching",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-proxy",
@@ -13842,6 +13862,7 @@ dependencies = [
  "async-trait",
  "clap",
  "frame-remote-externalities",
+ "frame-try-runtime",
  "hex",
  "log",
  "parity-scale-codec",
