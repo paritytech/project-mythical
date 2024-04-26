@@ -144,8 +144,6 @@ impl pallet_migration::Config for Test {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
 }
 
 // Build genesis storage according to the mock runtime.
