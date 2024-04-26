@@ -13,10 +13,10 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT},
+	traits::{BlakeTwo256, Block as BlockT, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
@@ -38,14 +38,15 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
+	EnsureRoot, EnsureSignedBy
 };
+use pallet_nfts::PalletFeatures;
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 pub use runtime_common::{
 	AccountId, Balance, BlockNumber, DealWithFees, Hash, Nonce, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
+	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO, IncrementableU256
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
@@ -85,7 +86,7 @@ pub type BlockId = generic::BlockId<Block>;
 /// up by `pallet_aura` to implement `fn slot_duration()`.
 ///
 /// Change this to adjust the block time.
-pub const MILLISECS_PER_BLOCK: u64 = 12000;
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
 // NOTE: Currently it is not possible to change the slot duration after the chain has started.
 // Attempting to do so will brick block production.
@@ -96,9 +97,9 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
-/// We allow for 0.5 of a second of compute with a 12-second average block time.
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	WEIGHT_REF_TIME_PER_SECOND.saturating_div(2),
+/// We allow for 2 seconds of compute with a 6-second average block time.
+const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
 	polkadot_primitives::MAX_POV_SIZE as u64,
 );
 
@@ -112,6 +113,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
@@ -246,7 +248,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("mythos"),
 	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
-	spec_version: 1001,
+	spec_version: 1002,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -260,7 +262,7 @@ pub const MYTH: Balance = 1_000 * MILLI_MYTH;
 pub const MICRO_DOT: Balance = 10_000;
 pub const MILLI_DOT: Balance = 1_000 * MICRO_DOT;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MYTH;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10* MILLI_MYTH;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	(items as Balance * 20 * MYTH + (bytes as Balance) * 100 * MICRO_MYTH) / 100
@@ -342,7 +344,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = Aura;
-	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
+	type MinimumPeriod = ConstU64<0>;
 	type WeightInfo = ();
 }
 
@@ -408,7 +410,7 @@ parameter_types! {
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
-const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the
 /// number of blocks authored per slot.
 const BLOCK_PROCESSING_VELOCITY: u32 = 1;
@@ -546,7 +548,7 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = ConstU32<100_000>;
 	type DisabledValidators = ();
-	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
@@ -582,6 +584,74 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
+
+parameter_types! {
+	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
+	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
+	pub const NftsCollectionDeposit: Balance = 0;
+	pub const NftsItemDeposit: Balance = 0;
+	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
+	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
+	pub const NftsDepositPerByte: Balance = deposit(0, 1);
+}
+
+pub type CollectionId = IncrementableU256;
+pub type ItemId = U256;
+
+//TODO: Change to EnsureRoot<AccountId> after migration
+pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
+
+impl pallet_nfts::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CollectionId = CollectionId;
+	type ItemId = ItemId;
+	type Currency = Balances;
+	type CreateOrigin = MigratorOrigin;
+	type ForceOrigin = MigratorOrigin;
+	type Locker = ();
+	type CollectionDeposit = NftsCollectionDeposit;
+	type ItemDeposit = NftsItemDeposit;
+	type MetadataDepositBase = NftsMetadataDepositBase;
+	type AttributeDepositBase = NftsAttributeDepositBase;
+	type DepositPerByte = NftsDepositPerByte;
+	type StringLimit = ConstU32<256>;
+	type KeyLimit = ConstU32<64>;
+	type ValueLimit = ConstU32<256>;
+	type ApprovalsLimit = ConstU32<20>;
+	type ItemAttributesApprovalsLimit = ConstU32<30>;
+	type MaxTips = ConstU32<10>;
+	type MaxDeadlineDuration = NftsMaxDeadlineDuration;
+	type MaxAttributesPerCall = ConstU32<10>;
+	type Features = NftsPalletFeatures;
+	type OffchainSignature = Signature;
+	type OffchainPublic = <Signature as Verify>::Signer;
+	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
+}
+
+impl pallet_marketplace::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type MinOrderDuration = ConstU64<10>;
+	type NonceStringLimit = ConstU32<50>;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+impl pallet_migration::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type WeightInfo = pallet_migration::weights::SubstrateWeight<Runtime>;
+}
+
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -598,6 +668,10 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
+
+		Nfts: pallet_nfts = 12,
+		Marketplace: pallet_marketplace = 13,
+		Migration: pallet_migration = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
