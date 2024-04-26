@@ -29,11 +29,13 @@ pub mod pallet {
 			Incrementable, SortedMembers,
 		},
 	};
+
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
 	use sp_runtime::traits::StaticLookup;
 	use sp_std::{vec, vec::Vec};
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -421,7 +423,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[cfg(test)]
 		pub fn get_next_id() -> T::CollectionId {
 			NextCollectionId::<T>::get()
 				.or(T::CollectionId::initial_value())

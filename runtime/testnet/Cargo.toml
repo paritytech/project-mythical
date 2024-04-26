@@ -195,6 +195,7 @@ try-runtime = [
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
   "pallet-marketplace/try-runtime",
+  "pallet-migration/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-nfts/try-runtime",
   "pallet-session/try-runtime",
