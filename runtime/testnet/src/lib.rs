@@ -42,7 +42,6 @@ use frame_system::{
 	EnsureRoot, EnsureSigned,
 };
 use pallet_nfts::PalletFeatures;
-use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
@@ -52,7 +51,7 @@ pub use runtime_common::{
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::traits::ConvertInto;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
-use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
+use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -274,6 +273,12 @@ pub const fn deposit(items: u32, bytes: u32) -> Balance {
 pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
+
+/// Privileged origin that represents Root or more than two thirds of the Council.
+pub type RootOrCouncilTwoThirdsMajority = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 2, 3>,
+>;
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -574,16 +579,10 @@ parameter_types! {
 	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
 }
 
-/// We allow root and the StakingAdmin to execute privileged collator selection operations.
-pub type CollatorSelectionUpdateOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureXcm<IsVoiceOfBody<RelayLocation, StakingAdminBodyId>>,
->;
-
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type UpdateOrigin = CollatorSelectionUpdateOrigin;
+	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MinEligibleCollators = MinEligibleCollators;
@@ -746,6 +745,26 @@ impl pallet_vesting::Config for Runtime {
 	const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
+parameter_types! {
+	pub const CouncilMotionDuration: BlockNumber = 10 * MINUTES;
+	pub const CouncilMaxProposals: u32 = 100;
+	pub const CouncilMaxMembers: u32 = 100;
+}
+
+type CouncilCollective = pallet_collective::Instance1;
+impl pallet_collective::Config<CouncilCollective> for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type Proposal = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = RootOrCouncilTwoThirdsMajority;
+	type MaxProposalWeight = MaxCollectivesProposalWeight;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -770,6 +789,7 @@ construct_runtime!(
 
 		// Governance
 		Sudo: pallet_sudo = 15,
+		Council: pallet_collective::<Instance1> = 16,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
