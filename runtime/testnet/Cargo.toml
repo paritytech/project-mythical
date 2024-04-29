@@ -38,6 +38,7 @@ frame-try-runtime = { workspace = true, default-features = false, optional = tru
 pallet-aura = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-collective = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
@@ -118,6 +119,7 @@ std = [
   "pallet-authorship/std",
   "pallet-balances/std",
   "pallet-collator-selection/std",
+  "pallet-collective/std",
   "pallet-multibatching/std",
   "pallet-marketplace/std",
   "pallet-multisig/std",
@@ -164,6 +166,7 @@ runtime-benchmarks = [
   "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
   "pallet-collator-selection/runtime-benchmarks",
+  "pallet-collective/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
@@ -195,6 +198,7 @@ try-runtime = [
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
+  "pallet-collective/try-runtime",
   "pallet-multibatching/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-multisig/try-runtime",
