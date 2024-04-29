@@ -40,6 +40,7 @@ frame-try-runtime = { workspace = true, default-features = false, optional = tru
 pallet-aura = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-collective = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
@@ -113,6 +114,7 @@ std = [
   "pallet-authorship/std",
   "pallet-balances/std",
   "pallet-collator-selection/std",
+  "pallet-collective/std",
   "pallet-multisig/std",
   "pallet-session/std",
   "pallet-sudo/std",
@@ -154,6 +156,7 @@ runtime-benchmarks = [
   "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
   "pallet-collator-selection/runtime-benchmarks",
+  "pallet-collective/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
@@ -161,6 +164,7 @@ runtime-benchmarks = [
   "pallet-xcm/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
+  "cumulus-pallet-parachain-system/runtime-benchmarks",
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
   "cumulus-pallet-xcmp-queue/runtime-benchmarks",
 ]
@@ -179,6 +183,7 @@ try-runtime = [
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
+  "pallet-collective/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-session/try-runtime",
   "pallet-sudo/try-runtime",

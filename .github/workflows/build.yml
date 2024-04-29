@@ -17,7 +17,7 @@ jobs:
     name: "Build"
     runs-on: arc-runners-project-mythical
     container:
-      image: "paritytech/ci-unified:bullseye-1.75.0-2024-01-22-v20240222"
+      image: "paritytech/ci-unified:latest"
     steps:
       - uses: actions/checkout@v3
 
