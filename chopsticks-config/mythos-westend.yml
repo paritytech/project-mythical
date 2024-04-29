@@ -1,0 +1,20 @@
+# Basic configuration for the Westend Mythos network.
+# It provides balance to an "Alice" account and set it to impersonate the "Sudo" account.
+
+endpoint: wss://westend-muse-rpc.polkadot.io
+mock-signature-host: true
+block: ${env.WMYTHOS_BLOCK_NUMBER}
+db: ./db.sqlite
+runtime-log-level: 5
+
+import-storage:
+  Sudo:
+    Key: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+  System:
+    Account:
+      -
+        -
+          - "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+        - providers: 1
+          data:
+            free: "100000000000000000000000"
