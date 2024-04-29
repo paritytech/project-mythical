@@ -532,6 +532,7 @@ mod create_ask {
 				price: order.price,
 				expiration: order.expires_at,
 				fee: order.fee,
+				escrow_agent: order.escrow_agent,
 			};
 
 			assert!(Asks::<Test>::get(0, 0) == Some(ask));
@@ -642,12 +643,7 @@ mod create_bid {
 				Execution::AllowCreation
 			));
 
-			let bid = Bid {
-				buyer: account(1),
-				expiration: order.expires_at,
-				fee: order.fee,
-				escrow_agent: order.escrow_agent,
-			};
+			let bid = Bid { buyer: account(1), expiration: order.expires_at, fee: order.fee };
 			assert!(
 				Some(
 					Balances::balance_on_hold(&HoldReason::MarketplaceBid.into(), &account(1))
@@ -1260,7 +1256,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee: ask_fee.clone(),
-				escrow_agent: None,
+				escrow_agent: Some(account(105)),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
@@ -1286,7 +1282,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee: bid_fee,
-				escrow_agent: Some(account(105)),
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),

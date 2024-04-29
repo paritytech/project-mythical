@@ -33,6 +33,7 @@ pub struct Ask<AccountId, Amount, Expiration> {
 	pub price: Amount,
 	pub expiration: Expiration,
 	pub fee: Amount,
+	pub escrow_agent: Option<AccountId>,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
@@ -40,7 +41,6 @@ pub struct Bid<AccountId, Amount, Expiration> {
 	pub buyer: AccountId,
 	pub expiration: Expiration,
 	pub fee: Amount,
-	pub escrow_agent: Option<AccountId>,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
