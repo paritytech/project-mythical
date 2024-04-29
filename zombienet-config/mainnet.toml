@@ -31,12 +31,12 @@ chain = "mainnet-local-v"
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "collator1"
+    name = "mythos-collator01"
     ws_port = 9920
     command = "./target/release/mythos-node"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
-    name = "collator2"
+    name = "mythos-collator02"
     command = "./target/release/mythos-node"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]

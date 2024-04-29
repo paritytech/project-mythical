@@ -19,27 +19,35 @@ log = { workspace = true, default-features = false }
 scale-info = { workspace = true, default-features = false, features = [
 	"derive",
 ] }
+
+# Primitives
+account = { workspace = true }
+
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 sp-std = { workspace = true }
+sp-io = { workspace = true }
 sp-runtime = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false}
+sp-keystore = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
 
 [dev-dependencies]
-sp-io = { workspace = true, default-features = false }
+sp-io = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
+	"account/std",
 	"parity-scale-codec/std",
 	"frame-benchmarking?/std",
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",
+	"sp-io/std",
 	"sp-std/std",
 	"pallet-balances/std",
     "pallet-nfts/std",

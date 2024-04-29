@@ -24,6 +24,7 @@ smallvec = { workspace = true }
 # Local
 runtime-common = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
+pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
@@ -37,6 +38,7 @@ frame-try-runtime = { workspace = true, default-features = false, optional = tru
 pallet-aura = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-collective = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
@@ -79,11 +81,13 @@ cumulus-pallet-session-benchmarking = { workspace = true, default-features = fal
 cumulus-pallet-xcm = { workspace = true, default-features = false }
 cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
 cumulus-primitives-core = { workspace = true, default-features = false }
+cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 cumulus-primitives-utility = { workspace = true, default-features = false }
 pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 testnet-parachains-constants = { workspace = true, default-features = false, features = ["rococo"] }
+polkadot-primitives = { workspace = true, default-features = false }
 
 
 # Frontier
@@ -103,6 +107,7 @@ std = [
   "cumulus-pallet-parachain-system/std",
   "cumulus-pallet-xcm/std",
   "cumulus-pallet-xcmp-queue/std",
+  "cumulus-primitives-storage-weight-reclaim/std",
   "cumulus-primitives-core/std",
   "cumulus-primitives-utility/std",
   "fp-self-contained/std",
@@ -114,6 +119,8 @@ std = [
   "pallet-authorship/std",
   "pallet-balances/std",
   "pallet-collator-selection/std",
+  "pallet-collective/std",
+  "pallet-multibatching/std",
   "pallet-marketplace/std",
   "pallet-multisig/std",
   "pallet-nfts/std",
@@ -159,9 +166,11 @@ runtime-benchmarks = [
   "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
   "pallet-collator-selection/runtime-benchmarks",
+  "pallet-collective/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
+  "pallet-multibatching/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
@@ -170,6 +179,7 @@ runtime-benchmarks = [
   "pallet-vesting/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
+  "cumulus-pallet-parachain-system/runtime-benchmarks",
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
   "cumulus-pallet-xcmp-queue/runtime-benchmarks",
 ]
@@ -188,6 +198,8 @@ try-runtime = [
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
+  "pallet-collective/try-runtime",
+  "pallet-multibatching/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-nfts/try-runtime",

@@ -141,6 +141,11 @@ pub mod testnet {
 					balance_per_account,
 				), // Faith
 			],
+			vec![
+				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
+				AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
+				AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
+			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 			PARA_ID.into(),
 		))
@@ -187,6 +192,7 @@ pub mod testnet {
 				),
 				(AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")), 1_000 * MUSE),
 			],
+			vec![],
 			AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")),
 			PARA_ID.into(),
 		))
@@ -198,6 +204,7 @@ pub mod testnet {
 	fn testnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
 		endowed_accounts: Vec<(AccountId, testnet_runtime::Balance)>,
+		council: Vec<AccountId>,
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
@@ -211,6 +218,9 @@ pub mod testnet {
 				"collatorSelection": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 					"candidacyBond": 100 * MUSE,
+				},
+				"council": {
+					"members": council,
 				},
 				"session": {
 					"keys": invulnerables
