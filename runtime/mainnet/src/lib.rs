@@ -174,15 +174,13 @@ pub mod fee {
 	impl WeightToFeePolynomial for RefTimeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_MYTH:
-			// in our template, we map to 1/10 of that, or 1/10 MILLI_MYTH
-			let p = MILLI_MYTH / 10;
-			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+			let numerator = MILLI_MYTH / 10;
+			let denominator = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,
-				negative: false,
-				coeff_frac: Perbill::from_rational(p % q, q),
-				coeff_integer: p / q,
+				degree: 1,       // lineal function
+				negative: false, // positive growth
+				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
+				coeff_integer: numerator / denominator,
 			}]
 		}
 	}
@@ -192,15 +190,15 @@ pub mod fee {
 	impl WeightToFeePolynomial for ProofSizeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// Map 10kb proof to 1 CENT.
-			let p = MILLI_MYTH / 10;
-			let q = 10_000;
+			// Map 10kb proof to 10 MILLI_MYTH.
+			let numerator = MILLI_MYTH * 10;
+			let denominator = 10_000;
 
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,
-				negative: false,
-				coeff_frac: Perbill::from_rational(p % q, q),
-				coeff_integer: p / q,
+				degree: 1,       // lineal function
+				negative: false, // positive growth
+				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
+				coeff_integer: numerator / denominator,
 			}]
 		}
 	}
@@ -259,10 +257,14 @@ pub const MYTH: Balance = 1_000 * MILLI_MYTH;
 pub const MICRO_DOT: Balance = 10_000;
 pub const MILLI_DOT: Balance = 1_000 * MICRO_DOT;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MYTH;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_MYTH;
 
+/// Calculate the storage deposit based on the number of storage items and the
+/// combined byte size of those items.
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	(items as Balance * 20 * MYTH + (bytes as Balance) * 100 * MICRO_MYTH) / 100
+	let per_item_deposit = MYTH / 5;
+	let per_byte_deposit = MICRO_MYTH;
+	items as Balance * per_item_deposit + (bytes as Balance) * per_byte_deposit
 }
 
 /// The version information used to identify this runtime when compiled natively.
@@ -305,6 +307,7 @@ parameter_types! {
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
 	pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
+	/// SS58 prefix of the parachain. Used for address formatting.
 	pub const SS58Prefix: u16 = 29972;
 }
 
@@ -383,8 +386,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICRO_MYTH;
+	pub const TransactionByteFee: Balance = 100 * MICRO_MYTH;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -557,10 +559,10 @@ impl pallet_aura::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 1000;
+	pub const MaxCandidates: u32 = 100;
 	pub const MinEligibleCollators: u32 = 5;
 	pub const SessionLength: BlockNumber = 6 * HOURS;
-	pub const MaxInvulnerables: u32 = 100;
+	pub const MaxInvulnerables: u32 = 20;
 	// StakingAdmin pluralistic body.
 	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
 }

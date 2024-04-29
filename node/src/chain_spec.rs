@@ -208,8 +208,6 @@ pub mod testnet {
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
-		use testnet_runtime::EXISTENTIAL_DEPOSIT;
-
 		serde_json::json!({
 				"balances": {
 					"balances": endowed_accounts,
@@ -219,7 +217,7 @@ pub mod testnet {
 				},
 				"collatorSelection": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
+					"candidacyBond": 100 * MUSE,
 				},
 				"council": {
 					"members": council,
@@ -263,7 +261,7 @@ pub mod mainnet {
 		MainChainSpec::builder(
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
-				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
+				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
 			},
 		)
@@ -397,8 +395,6 @@ pub mod mainnet {
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
-		use mainnet_runtime::EXISTENTIAL_DEPOSIT;
-
 		serde_json::json!({
 				"balances": {
 					"balances": endowed_accounts,
@@ -408,7 +404,7 @@ pub mod mainnet {
 				},
 				"collatorSelection": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
+					"candidacyBond": 100 * MYTH,
 				},
 				"session": {
 					"keys": invulnerables
