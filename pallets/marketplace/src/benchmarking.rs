@@ -105,6 +105,7 @@ pub mod benchmarks {
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
 			fee: BalanceOf::<T>::from(0u8),
+			escrow_agent: None,
 			signature_data: SignatureData {
 				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![0],
@@ -215,6 +216,7 @@ pub mod benchmarks {
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
 			fee: BalanceOf::<T>::from(1u8),
+			escrow_agent: None,
 			signature_data: SignatureData {
 				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![1],

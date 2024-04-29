@@ -729,6 +729,15 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+impl pallet_escrow::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type MaxDeposits = ConstU32<10>;
+	type MinDeposit = ExistentialDeposit;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
+}
+
 parameter_types! {
 	pub const MinVestedTransfer: Balance = 100 * MILLI_MUSE;
 	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
@@ -787,6 +796,8 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+
+		Escrow: pallet_escrow = 50,
 	}
 );
 
