@@ -2,12 +2,7 @@
 panic = "unwind"
 
 [workspace]
-members = [
-  "node",
-  "primitives/xcm",
-  "runtime/mainnet",
-  "runtime/testnet",
-]
+members = ["node", "primitives/xcm", "runtime/mainnet", "runtime/testnet"]
 resolver = "2"
 
 [workspace.package]
@@ -31,7 +26,7 @@ parity-scale-codec = { version = "3.6.9", default-features = false, features = [
 ] }
 scale-info = { version = "2.11.1", default-features = false }
 serde = { version = "1.0.197", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.114", features = ["arbitrary_precision"]}
+serde_json = { version = "1.0.114", features = ["arbitrary_precision"] }
 impl-serde = { version = "0.4.0", default-features = false }
 smallvec = "1.13.1"
 libsecp256k1 = { version = "0.7.1", default-features = false }
@@ -118,6 +113,7 @@ testnet-parachains-constants = { git = "https://github.com/paritytech/polkadot-s
 
 # Cumulus
 cumulus-primitives-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0", default-features = false }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0", default-features = false }
 cumulus-client-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0" }
 cumulus-client-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0" }
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0" }
