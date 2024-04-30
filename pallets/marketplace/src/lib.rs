@@ -539,7 +539,7 @@ pub mod pallet {
 				},
 				OrderType::Bid => {
 					if let Some(ask) = Asks::<T>::get(collection, item) {
-						if timestamp >= ask.expiration {
+						if timestamp >= ask.expiration || ask.price != *price{
 							return None;
 						};
 						return Some(ExecOrder::Ask(ask));
