@@ -45,6 +45,7 @@ pub struct TestnetRuntimeExecutor;
 
 impl NativeExecutionDispatch for TestnetRuntimeExecutor {
 	type ExtendHostFunctions = (
+		sp_io::SubstrateHostFunctions,
 		cumulus_client_service::storage_proof_size::HostFunctions,
 		frame_benchmarking::benchmarking::HostFunctions,
 	);
@@ -63,6 +64,7 @@ pub struct MainnetRuntimeExecutor;
 
 impl NativeExecutionDispatch for MainnetRuntimeExecutor {
 	type ExtendHostFunctions = (
+		sp_io::SubstrateHostFunctions,
 		cumulus_client_service::storage_proof_size::HostFunctions,
 		frame_benchmarking::benchmarking::HostFunctions,
 	);
@@ -156,10 +158,11 @@ where
 	let executor = NativeElseWasmExecutor::<Executor>::new_with_wasm_executor(wasm);
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+		sc_service::new_full_parts_record_import::<Block, RuntimeApi, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
+			true,
 		)?;
 	let client = Arc::new(client);
 

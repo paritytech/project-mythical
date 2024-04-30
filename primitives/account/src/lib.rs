@@ -27,11 +27,8 @@ use sp_core::{ecdsa, H160};
 
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sp_core::crypto::AccountId32;
+use sp_io::hashing::keccak_256;
 use sp_runtime::MultiSignature;
-
-//TODO Maybe this should be upstreamed into Frontier (And renamed accordingly) so that it can
-// be used in palletEVM as well. It may also need more traits such as AsRef, AsMut, etc like
-// AccountId32 has.
 
 /// The account type to be used in Moonbeam. It is a wrapper for 20 fixed bytes. We prefer to use
 /// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
@@ -47,11 +44,28 @@ impl_serde::impl_fixed_hash_serde!(AccountId20, 20);
 
 #[cfg(feature = "std")]
 impl std::fmt::Display for AccountId20 {
-	//TODO This is a pretty quck-n-dirty implementation. Perhaps we should add
-	// checksum casing here? I bet there is a crate for that.
-	// Maybe this one https://github.com/miguelmota/rust-eth-checksum
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:?}", self.0)
+		let address = hex::encode(self.0).trim_start_matches("0x").to_lowercase();
+		let address_hash = hex::encode(keccak_256(address.as_bytes()));
+
+		let checksum: String =
+			address
+				.char_indices()
+				.fold(String::from("0x"), |mut acc, (index, address_char)| {
+					let n = u16::from_str_radix(&address_hash[index..index + 1], 16)
+						.expect("Keccak256 hashed; qed");
+
+					if n > 7 {
+						// make char uppercase if ith character is 9..f
+						acc.push_str(&address_char.to_uppercase().to_string())
+					} else {
+						// already lowercased
+						acc.push(address_char)
+					}
+
+					acc
+				});
+		write!(f, "{checksum}")
 	}
 }
 
@@ -127,6 +141,9 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 	type Signer = EthereumSigner;
 	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &AccountId20) -> bool {
 		let mut m = [0u8; 32];
+		// Here we use the sha256 hashing algorithm instead of the expected blake2_256.
+		// The reason is that we intend to verify Ethereum signatures, which expect a keccak256
+		// digest instead of the expected blake2_256 one in secp256k1_ecdsa_recover.
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
@@ -185,12 +202,9 @@ impl From<[u8; 20]> for EthereumSigner {
 
 impl From<ecdsa::Public> for EthereumSigner {
 	fn from(x: ecdsa::Public) -> Self {
-		let decompressed = libsecp256k1::PublicKey::parse_slice(
-			&x.0,
-			Some(libsecp256k1::PublicKeyFormat::Compressed),
-		)
-		.expect("Wrong compressed public key provided")
-		.serialize();
+		let decompressed = libsecp256k1::PublicKey::parse_compressed(&x.0)
+			.expect("Wrong compressed public key provided")
+			.serialize();
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&decompressed[1..65]);
 		let account = H160::from_slice(&Keccak256::digest(m).as_slice()[12..32]);
@@ -210,15 +224,17 @@ impl From<libsecp256k1::PublicKey> for EthereumSigner {
 #[cfg(feature = "std")]
 impl std::fmt::Display for EthereumSigner {
 	fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-		write!(fmt, "ethereum signature: {:?}", H160::from_slice(&self.0))
+		write!(fmt, "ethereum signer: {:?}", H160::from_slice(&self.0))
 	}
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use sp_core::{ecdsa, Pair, H256};
-	use sp_runtime::traits::IdentifyAccount;
+	use hex::ToHex;
+	use sp_core::hexdisplay::AsBytesRef;
+	use sp_core::{Pair, H256};
+	use sp_runtime::traits::{IdentifyAccount, Verify};
 
 	#[test]
 	fn test_account_derivation_1() {
@@ -257,5 +273,30 @@ mod tests {
 		let old = AccountId20(H160::from(H256::from_slice(Keccak256::digest(&m).as_slice())).0);
 		let new = AccountId20(H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]).0);
 		assert_eq!(new, old);
+	}
+	#[test]
+	fn test_verify() {
+		let raw_message = b"Hello, world!";
+		let message_hash = Keccak256::digest(raw_message.as_bytes_ref());
+		assert_eq!(
+			message_hash.encode_hex::<String>(),
+			"b6e16d27ac5ab427a7f68900ac5559ce272dc6c37c82b3e052246c82244c50e4"
+		);
+
+		let private_key = "0xbbeca31142ae5cf58522af17442bd8a63b1aa7c485b266ce5256b6e2d6fb8fda";
+		let pair = ecdsa::Pair::from_string(private_key, None).expect("Invalid private key");
+		let ecdsa_signature = pair.sign_prehashed(message_hash.as_ref());
+		assert_eq!(ecdsa_signature.encode_hex::<String>(), "33f6526244820bf440604df9d2638461ee09477fa6b01c80321f63b9c9995a5971f7e28e9c6aeb52a89d605fb07f13e59cc8ec352ac78ebbc75af0543c1b3d3400");
+
+		let signer: EthereumSigner = pair.public().into();
+		let account = signer.into_account();
+		assert_eq!(
+			account.0.encode_hex::<String>(),
+			"C80AfE84e5E9e37bDF58855E5A0cB17a2bC70cfA".to_lowercase()
+		);
+
+		let ethereum_signature: EthereumSignature = ecdsa_signature.into();
+		let result = ethereum_signature.verify(raw_message.as_bytes_ref(), &account);
+		assert!(result);
 	}
 }

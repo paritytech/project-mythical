@@ -42,6 +42,7 @@ hex = { version = "0.4.3", default-features = false }
 testnet-runtime = { path = "runtime/testnet" }
 mainnet-runtime = { path = "runtime/mainnet" }
 pallet-marketplace = { path = "pallets/marketplace", default-features = false }
+pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 
 # Substrate
@@ -138,6 +139,7 @@ cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/polka
 pallet-collator-selection = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0", default-features = false }
 parachain-info = { package = "staging-parachain-info", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0", default-features = false }
 parachains-common = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0", default-features = false }
+
 
 # Polkadot
 pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.10.0", default-features = false }

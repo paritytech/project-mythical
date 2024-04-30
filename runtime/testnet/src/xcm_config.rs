@@ -1,10 +1,10 @@
-use core::{marker::PhantomData, ops::ControlFlow};
+use core::marker::PhantomData;
 
 use crate::fee::default_fee_per_second;
 use frame_support::traits::{Contains, ContainsPair, Get};
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Everything, Nothing, ProcessMessageError},
+	traits::{ConstU32, Everything, Nothing},
 };
 use frame_system::EnsureRoot;
 use hex_literal::hex;
@@ -16,14 +16,13 @@ use testnet_parachains_constants::rococo::snowbridge::EthereumNetwork;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
-	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, CreateMatcher, DescribeFamily,
-	DescribeTerminus, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete, MatchXcm,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, DenyReserveTransferToRelayChain,
+	DenyThenTry, DescribeFamily, DescribeTerminus, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete,
 	NativeAsset, RelayChainAsNative, SiblingParachainAsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
-use xcm_executor::traits::Properties;
-use xcm_executor::{traits::ShouldExecute, XcmExecutor};
+use xcm_executor::XcmExecutor;
 
 use runtime_common::DealWithFees;
 use xcm_primitives::SignedToAccountId20;
@@ -34,6 +33,8 @@ use super::{
 	TransactionByteFee, WeightToFee, XcmpQueue,
 };
 
+/// Parachain ID of AssetHub, as defined here:
+/// https://github.com/paritytech/polkadot-sdk/blob/eba3deca3e61855c237a33013e8a5e82c479e958/polkadot/runtime/rococo/constants/src/lib.rs#L110
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
 parameter_types! {
@@ -56,10 +57,9 @@ parameter_types! {
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
-	// The parent (Relay-chain) origin converts to the parent `AccountId`.
-	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
+	// Here/local root location to `AccountId`.
 	HashedDescription<AccountId, DescribeFamily<DescribeTerminus>>,
-	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
+	// If we receive a Location of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 );
 
@@ -117,7 +117,9 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
+	// One XCM operation is 1_000_000_000 weight - almost certainly a safe estimate.
+	// For reference some other parachains are charing only 200_000_000 per instruction
+	// and no weight per byte.
 	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000, 64 * 1024);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsIntoHolding: u32 = 64;
@@ -127,70 +129,6 @@ pub struct ParentOrParentsExecutivePlurality;
 impl Contains<Location> for ParentOrParentsExecutivePlurality {
 	fn contains(l: &Location) -> bool {
 		matches!(l.unpack(), (1, []) | (1, [Plurality { id: BodyId::Executive, .. }]))
-	}
-}
-
-//TODO: move DenyThenTry to polkadot's xcm module.
-/// Deny executing the xcm message if it matches any of the Deny filter regardless of anything else.
-/// If it passes the Deny, and matches one of the Allow cases then it is let through.
-pub struct DenyThenTry<Deny, Allow>(PhantomData<Deny>, PhantomData<Allow>)
-where
-	Deny: ShouldExecute,
-	Allow: ShouldExecute;
-
-impl<Deny, Allow> ShouldExecute for DenyThenTry<Deny, Allow>
-where
-	Deny: ShouldExecute,
-	Allow: ShouldExecute,
-{
-	fn should_execute<RuntimeCall>(
-		origin: &Location,
-		instructions: &mut [Instruction<RuntimeCall>],
-		max_weight: Weight,
-		properties: &mut Properties,
-	) -> Result<(), ProcessMessageError> {
-		Deny::should_execute(origin, instructions, max_weight, properties)?;
-		Allow::should_execute(origin, instructions, max_weight, properties)
-	}
-}
-
-// See issue <https://github.com/paritytech/polkadot/issues/5233>
-pub struct DenyReserveTransferToRelayChain;
-impl ShouldExecute for DenyReserveTransferToRelayChain {
-	fn should_execute<RuntimeCall>(
-		origin: &Location,
-		instructions: &mut [Instruction<RuntimeCall>],
-		_max_weight: Weight,
-		_properties: &mut Properties,
-	) -> Result<(), ProcessMessageError> {
-		instructions.matcher().match_next_inst_while(
-			|_| true,
-			|inst| match inst {
-				InitiateReserveWithdraw {
-					reserve: Location { parents: 1, interior: Here },
-					..
-				}
-				| DepositReserveAsset { dest: Location { parents: 1, interior: Here }, .. }
-				| TransferReserveAsset { dest: Location { parents: 1, interior: Here }, .. } => {
-					Err(ProcessMessageError::Unsupported) // Deny
-				},
-				// An unexpected reserve transfer has arrived from the Relay Chain. Generally,
-				// `IsReserve` should not allow this, but we just log it here.
-				ReserveAssetDeposited { .. }
-					if matches!(origin, Location { parents: 1, interior: Here }) =>
-				{
-					log::warn!(
-						target: "xcm::barrier",
-						"Unexpected ReserveAssetDeposited from the Relay Chain",
-					);
-					Ok(ControlFlow::Continue(()))
-				},
-				_ => Ok(ControlFlow::Continue(())),
-			},
-		)?;
-
-		// Permit everything else
-		Ok(())
 	}
 }
 
@@ -287,7 +225,6 @@ impl xcm_executor::Config for XcmConfig {
 	type Aliasers = Nothing;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
-	//TODO: Replace with benchmarked weights
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = Traders;
 	type ResponseHandler = PolkadotXcm;
@@ -342,7 +279,6 @@ impl pallet_xcm::Config for Runtime {
 	// All reserve transfers are allowed.
 	type XcmReserveTransferFilter = Everything;
 	// Use (conservative) bounds on estimating XCM execution on this chain.
-	//TODO: Replace with benchmarked weights
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
 	type RuntimeOrigin = RuntimeOrigin;
@@ -356,7 +292,6 @@ impl pallet_xcm::Config for Runtime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = LocationToAccountId;
 	type MaxLockers = ConstU32<8>;
-	//TODO: Replace with benchmarked weights
 	type WeightInfo = pallet_xcm::TestWeightInfo;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
