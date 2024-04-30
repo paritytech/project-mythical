@@ -395,6 +395,7 @@ pub mod pallet {
 							price: order.price,
 							expiration: order.expires_at,
 							fee: order.fee,
+							escrow_agent: order.escrow_agent,
 						};
 
 						Asks::<T>::insert(order.collection, order.item, ask);
@@ -438,12 +439,7 @@ pub mod pallet {
 							Error::<T>::ValidMatchMustExist
 						);
 
-						let bid = Bid {
-							buyer: who,
-							expiration: order.expires_at,
-							fee: order.fee,
-							escrow_agent: order.escrow_agent,
-						};
+						let bid = Bid { buyer: who, expiration: order.expires_at, fee: order.fee };
 
 						Bids::<T>::insert((order.collection, order.item, order.price), bid);
 					}
@@ -583,7 +579,7 @@ pub mod pallet {
 					buyer = bid.buyer;
 					seller_fee = *fee;
 					buyer_fee = bid.fee;
-					escrow_agent = bid.escrow_agent;
+					escrow_agent = order_escrow_agent;
 				},
 				ExecOrder::Ask(ask) => {
 					ensure!(who.clone() != ask.seller.clone(), Error::<T>::BuyerIsSeller);
@@ -592,7 +588,7 @@ pub mod pallet {
 					buyer = who;
 					seller_fee = ask.fee;
 					buyer_fee = *fee;
-					escrow_agent = order_escrow_agent;
+					escrow_agent = ask.escrow_agent;
 				},
 			};
 
