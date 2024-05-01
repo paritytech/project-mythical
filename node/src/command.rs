@@ -376,6 +376,7 @@ pub fn run() -> Result<()> {
 						crate::service::start_parachain_node::<
 							testnet_runtime::RuntimeApi,
 							TestnetRuntimeExecutor,
+							sc_network::NetworkWorker<_, _>
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
 						.map(|r| r.0)
@@ -388,6 +389,7 @@ pub fn run() -> Result<()> {
 						crate::service::start_parachain_node::<
 							mainnet_runtime::RuntimeApi,
 							MainnetRuntimeExecutor,
+							sc_network::NetworkWorker<_, _>
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
 						.map(|r| r.0)

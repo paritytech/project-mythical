@@ -26,6 +26,7 @@ use sc_executor::{
 	HeapAllocStrategy, NativeElseWasmExecutor, NativeExecutionDispatch, WasmExecutor,
 	DEFAULT_HEAP_ALLOC_STRATEGY,
 };
+use sc_network::NetworkBackend;
 use sc_network::NetworkBlock;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
@@ -209,7 +210,7 @@ where
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 #[allow(clippy::too_many_arguments)]
-async fn start_node_impl<RuntimeApi, Executor, BIQ, SC>(
+async fn start_node_impl<RuntimeApi, Executor, BIQ, SC, Net>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -262,12 +263,13 @@ where
 		OverseerHandle,
 		Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	) -> Result<(), sc_service::Error>,
+	Net: NetworkBackend<Block, Hash>,
 {
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial::<RuntimeApi, Executor, BIQ>(&parachain_config, build_import_queue)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
-	let net_config = sc_network::config::FullNetworkConfiguration::new(&parachain_config.network);
+	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, Net>::new(&parachain_config.network);
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -562,7 +564,7 @@ where
 }
 
 /// Start a parachain node.
-pub async fn start_parachain_node<RuntimeApi, Executor>(
+pub async fn start_parachain_node<RuntimeApi, Executor, Net: NetworkBackend<Block, Hash>>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -585,7 +587,7 @@ where
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 {
-	start_node_impl::<RuntimeApi, Executor, _, _>(
+	start_node_impl::<RuntimeApi, Executor, _, _, Net>(
 		parachain_config,
 		polkadot_config,
 		collator_options,
