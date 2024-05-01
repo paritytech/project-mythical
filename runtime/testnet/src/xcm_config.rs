@@ -4,7 +4,7 @@ use crate::fee::default_fee_per_second;
 use frame_support::traits::{Contains, ContainsPair, Get};
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Everything, Nothing},
+	traits::{ConstU32, Everything, Nothing,tokens::imbalance::ResolveTo},
 };
 use frame_system::EnsureRoot;
 use hex_literal::hex;
@@ -49,6 +49,7 @@ parameter_types! {
 			GlobalConsensus(EthereumNetwork::get()), // sepolia
 			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
 		]);
+	pub StakingPot: AccountId = crate::CollatorSelection::account_id();
 	// Arbitrary value to allow to test reserve transfers, only for testing.
 	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
 }
@@ -208,7 +209,7 @@ pub type Traders = (
 	//Relay token.
 	FixedRateOfFungible<RelayPerSecondAndByte, ()>,
 	//Native asset.
-	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
+	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ResolveTo<StakingPot, Balances>>,
 );
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<AssetHubLocation>);
