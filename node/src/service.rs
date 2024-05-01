@@ -316,7 +316,7 @@ where
 				transaction_pool: Some(OffchainTransactionPoolFactory::new(
 					transaction_pool.clone(),
 				)),
-				network_provider: network.clone(),
+				network_provider: Arc::new(network.clone()),
 				is_validator: parachain_config.role.is_authority(),
 				enable_http_requests: false,
 				custom_extensions: move |_| vec![],
@@ -467,7 +467,6 @@ where
 			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 			Ok(timestamp)
 		},
-		slot_duration,
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
 		telemetry,
