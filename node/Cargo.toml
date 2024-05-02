@@ -68,7 +68,7 @@ polkadot-service = { workspace = true }
 xcm = { workspace = true, default-features = false }
 
 # Cumulus
-cumulus-primitives-aura ={ workspace = true }
+cumulus-primitives-aura = { workspace = true }
 cumulus-client-cli = { workspace = true }
 cumulus-client-consensus-aura = { workspace = true }
 cumulus-client-consensus-common = { workspace = true }
