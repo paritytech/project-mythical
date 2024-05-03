@@ -24,6 +24,7 @@ hex-literal = { workspace = true }
 testnet-runtime = { workspace = true }
 mainnet-runtime = { workspace = true }
 runtime-common = { workspace = true }
+custom-pool = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true }
