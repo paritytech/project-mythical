@@ -792,6 +792,67 @@ mod create_bid {
 			);
 		})
 	}
+
+	#[test]
+	fn order_not_executes_on_price_mismatch() {
+		new_test_ext().execute_with(|| {
+			let buyer = account(2);
+			let seller = account(1);
+
+			let expires_at = get_valid_expiration();
+
+			mint_item(0, seller.clone());
+
+			let (_, fee_signer_pair) = admin_accounts_setup();
+
+			let ask_fee = 2;
+
+			let ask_price = 10000;
+			let mut order = Order {
+				order_type: OrderType::Ask,
+				collection: 0,
+				item: 0,
+				expires_at,
+				price: ask_price,
+				fee: ask_fee.clone(),
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
+			};
+			append_valid_signature(fee_signer_pair.clone(), &mut order);
+
+			assert_ok!(Marketplace::create_order(
+				RuntimeOrigin::signed(seller.clone()),
+				order,
+				Execution::AllowCreation
+			));
+
+			Balances::set_balance(&buyer, 1000000);
+
+			let bid_fee = 3;
+			let bid_price = 20000;
+			let mut bid = Order {
+				order_type: OrderType::Bid,
+				collection: 0,
+				item: 0,
+				expires_at,
+				price: bid_price,
+				fee: bid_fee,
+				signature_data: SignatureData {
+					signature: raw_signature([0; 65]),
+					nonce: <Vec<u8>>::new(),
+				},
+			};
+			append_valid_signature(fee_signer_pair, &mut bid);
+
+			assert_ok!(Marketplace::create_order(
+				RuntimeOrigin::signed(buyer.clone()),
+				bid.clone(),
+				Execution::AllowCreation
+			));
+
+			let stored_bid = Bid { buyer, expiration: expires_at, fee: bid_fee };
+			assert!(Bids::<Test>::get((0, 0, bid_price)) == Some(stored_bid));
+		})
+	}
 }
 
 mod execute_ask_with_existing_bid {

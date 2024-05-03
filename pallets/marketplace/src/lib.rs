@@ -152,6 +152,7 @@ pub mod pallet {
 			item: T::ItemId,
 			price: BalanceOf<T>,
 			expires_at: T::Moment,
+			fee: BalanceOf<T>,
 		},
 		/// A trade of Ask and Bid was executed.
 		OrderExecuted {
@@ -160,6 +161,8 @@ pub mod pallet {
 			seller: T::AccountId,
 			buyer: T::AccountId,
 			price: BalanceOf<T>,
+			seller_fee: BalanceOf<T>,
+			buyer_fee: BalanceOf<T>,
 		},
 		/// The order was canceled by the order creator or the pallet's authority.
 		OrderCanceled { collection: T::CollectionId, item: T::ItemId, who: T::AccountId },
@@ -352,6 +355,7 @@ pub mod pallet {
 				item: order.item,
 				price: order.price,
 				expires_at: order.expires_at,
+				fee: order.fee,
 			});
 
 			match order.order_type {
@@ -539,7 +543,7 @@ pub mod pallet {
 				},
 				OrderType::Bid => {
 					if let Some(ask) = Asks::<T>::get(collection, item) {
-						if timestamp >= ask.expiration {
+						if timestamp >= ask.expiration || ask.price != *price {
 							return None;
 						};
 						return Some(ExecOrder::Ask(ask));
@@ -599,6 +603,8 @@ pub mod pallet {
 				seller,
 				buyer,
 				price: *price,
+				seller_fee,
+				buyer_fee,
 			});
 			Ok(())
 		}
