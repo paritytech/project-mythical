@@ -2,7 +2,14 @@
 panic = "unwind"
 
 [workspace]
-members = ["node", "primitives/xcm", "runtime/mainnet", "runtime/testnet"]
+members = [
+  "node",
+  "primitives/xcm",
+  "runtime/mainnet",
+  "runtime/testnet",
+  "primitives/custom-pool",
+]
+
 resolver = "2"
 
 [workspace.package]
@@ -37,6 +44,7 @@ hex = { version = "0.4.3", default-features = false }
 testnet-runtime = { path = "runtime/testnet" }
 mainnet-runtime = { path = "runtime/mainnet" }
 pallet-marketplace = { path = "pallets/marketplace", default-features = false }
+pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 
@@ -151,3 +159,4 @@ xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/par
 # Primitives
 account = { path = "./primitives/account", default-features = false }
 fp-self-contained = { path = "./primitives/self-contained", default-features = false }
+custom-pool = { path = "./primitives/custom-pool", default-features = false }

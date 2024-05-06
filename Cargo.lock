@@ -2504,6 +2504,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "custom-pool"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "sc-client-api",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+ "substrate-prometheus-endpoint",
+]
+
+[[package]]
 name = "cxx"
 version = "1.0.121"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5912,6 +5927,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
  "cumulus-relay-chain-rpc-interface",
+ "custom-pool",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures",
@@ -6952,6 +6968,27 @@ dependencies = [
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0)",
  "sp-weights",
+]
+
+[[package]]
+name = "pallet-migration"
+version = "0.0.1"
+dependencies = [
+ "account",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "pallet-marketplace",
+ "pallet-nfts",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
 ]
 
 [[package]]
@@ -13506,6 +13543,7 @@ dependencies = [
  "pallet-collective",
  "pallet-marketplace",
  "pallet-message-queue",
+ "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-nfts",
