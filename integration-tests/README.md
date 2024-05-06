@@ -35,7 +35,7 @@ In `integration-tests/transact.yml` you can find a test to make a transfer from 
 
 Run zombienet and wait until both parachains are propertly onboarded (producing blocks):
 ```
-$ zombienet-macos spawn zombienet-config/integration-tests-config.toml -p native
+$ bin/zombienet-macos spawn zombienet-config/integration-tests-config.toml -p native
 ```
 
 Run the tests:

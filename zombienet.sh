@@ -2,8 +2,9 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.98
-POLKADOT_V=v1.9.0
+ZOMBIENET_V=v1.3.102
+POLKADOT_V=v1.11.0
+RUNTIMES_V=v1.2.3
 
 case "$(uname -s)" in
     Linux*)     MACHINE=Linux;;
@@ -12,14 +13,13 @@ case "$(uname -s)" in
 esac
 
 if [ $MACHINE = "Linux" ]; then
-  ZOMBIENET_BIN=zombienet-linux-x64
+  ZOMBIENET_BIN="${BIN_DIR}/zombienet-linux-x64"
   IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
-  ZOMBIENET_BIN=zombienet-macos
+  ZOMBIENET_BIN="${BIN_DIR}/zombienet-macos"
   IS_LINUX=0
 fi
 
-BIN_DIR=bin
 
 build_polkadot() {
   echo "cloning polkadot repository..."
@@ -44,7 +44,7 @@ build_chainspec_generator() {
   CWD=$(pwd)
   mkdir -p "$BIN_DIR"
   pushd /tmp
-    git clone https://github.com/polkadot-fellows/runtimes.git
+    git clone https://github.com/polkadot-fellows/runtimes.git --branch "$RUNTIMES_V" || echo -n
     pushd runtimes
       echo "building chain-spec-generator..."
       cargo build --release --features fast-runtime
