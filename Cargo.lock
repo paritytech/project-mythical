@@ -7021,6 +7021,23 @@ dependencies = [
 [[package]]
 name = "pallet-proxy"
 version = "28.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "pallet-utility",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
+]
+
+[[package]]
+name = "pallet-proxy"
+version = "28.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0#3c3d6fceb82372a3019b37117aa453d564b212de"
 dependencies = [
  "frame-benchmarking",
@@ -9758,7 +9775,7 @@ dependencies = [
  "pallet-nis",
  "pallet-offences",
  "pallet-preimage",
- "pallet-proxy",
+ "pallet-proxy 28.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
  "pallet-ranked-collective",
  "pallet-recovery",
  "pallet-referenda",
@@ -13256,7 +13273,7 @@ dependencies = [
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-nfts",
- "pallet-proxy",
+ "pallet-proxy 28.0.0",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
@@ -14577,7 +14594,7 @@ dependencies = [
  "pallet-offences",
  "pallet-offences-benchmarking",
  "pallet-preimage",
- "pallet-proxy",
+ "pallet-proxy 28.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.9.0)",
  "pallet-recovery",
  "pallet-referenda",
  "pallet-root-testing",

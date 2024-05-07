@@ -22,7 +22,7 @@
 use super::*;
 
 use crate as proxy;
-use codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use frame_support::{
 	assert_noop, assert_ok, derive_impl,
 	traits::{ConstU32, ConstU64, Contains},

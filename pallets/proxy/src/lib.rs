@@ -33,7 +33,7 @@ mod benchmarking;
 mod tests;
 pub mod weights;
 
-use codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure,
@@ -206,7 +206,7 @@ pub mod pallet {
 			let def = Self::find_proxy(&real, &who, force_proxy_type)?;
 			ensure!(def.delay.is_zero(), Error::<T>::Unannounced);
 
-			Self::do_proxy(def, real, *call);
+			Self::do_proxy(def, real, *call)?;
 
 			Ok(())
 		}
@@ -508,7 +508,7 @@ pub mod pallet {
 			})
 			.map_err(|_| Error::<T>::Unannounced)?;
 
-			Self::do_proxy(def, real, *call);
+			Self::do_proxy(def, real, *call)?;
 
 			Ok(())
 		}
@@ -774,7 +774,7 @@ impl<T: Config> Pallet<T> {
 		def: ProxyDefinition<T::AccountId, T::ProxyType, BlockNumberFor<T>>,
 		real: T::AccountId,
 		call: <T as Config>::RuntimeCall,
-	) {
+	) -> DispatchResult {
 		// This is a freshly authenticated new account, the origin restrictions doesn't apply.
 		let mut origin: T::RuntimeOrigin = frame_system::RawOrigin::Signed(real).into();
 		origin.add_filter(move |c: &<T as frame_system::Config>::RuntimeCall| {
@@ -795,8 +795,15 @@ impl<T: Config> Pallet<T> {
 				_ => def.proxy_type.filter(c),
 			}
 		});
-		let e = call.dispatch(origin);
-		Self::deposit_event(Event::ProxyExecuted { result: e.map(|_| ()).map_err(|e| e.error) });
+		match call.dispatch(origin) {
+            Ok(_) => {
+                Self::deposit_event(Event::ProxyExecuted { result: Ok(()) });
+                Ok(())
+            }
+            Err(e) => {
+                return Err(e.error)
+            }
+        }
 	}
 
 	/// Removes all proxy delegates for a given delegator.
