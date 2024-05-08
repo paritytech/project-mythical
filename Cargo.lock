@@ -6821,6 +6821,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-escrow"
+version = "0.1.0"
+dependencies = [
+ "account",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0)",
+]
+
+[[package]]
 name = "pallet-fast-unstake"
 version = "27.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0#0bb6249268c0b77d2834640b84cb52fdd3d7e860"
@@ -13545,6 +13561,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
+ "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
  "pallet-migration",
