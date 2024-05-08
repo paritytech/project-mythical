@@ -21,7 +21,7 @@
 //! HOSTNAME: `ggwpez-ref-hw`, CPU: `Intel(R) Xeon(R) CPU @ 2.60GHz`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("./asset-hub-polkadot-chain-spec.json")`, DB CACHE: 1024
 
-// This file has been take from Asset Hub runtime and not modified.
+// This file has been taken from Asset Hub mainnet runtime and not modified.
 // We expect the XCM pallet to have similar weights for the Mythos runtime as well. 
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
@@ -57,6 +57,7 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
+
 	/// Storage: `ParachainInfo::ParachainId` (r:1 w:0)
 	/// Proof: `ParachainInfo::ParachainId` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainSystem::UpwardDeliveryFeeFactor` (r:1 w:0)
@@ -147,7 +148,7 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 8_024_000 picoseconds.
+		// Minimum execution time: 80_024_000 picoseconds.
 		Weight::from_parts(80_024_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 	}
@@ -370,4 +371,18 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+	/// Storage: `PolkadotXcm::AssetTraps` (r:1 w:1)
+	/// Proof: `PolkadotXcm::AssetTraps` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn claim_assets() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `126`
+		//  Estimated: `3591`
+		// Minimum execution time: 36_411_000 picoseconds.
+		Weight::from_parts(37_294_000, 0)
+			.saturating_add(Weight::from_parts(0, 3591))
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+
+
 }

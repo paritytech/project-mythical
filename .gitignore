@@ -24,8 +24,4 @@ resources
 
 # node binaries
 bin/*
-bin-*
 
-# zombienet binaries
-zombienet-macos
-zombienet-linux-x64

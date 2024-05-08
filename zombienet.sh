@@ -2,8 +2,9 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.95
-POLKADOT_V=v1.8.0
+ZOMBIENET_V=v1.3.102
+POLKADOT_V=v1.11.0
+RUNTIMES_V=v1.2.3
 
 case "$(uname -s)" in
     Linux*)     MACHINE=Linux;;
@@ -12,14 +13,13 @@ case "$(uname -s)" in
 esac
 
 if [ $MACHINE = "Linux" ]; then
-  ZOMBIENET_BIN=zombienet-linux-x64
+  ZOMBIENET_BIN="${BIN_DIR}/zombienet-linux-x64"
   IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
-  ZOMBIENET_BIN=zombienet-macos
+  ZOMBIENET_BIN="${BIN_DIR}/zombienet-macos"
   IS_LINUX=0
 fi
 
-BIN_DIR=bin
 
 build_polkadot() {
   echo "cloning polkadot repository..."
@@ -44,7 +44,7 @@ build_chainspec_generator() {
   CWD=$(pwd)
   mkdir -p "$BIN_DIR"
   pushd /tmp
-    git clone https://github.com/polkadot-fellows/runtimes.git
+    git clone https://github.com/polkadot-fellows/runtimes.git --branch "$RUNTIMES_V" || echo -n
     pushd runtimes
       echo "building chain-spec-generator..."
       cargo build --release --features fast-runtime
@@ -98,37 +98,29 @@ zombienet_testnet() {
   zombienet_init
   cargo build --release
   echo "spawning rococo-local relay chain plus mythos testnet as a parachain..."
-  ./$ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
+  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet.toml -p native
 }
 
 zombienet_testnet_asset_hub() {
   zombienet_init
   cargo build --release
   echo "spawning rococo-local relay chain plus muse testnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN spawn zombienet-config/testnet-asset-hub.toml -p native
+  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-asset-hub.toml -p native
 }
 
 zombienet_mainnet() {
   zombienet_init
   cargo build --release
   echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain..."
-  ./$ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
-}
-
-zombienet_mainnet() {
-  zombienet_init
-  cargo build --release
-  echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain..."
-  ./$ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
+  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet.toml -p native
 }
 
 zombienet_mainnet_asset_hub() {
   zombienet_init
   cargo build --release
   echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN spawn zombienet-config/mainnet-asset-hub.toml -p native
+  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet-asset-hub.toml -p native
 }
-
 
 print_help() {
   echo "This is a shell script to automate the execution of zombienet."
