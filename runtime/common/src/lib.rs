@@ -1,6 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-use frame_support::traits::fungible;
 use frame_support::traits::tokens::imbalance::ResolveTo;
+use frame_support::{
+	traits::fungible,
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
+};
 use pallet_collator_selection::StakingPotAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
