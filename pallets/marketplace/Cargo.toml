@@ -34,6 +34,7 @@ sp-core = { workspace = true, default-features = false}
 sp-keystore = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
+pallet-escrow = { workspace = true, default-features = false }
 
 [dev-dependencies]
 sp-io = { workspace = true }
@@ -51,6 +52,7 @@ std = [
 	"sp-std/std",
 	"pallet-balances/std",
     "pallet-nfts/std",
+	"pallet-escrow/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",

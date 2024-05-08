@@ -34,13 +34,14 @@ pub mod pallet {
 		traits::{
 			fungible::{Inspect, Mutate, MutateHold},
 			nonfungibles_v2::Transfer,
-			tokens::{Precision::Exact, Preservation::Preserve},
+			tokens::{Balance, Precision::Exact, Preservation::Preserve},
 		},
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 
+	use pallet_escrow::Pallet as Escrow;
 	use sp_runtime::{
 		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
 		BoundedVec, DispatchError, Saturating,
@@ -52,7 +53,10 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + pallet_nfts::Config + pallet_timestamp::Config
+		frame_system::Config
+		+ pallet_nfts::Config
+		+ pallet_timestamp::Config
+		+ pallet_escrow::Config
 	{
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
@@ -61,9 +65,11 @@ pub mod pallet {
 			+ GetDispatchInfo;
 
 		/// The currency trait.
-		type Currency: Inspect<Self::AccountId>
+		type Currency: Inspect<Self::AccountId, Balance = <Self as Config>::Balance>
 			+ Mutate<Self::AccountId>
-			+ MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
+			+ MutateHold<Self::AccountId, Reason = <Self as pallet::Config>::RuntimeHoldReason>;
+
+		type Balance: Balance + Into<<Self as pallet_escrow::Config>::Balance>;
 
 		/// Overarching hold reason.
 		type RuntimeHoldReason: From<HoldReason>;
@@ -382,6 +388,7 @@ pub mod pallet {
 							order.item,
 							&order.price,
 							&order.fee,
+							order.escrow_agent,
 						)?;
 					} else {
 						ensure!(
@@ -394,6 +401,7 @@ pub mod pallet {
 							price: order.price,
 							expiration: order.expires_at,
 							fee: order.fee,
+							escrow_agent: order.escrow_agent,
 						};
 
 						Asks::<T>::insert(order.collection, order.item, ask);
@@ -429,6 +437,7 @@ pub mod pallet {
 							order.item,
 							&order.price,
 							&order.fee,
+							order.escrow_agent,
 						)?;
 					} else {
 						ensure!(
@@ -560,11 +569,13 @@ pub mod pallet {
 			item: T::ItemId,
 			price: &BalanceOf<T>,
 			fee: &BalanceOf<T>,
+			order_escrow_agent: Option<T::AccountId>,
 		) -> Result<(), DispatchError> {
 			let seller: T::AccountId;
 			let buyer: T::AccountId;
 			let seller_fee: BalanceOf<T>;
 			let buyer_fee: BalanceOf<T>;
+			let escrow_agent: Option<T::AccountId>;
 
 			match exec_order {
 				ExecOrder::Bid(bid) => {
@@ -574,6 +585,7 @@ pub mod pallet {
 					buyer = bid.buyer;
 					seller_fee = *fee;
 					buyer_fee = bid.fee;
+					escrow_agent = order_escrow_agent;
 				},
 				ExecOrder::Ask(ask) => {
 					ensure!(who.clone() != ask.seller.clone(), Error::<T>::BuyerIsSeller);
@@ -582,13 +594,14 @@ pub mod pallet {
 					buyer = who;
 					seller_fee = ask.fee;
 					buyer_fee = *fee;
+					escrow_agent = ask.escrow_agent;
 				},
 			};
 
 			Asks::<T>::remove(collection, item);
 			Bids::<T>::remove((collection, item, *price));
 
-			Self::process_fees(&seller, seller_fee, &buyer, buyer_fee, *price)?;
+			Self::process_fees(&seller, seller_fee, &buyer, buyer_fee, *price, escrow_agent)?;
 
 			pallet_nfts::Pallet::<T>::enable_transfer(&collection, &item)?;
 			<pallet_nfts::Pallet<T> as Transfer<T::AccountId>>::transfer(
@@ -622,6 +635,7 @@ pub mod pallet {
 			buyer: &T::AccountId,
 			buyer_fee: BalanceOf<T>,
 			price: BalanceOf<T>,
+			escrow_agent: Option<T::AccountId>,
 		) -> Result<(), DispatchError> {
 			//Amount to be payed by the buyer
 			let buyer_payment_amount = price.checked_add(&buyer_fee).ok_or(Error::<T>::Overflow)?;
@@ -651,7 +665,19 @@ pub mod pallet {
 				Preserve,
 			)?;
 			//Pay earnings to seller
-			<T as crate::Config>::Currency::transfer(buyer, seller, seller_pay_amount, Preserve)?;
+			match escrow_agent {
+				Some(agent) => {
+					Escrow::<T>::make_deposit(&buyer, &seller, seller_pay_amount.into(), &agent)?;
+				},
+				None => {
+					<T as crate::Config>::Currency::transfer(
+						buyer,
+						seller,
+						seller_pay_amount,
+						Preserve,
+					)?;
+				},
+			}
 
 			Ok(())
 		}

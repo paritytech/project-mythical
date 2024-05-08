@@ -25,8 +25,14 @@ type OffchainSignature<Test> = <Test as pallet_nfts::Config>::OffchainSignature;
 type ItemId<Test> = <Test as pallet_nfts::Config>::ItemId;
 type Moment<Test> = <Test as pallet_timestamp::Config>::Moment;
 type Balance<Test> = <Test as pallet_balances::Config>::Balance;
-type MessageOf<Test> =
-	OrderMessage<CollectionId<Test>, ItemId<Test>, BalanceOf<Test>, Moment<Test>, Vec<u8>>;
+type MessageOf<Test> = OrderMessage<
+	CollectionId<Test>,
+	ItemId<Test>,
+	BalanceOf<Test>,
+	Moment<Test>,
+	Vec<u8>,
+	AccountIdOf<Test>,
+>;
 
 fn account(id: u8) -> AccountIdOf<Test> {
 	[id; 20].into()
@@ -74,6 +80,7 @@ fn append_valid_signature(
 		Moment<Test>,
 		OffchainSignature<Test>,
 		Vec<u8>,
+		AccountIdOf<Test>,
 	>,
 ) {
 	let message: MessageOf<Test> = order.clone().into();
@@ -119,6 +126,7 @@ pub fn create_valid_order(
 		expires_at,
 		price: 10000,
 		fee: 1,
+		escrow_agent: None,
 		signature_data: SignatureData {
 			signature: raw_signature([0; 65]),
 			nonce: <Vec<u8>>::new(),
@@ -293,6 +301,7 @@ mod create_order_initial_checks {
 				expires_at,
 				price: 1,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -327,6 +336,7 @@ mod create_order_initial_checks {
 				expires_at: timestamp + min_order_duration,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -360,6 +370,7 @@ mod create_order_initial_checks {
 				expires_at,
 				price: 1,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -395,6 +406,7 @@ mod create_order_initial_checks {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: vec![0u8],
@@ -432,6 +444,7 @@ mod create_ask {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -466,6 +479,7 @@ mod create_ask {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -499,6 +513,7 @@ mod create_ask {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -517,6 +532,7 @@ mod create_ask {
 				price: order.price,
 				expiration: order.expires_at,
 				fee: order.fee,
+				escrow_agent: order.escrow_agent,
 			};
 
 			assert!(Asks::<Test>::get(0, 0) == Some(ask));
@@ -539,6 +555,7 @@ mod create_ask {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -573,6 +590,7 @@ mod create_ask {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -611,6 +629,7 @@ mod create_bid {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -652,6 +671,7 @@ mod create_bid {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -686,6 +706,7 @@ mod create_bid {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -720,6 +741,7 @@ mod create_bid {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -775,6 +797,7 @@ mod create_bid {
 				expires_at,
 				price: 10000000000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -815,6 +838,7 @@ mod create_bid {
 				expires_at,
 				price: ask_price,
 				fee: ask_fee.clone(),
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
@@ -836,6 +860,7 @@ mod create_bid {
 				expires_at,
 				price: bid_price,
 				fee: bid_fee,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -880,6 +905,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price,
 				fee: bid_fee,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -907,6 +933,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee: ask_fee.clone(),
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -954,6 +981,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: 10000,
 				fee: 1,
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -998,6 +1026,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee: bid_fee,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1019,6 +1048,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee: ask_fee.clone(),
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -1056,6 +1086,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee: bid_fee,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1083,6 +1114,7 @@ mod execute_ask_with_existing_bid {
 				expires_at,
 				price: price.clone(),
 				fee: ask_fee.clone(),
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair, &mut order);
@@ -1135,6 +1167,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee: ask_fee.clone(),
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
@@ -1160,6 +1193,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee: bid_fee,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1209,6 +1243,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee: ask_fee.clone(),
+				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
@@ -1234,6 +1269,7 @@ mod execute_bid_with_existing_ask {
 				expires_at,
 				price: price.clone(),
 				fee: bid_fee,
+				escrow_agent: None,
 				signature_data: SignatureData {
 					signature: raw_signature([0; 65]),
 					nonce: <Vec<u8>>::new(),
@@ -1259,6 +1295,85 @@ mod execute_bid_with_existing_ask {
 			);
 			assert_eq!(seller_balance_before + seller_pay, Balances::balance(&seller));
 			assert_eq!(buyer_balance_before - buyer_payment, Balances::balance(&buyer))
+		})
+	}
+
+	#[test]
+	fn should_lock_funds_when_escrow_is_set() {
+		new_test_ext().execute_with(|| {
+			let buyer = account(2);
+			let seller = account(1);
+
+			let escrow_agent = account(105);
+
+			let expires_at = get_valid_expiration();
+			let price = 10000;
+
+			mint_item(0, seller.clone());
+
+			let (_, fee_signer_pair) = admin_accounts_setup();
+
+			let ask_fee = 2;
+			let mut order = Order {
+				order_type: OrderType::Ask,
+				collection: 0,
+				item: 0,
+				expires_at,
+				price: price.clone(),
+				fee: ask_fee.clone(),
+				escrow_agent: Some(escrow_agent),
+				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
+			};
+			append_valid_signature(fee_signer_pair.clone(), &mut order);
+
+			assert_ok!(Marketplace::create_order(
+				RuntimeOrigin::signed(seller.clone()),
+				order,
+				Execution::AllowCreation
+			));
+
+			Balances::set_balance(&buyer, 1000000);
+
+			let payout_address = PayoutAddress::<Test>::get().unwrap();
+			let payout_address_balance_before = Balances::balance(&payout_address);
+			let seller_balance_before = Balances::balance(&seller);
+			let buyer_balance_before = Balances::balance(&buyer);
+
+			let bid_fee = 3;
+			let mut bid = Order {
+				order_type: OrderType::Bid,
+				collection: 0,
+				item: 0,
+				expires_at,
+				price: price.clone(),
+				fee: bid_fee,
+				escrow_agent: None,
+				signature_data: SignatureData {
+					signature: raw_signature([0; 65]),
+					nonce: <Vec<u8>>::new(),
+				},
+			};
+			append_valid_signature(fee_signer_pair, &mut bid);
+
+			assert_ok!(Marketplace::create_order(
+				RuntimeOrigin::signed(buyer.clone()),
+				bid.clone(),
+				Execution::AllowCreation
+			));
+
+			let buyer_payment = price + bid_fee;
+			let marketplace_pay = bid_fee + ask_fee;
+			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
+
+			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
+			assert!(Nfts::can_transfer(&0, &0));
+			assert_eq!(
+				payout_address_balance_before + marketplace_pay,
+				Balances::balance(&payout_address)
+			);
+			assert_eq!(buyer_balance_before - buyer_payment, Balances::balance(&buyer));
+			assert_eq!(seller_balance_before, Balances::balance(&seller));
+			assert_eq!(seller_pay, Escrow::get_deposit(&seller, &escrow_agent));
 		})
 	}
 }

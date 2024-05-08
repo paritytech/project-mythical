@@ -15,6 +15,7 @@ pub type OrderOf<T> = Order<
 	<T as pallet_timestamp::Config>::Moment,
 	<T as Config>::Signature,
 	Vec<u8>,
+	<T as frame_system::Config>::AccountId,
 >;
 
 pub type OrderMessageOf<T> = OrderMessage<
@@ -23,6 +24,7 @@ pub type OrderMessageOf<T> = OrderMessage<
 	BalanceOf<T>,
 	<T as pallet_timestamp::Config>::Moment,
 	Vec<u8>,
+	<T as frame_system::Config>::AccountId,
 >;
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
@@ -31,6 +33,7 @@ pub struct Ask<AccountId, Amount, Expiration> {
 	pub price: Amount,
 	pub expiration: Expiration,
 	pub fee: Amount,
+	pub escrow_agent: Option<AccountId>,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
@@ -53,13 +56,22 @@ pub enum ExecOrder<AccountId, Amount, Expiration> {
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
-pub struct Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString> {
+pub struct Order<
+	CollectionId,
+	ItemId,
+	Amount,
+	Expiration,
+	OffchainSignature,
+	BoundedString,
+	AccountId,
+> {
 	pub order_type: OrderType,
 	pub collection: CollectionId,
 	pub item: ItemId,
 	pub price: Amount,
 	pub expires_at: Expiration,
 	pub fee: Amount,
+	pub escrow_agent: Option<AccountId>,
 	pub signature_data: SignatureData<OffchainSignature, BoundedString>,
 }
 
@@ -71,21 +83,39 @@ pub struct SignatureData<OffchainSignature, BoundedString> {
 
 ///Message data to be signed by the fee_signer account
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
-pub struct OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString> {
+pub struct OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString, AccountId> {
 	pub collection: CollectionId,
 	pub item: ItemId,
 	pub price: Amount,
 	pub expires_at: Expiration,
 	pub fee: Amount,
+	pub escrow_agent: Option<AccountId>,
 	pub nonce: BoundedString,
 }
 
-impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>
-	From<Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>>
-	for OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString>
+impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString, AccountId>
+	From<
+		Order<
+			CollectionId,
+			ItemId,
+			Amount,
+			Expiration,
+			OffchainSignature,
+			BoundedString,
+			AccountId,
+		>,
+	> for OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString, AccountId>
 {
 	fn from(
-		x: Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>,
+		x: Order<
+			CollectionId,
+			ItemId,
+			Amount,
+			Expiration,
+			OffchainSignature,
+			BoundedString,
+			AccountId,
+		>,
 	) -> Self {
 		OrderMessage {
 			collection: x.collection,
@@ -93,6 +123,7 @@ impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString>
 			price: x.price,
 			expires_at: x.expires_at,
 			fee: x.fee,
+			escrow_agent: x.escrow_agent,
 			nonce: x.signature_data.nonce,
 		}
 	}

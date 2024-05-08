@@ -30,6 +30,7 @@ frame_support::construct_runtime!(
 		Timestamp: pallet_timestamp,
 		Nfts: pallet_nfts,
 		Marketplace: pallet_marketplace,
+		Escrow: pallet_escrow,
 	}
 );
 
@@ -105,6 +106,7 @@ impl pallet_marketplace::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Balance = u128;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
@@ -136,6 +138,15 @@ impl pallet_timestamp::Config for Test {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = ConstU64<3>;
+	type WeightInfo = ();
+}
+
+impl pallet_escrow::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = u128;
+	type MinDeposit = ConstU128<2>;
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type WeightInfo = ();
 }
 

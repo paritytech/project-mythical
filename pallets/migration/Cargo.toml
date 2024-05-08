@@ -26,6 +26,7 @@ sp-std = { workspace = true }
 sp-runtime = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
+pallet-escrow = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
@@ -46,11 +47,10 @@ std = [
 	"scale-info/std",
 	"sp-std/std",
 	"pallet-balances/std",
-    "pallet-nfts/std",
+	"pallet-nfts/std",
 	"pallet-marketplace/std",
 	"pallet-timestamp/std",
+	"pallet-escrow/std",
 ]
-runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
-]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]

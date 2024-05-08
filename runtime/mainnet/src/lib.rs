@@ -632,6 +632,7 @@ impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Balance = Balance;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
@@ -640,6 +641,15 @@ impl pallet_marketplace::Config for Runtime {
 	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+}
+
+impl pallet_escrow::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = Balance;
+	type MinDeposit = ExistentialDeposit;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_migration::Config for Runtime {
@@ -688,6 +698,8 @@ construct_runtime!(
 
 		//Other
 		Migration: pallet_migration = 42,
+
+		Escrow: pallet_escrow = 50,
 	}
 );
 
@@ -755,6 +767,7 @@ mod benches {
 		[pallet_marketplace, Marketplace]
 		[pallet_nfts, Nfts]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_escrow, Escrow]
 	);
 }
 

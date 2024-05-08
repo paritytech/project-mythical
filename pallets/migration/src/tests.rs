@@ -108,7 +108,13 @@ mod create_ask {
 					RuntimeOrigin::signed(account(2)),
 					0,
 					0,
-					Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 }
+					Ask {
+						seller: account(1),
+						price: 10000,
+						expiration: 10000,
+						fee: 1,
+						escrow_agent: None
+					}
 				),
 				Error::<Test>::NotMigrator
 			);
@@ -124,7 +130,13 @@ mod create_ask {
 					RuntimeOrigin::signed(account(1)),
 					0,
 					0,
-					Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 }
+					Ask {
+						seller: account(1),
+						price: 10000,
+						expiration: 10000,
+						fee: 1,
+						escrow_agent: None
+					}
 				),
 				Error::<Test>::ItemNotFound
 			);
@@ -141,7 +153,13 @@ mod create_ask {
 					RuntimeOrigin::signed(account(1)),
 					0,
 					0,
-					Ask { seller: account(1), price: 10000, expiration: 0, fee: 1 }
+					Ask {
+						seller: account(1),
+						price: 10000,
+						expiration: 0,
+						fee: 1,
+						escrow_agent: None
+					}
 				),
 				Error::<Test>::InvalidExpiration
 			);
@@ -153,7 +171,13 @@ mod create_ask {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			mint_item(0, account(1));
-			let ask = Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 };
+			let ask = Ask {
+				seller: account(1),
+				price: 10000,
+				expiration: 10000,
+				fee: 1,
+				escrow_agent: None,
+			};
 
 			let res = Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone());
 			assert!(res.is_ok());
@@ -169,7 +193,13 @@ mod create_ask {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			mint_item(0, account(1));
-			let ask = Ask { seller: account(1), price: 10000, expiration: 10000, fee: 1 };
+			let ask = Ask {
+				seller: account(1),
+				price: 10000,
+				expiration: 10000,
+				fee: 1,
+				escrow_agent: None,
+			};
 			assert_ok!(Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()));
 			assert_noop!(
 				Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()),
@@ -188,7 +218,13 @@ mod create_ask {
 					RuntimeOrigin::signed(account(1)),
 					0,
 					0,
-					Ask { seller: account(2), price: 10000, expiration: 10000, fee: 1 }
+					Ask {
+						seller: account(2),
+						price: 10000,
+						expiration: 10000,
+						fee: 1,
+						escrow_agent: None
+					}
 				),
 				Error::<Test>::SellerNotItemOwner
 			);
