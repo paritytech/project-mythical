@@ -290,7 +290,7 @@ pub fn run() -> Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) => {
 					if cfg!(feature = "runtime-benchmarks") {
-						runner.sync_run(|config| cmd.run::<sp_runtime::traits::HashingFor<Block>, ReclaimHostFunctions>(config))
+						runner.sync_run(|config| cmd.run_with_spec::<sp_runtime::traits::HashingFor<Block>, ReclaimHostFunctions>(Some(config.chain_spec)))
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
@@ -376,6 +376,7 @@ pub fn run() -> Result<()> {
 						crate::service::start_parachain_node::<
 							testnet_runtime::RuntimeApi,
 							TestnetRuntimeExecutor,
+							sc_network::NetworkWorker<_, _>
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
 						.map(|r| r.0)
@@ -388,6 +389,7 @@ pub fn run() -> Result<()> {
 						crate::service::start_parachain_node::<
 							mainnet_runtime::RuntimeApi,
 							MainnetRuntimeExecutor,
+							sc_network::NetworkWorker<_, _>
 						>(config, polkadot_config, collator_options, id, hwbench)
 						.await
 						.map(|r| r.0)
