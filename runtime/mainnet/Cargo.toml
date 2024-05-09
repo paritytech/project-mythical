@@ -83,6 +83,7 @@ cumulus-pallet-session-benchmarking = { workspace = true, default-features = fal
 cumulus-pallet-xcm = { workspace = true, default-features = false }
 cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
 cumulus-primitives-core = { workspace = true, default-features = false }
+cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 cumulus-primitives-utility = { workspace = true, default-features = false }
 pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
@@ -107,6 +108,7 @@ std = [
   "cumulus-pallet-xcm/std",
   "cumulus-pallet-xcmp-queue/std",
   "cumulus-primitives-core/std",
+  "cumulus-primitives-storage-weight-reclaim/std",
   "cumulus-primitives-utility/std",
   "fp-self-contained/std",
   "frame-executive/std",

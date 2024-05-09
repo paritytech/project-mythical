@@ -5485,6 +5485,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-aura",
  "cumulus-primitives-core",
+ "cumulus-primitives-storage-weight-reclaim",
  "cumulus-primitives-utility",
  "fp-self-contained",
  "frame-benchmarking",
