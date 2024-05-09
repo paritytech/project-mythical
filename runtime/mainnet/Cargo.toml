@@ -164,9 +164,9 @@ runtime-benchmarks = [
   "pallet-collective/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
+  "pallet-migration/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
-
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
@@ -193,6 +193,7 @@ try-runtime = [
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
   "pallet-collective/try-runtime",
+  "pallet-migration/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-nfts/try-runtime",
   "pallet-session/try-runtime",
