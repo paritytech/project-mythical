@@ -5,6 +5,7 @@ set -e
 ZOMBIENET_V=v1.3.102
 POLKADOT_V=v1.11.0
 RUNTIMES_V=v1.2.3
+BIN_DIR=bin/
 
 case "$(uname -s)" in
     Linux*)     MACHINE=Linux;;
