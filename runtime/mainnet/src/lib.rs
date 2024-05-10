@@ -30,6 +30,7 @@ use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
+	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
@@ -628,11 +629,23 @@ impl pallet_nfts::Config for Runtime {
 	type Helper = ();
 }
 
+pub struct EscrowImpl;
+
+impl pallet_marketplace::Escrow<AccountId, Balance, AccountId> for EscrowImpl {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: Balance,
+		escrow_agent: &AccountId,
+	) -> DispatchResult {
+		Escrow::make_deposit(depositor, destination, value, escrow_agent)
+	}
+}
 impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type Balance = Balance;
+	type Escrow = EscrowImpl;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;

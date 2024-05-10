@@ -34,14 +34,13 @@ pub mod pallet {
 		traits::{
 			fungible::{Inspect, Mutate, MutateHold},
 			nonfungibles_v2::Transfer,
-			tokens::{Balance, Precision::Exact, Preservation::Preserve},
+			tokens::{Precision::Exact, Preservation::Preserve},
 		},
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 
-	use pallet_escrow::Pallet as Escrow;
 	use sp_runtime::{
 		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
 		BoundedVec, DispatchError, Saturating,
@@ -53,10 +52,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config
-		+ pallet_nfts::Config
-		+ pallet_timestamp::Config
-		+ pallet_escrow::Config
+		frame_system::Config + pallet_nfts::Config + pallet_timestamp::Config
 	{
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
@@ -65,11 +61,11 @@ pub mod pallet {
 			+ GetDispatchInfo;
 
 		/// The currency trait.
-		type Currency: Inspect<Self::AccountId, Balance = <Self as Config>::Balance>
+		type Currency: Inspect<Self::AccountId>
 			+ Mutate<Self::AccountId>
 			+ MutateHold<Self::AccountId, Reason = <Self as pallet::Config>::RuntimeHoldReason>;
 
-		type Balance: Balance + Into<<Self as pallet_escrow::Config>::Balance>;
+		type Escrow: Escrow<Self::AccountId, BalanceOf<Self>, Self::AccountId>;
 
 		/// Overarching hold reason.
 		type RuntimeHoldReason: From<HoldReason>;
@@ -127,7 +123,7 @@ pub mod pallet {
 		T::CollectionId,
 		Blake2_128Concat,
 		T::ItemId,
-		Ask<T::AccountId, BalanceOf<T>, T::Moment>,
+		Ask<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 	>;
 
 	#[pallet::storage]
@@ -538,7 +534,7 @@ pub mod pallet {
 			collection: &T::CollectionId,
 			item: &T::ItemId,
 			price: &BalanceOf<T>,
-		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>> {
+		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>> {
 			let timestamp = pallet_timestamp::Pallet::<T>::get();
 
 			match order_type {
@@ -563,7 +559,7 @@ pub mod pallet {
 		}
 
 		pub fn execute_order(
-			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>,
+			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 			who: T::AccountId,
 			collection: T::CollectionId,
 			item: T::ItemId,
@@ -667,7 +663,7 @@ pub mod pallet {
 			//Pay earnings to seller
 			match escrow_agent {
 				Some(agent) => {
-					Escrow::<T>::make_deposit(&buyer, &seller, seller_pay_amount.into(), &agent)?;
+					T::Escrow::make_deposit(buyer, seller, seller_pay_amount, &agent)?;
 				},
 				None => {
 					<T as crate::Config>::Currency::transfer(

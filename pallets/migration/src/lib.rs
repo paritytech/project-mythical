@@ -104,7 +104,7 @@ pub mod pallet {
 		AskCreated {
 			collection: T::CollectionId,
 			item: T::ItemId,
-			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
+			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		},
 		/// The pallet's Pot account was updated.
 		PotUpdated(T::AccountId),
@@ -198,7 +198,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 			item: T::ItemId,
-			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
+			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 

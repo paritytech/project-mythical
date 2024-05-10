@@ -7,6 +7,7 @@ use frame_support::{
 	traits::{
 		fungible::{Inspect as InspectFungible, InspectHold, Mutate},
 		nonfungibles_v2::{Inspect, Transfer},
+		NamedReservableCurrency,
 	},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -30,8 +31,8 @@ type MessageOf<Test> = OrderMessage<
 	ItemId<Test>,
 	BalanceOf<Test>,
 	Moment<Test>,
-	Vec<u8>,
 	AccountIdOf<Test>,
+	Vec<u8>,
 >;
 
 fn account(id: u8) -> AccountIdOf<Test> {
@@ -79,8 +80,8 @@ fn append_valid_signature(
 		BalanceOf<Test>,
 		Moment<Test>,
 		OffchainSignature<Test>,
-		Vec<u8>,
 		AccountIdOf<Test>,
+		Vec<u8>,
 	>,
 ) {
 	let message: MessageOf<Test> = order.clone().into();
@@ -1373,7 +1374,7 @@ mod execute_bid_with_existing_ask {
 			);
 			assert_eq!(buyer_balance_before - buyer_payment, Balances::balance(&buyer));
 			assert_eq!(seller_balance_before, Balances::balance(&seller));
-			assert_eq!(seller_pay, Escrow::get_deposit(&seller, &escrow_agent));
+			assert_eq!(seller_pay, Balances::reserved_balance_named(ESCROW_RESERVE_NAME, &seller));
 		})
 	}
 }
