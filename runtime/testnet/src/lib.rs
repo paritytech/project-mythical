@@ -719,6 +719,15 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+impl pallet_escrow::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = Balance;
+	type MinDeposit = ExistentialDeposit;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
+}
+
 parameter_types! {
 	pub const MinVestedTransfer: Balance = 100 * MILLI_MUSE;
 	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
@@ -799,6 +808,8 @@ construct_runtime!(
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
 		Migration: pallet_migration = 42,
+
+		Escrow: pallet_escrow = 50,
 	}
 );
 
@@ -870,6 +881,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_escrow, Escrow]
 	);
 }
 
