@@ -28,6 +28,7 @@ pallet-migration = { workspace = true, default-features = false }
 pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 pallet-escrow = { workspace = true, default-features = false }
+pallet-myth-proxy = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
@@ -160,6 +161,7 @@ std = [
   # Local
   "xcm-primitives/std",
   "pallet-escrow/std",
+  "pallet-myth-proxy/std",
 ]
 
 runtime-benchmarks = [
@@ -189,6 +191,7 @@ runtime-benchmarks = [
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
   "cumulus-pallet-xcmp-queue/runtime-benchmarks",
   "pallet-escrow/runtime-benchmarks",
+  "pallet-myth-proxy/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -221,4 +224,5 @@ try-runtime = [
   "pallet-vesting/try-runtime",
   "parachain-info/try-runtime",
   "pallet-escrow/try-runtime",
+  "pallet-myth-proxy/try-runtime",
 ]

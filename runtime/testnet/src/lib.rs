@@ -743,6 +743,17 @@ impl pallet_escrow::Config for Runtime {
 	type WeightInfo = weights::pallet_escrow::WeightInfo<Runtime>;
 }
 
+impl pallet_myth_proxy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type ProxyType = ProxyType;
+	type MaxProxies = MaxProxies;
+	type ProxyDeposit = ProxyDepositBase;
+	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = pallet_myth_proxy::weights::SubstrateWeight<Runtime>;
+}
+
 parameter_types! {
 	pub const MinVestedTransfer: Balance = 100 * MILLI_MUSE;
 	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
@@ -825,6 +836,7 @@ construct_runtime!(
 		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
+		MythProxy: pallet_myth_proxy = 51,
 	}
 );
 
@@ -901,6 +913,7 @@ mod benches {
 		[pallet_escrow, Escrow]
 		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
+		[pallet_myth_proxy, MythProxy]
 	);
 }
 
