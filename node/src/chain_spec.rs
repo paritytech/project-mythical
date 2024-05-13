@@ -6,6 +6,7 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{crypto::UncheckedInto, ecdsa, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use sp_runtime::Percent;
 
 use mainnet_runtime;
 use testnet_runtime;
@@ -215,9 +216,12 @@ pub mod testnet {
 				"parachainInfo": {
 					"parachainId": id,
 				},
-				"collatorSelection": {
+				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 					"candidacyBond": 100 * MUSE,
+					"minStake": 10 * MUSE,
+					"desiredCandidates": 5,
+					"collatorRewardPercentage": Percent::from_parts(20),
 				},
 				"council": {
 					"members": council,

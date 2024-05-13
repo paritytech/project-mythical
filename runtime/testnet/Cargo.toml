@@ -28,6 +28,7 @@ pallet-migration = { workspace = true, default-features = false }
 pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 pallet-escrow = { workspace = true, default-features = false }
+pallet-collator-staking = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
@@ -85,7 +86,6 @@ cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
 cumulus-primitives-core = { workspace = true, default-features = false }
 cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 cumulus-primitives-utility = { workspace = true, default-features = false }
-pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 testnet-parachains-constants = { workspace = true, default-features = false, features = ["rococo"] }
@@ -96,6 +96,7 @@ polkadot-primitives = { workspace = true, default-features = false }
 fp-self-contained = { workspace = true, default-features = false, features = [
   "serde",
 ]}
+account = { workspace = true }
 
 [features]
 default = ["std"]
@@ -120,7 +121,7 @@ std = [
   "pallet-aura/std",
   "pallet-authorship/std",
   "pallet-balances/std",
-  "pallet-collator-selection/std",
+  "pallet-collator-staking/std",
   "pallet-collective/std",
   "pallet-multibatching/std",
   "pallet-marketplace/std",
@@ -169,7 +170,7 @@ runtime-benchmarks = [
   "frame-system/runtime-benchmarks",
   "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
-  "pallet-collator-selection/runtime-benchmarks",
+  "pallet-collator-staking/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
@@ -203,7 +204,7 @@ try-runtime = [
   "pallet-aura/try-runtime",
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
-  "pallet-collator-selection/try-runtime",
+  "pallet-collator-staking/try-runtime",
   "pallet-collective/try-runtime",
   "pallet-multibatching/try-runtime",
   "pallet-marketplace/try-runtime",
