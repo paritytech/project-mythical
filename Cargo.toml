@@ -3,11 +3,11 @@ panic = "unwind"
 
 [workspace]
 members = [
-  "node",
-  "primitives/xcm",
-  "runtime/mainnet",
-  "runtime/testnet",
-  "primitives/custom-pool",
+	"node",
+	"primitives/xcm",
+	"runtime/mainnet",
+	"runtime/testnet",
+	"primitives/custom-pool",
 ]
 
 resolver = "2"
@@ -29,7 +29,7 @@ hex-literal = "0.4.1"
 jsonrpsee = { version = "0.22.2", features = ["server"] }
 log = { version = "0.4.21", default-features = false }
 parity-scale-codec = { version = "3.6.9", default-features = false, features = [
-  "derive",
+	"derive",
 ] }
 scale-info = { version = "2.11.1", default-features = false }
 serde = { version = "1.0.197", default-features = false, features = ["derive"] }
@@ -48,6 +48,7 @@ pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
+pallet-myth-proxy = { path = "pallets/myth-proxy", default-features = false }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
@@ -147,7 +148,7 @@ parachains-common = { git = "https://github.com/paritytech/polkadot-sdk", branch
 # Polkadot
 pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
 polkadot-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", features = [
-  "rococo-native",
+	"rococo-native",
 ] }
 polkadot-parachain-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
