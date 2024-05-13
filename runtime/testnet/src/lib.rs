@@ -368,7 +368,7 @@ parameter_types! {
 
 impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
-	type EventHandler = (CollatorStaking,);
+	type EventHandler = (CollatorSelection,);
 }
 
 parameter_types! {
@@ -529,7 +529,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 6 * HOURS;
+	pub const Period: u32 = 10;
 	pub const Offset: u32 = 0;
 }
 
@@ -540,7 +540,7 @@ impl pallet_session::Config for Runtime {
 	type ValidatorIdOf = pallet_collator_staking::IdentityCollator;
 	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
 	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
-	type SessionManager = CollatorStaking;
+	type SessionManager = CollatorSelection;
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
@@ -581,8 +581,7 @@ impl pallet_aura::Config for Runtime {
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"StakePot");
 	pub const MaxCandidates: u32 = 100;
-	pub const MinEligibleCollators: u32 = 5;
-	pub const SessionLength: BlockNumber = 10;  // TODO must be changed
+	pub const MinEligibleCollators: u32 = 1;
 	pub const MaxInvulnerables: u32 = 20;
 }
 
@@ -822,7 +821,7 @@ construct_runtime!(
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
-		CollatorStaking: pallet_collator_staking = 21,
+		CollatorSelection: pallet_collator_staking = 21,
 		Session: pallet_session = 22,
 		Aura: pallet_aura = 23,
 		AuraExt: cumulus_pallet_aura_ext = 24,
@@ -902,7 +901,7 @@ mod benches {
 		[pallet_timestamp, Timestamp]
 		[pallet_migration, Migration]
 		[pallet_message_queue, MessageQueue]
-		[pallet_collator_staking, CollatorStaking]
+		[pallet_collator_staking, CollatorSelection]
 		[pallet_multisig, Multisig]
 		[pallet_marketplace, Marketplace]
 		[pallet_multibatching, Multibatching]
