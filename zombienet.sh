@@ -14,18 +14,20 @@ case "$(uname -s)" in
 esac
 
 if [ $MACHINE = "Linux" ]; then
-  ZOMBIENET_BIN="${BIN_DIR}/zombienet-linux-x64"
+  ZOMBIENET_FILE="zombienet-linux-x64"
+
   IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
-  ZOMBIENET_BIN="${BIN_DIR}/zombienet-macos"
+  ZOMBIENET_FILE="zombienet-macos"
   IS_LINUX=0
 fi
 
+ZOMBIENET_BIN="${BIN_DIR}/${ZOMBIENET_FILE}"
+mkdir -p "$BIN_DIR"
 
 build_polkadot() {
   echo "cloning polkadot repository..."
   CWD=$(pwd)
-  mkdir -p "$BIN_DIR"
   pushd /tmp
     git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git
     pushd polkadot-sdk
@@ -43,7 +45,6 @@ build_polkadot() {
 build_chainspec_generator() {
   echo "cloning chain-spec-generator..."
   CWD=$(pwd)
-  mkdir -p "$BIN_DIR"
   pushd /tmp
     git clone https://github.com/polkadot-fellows/runtimes.git --branch "$RUNTIMES_V" || echo -n
     pushd runtimes
@@ -57,7 +58,6 @@ build_chainspec_generator() {
 fetch_polkadot() {
   echo "fetching from polkadot repository..."
   echo $BIN_DIR
-  mkdir -p "$BIN_DIR"
   pushd "$BIN_DIR"
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$POLKADOT_V/polkadot
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$POLKADOT_V/polkadot-execute-worker
@@ -69,7 +69,7 @@ fetch_polkadot() {
 zombienet_init() {
   if [ ! -f $ZOMBIENET_BIN ]; then
     echo "fetching zombienet executable..."
-    curl -LO https://github.com/paritytech/zombienet/releases/download/$ZOMBIENET_V/$ZOMBIENET_BIN
+    curl -o "$ZOMBIENET_BIN" -LO https://github.com/paritytech/zombienet/releases/download/$ZOMBIENET_V/$ZOMBIENET_FILE
     chmod +x $ZOMBIENET_BIN
   fi
   if [ ! -f $BIN_DIR/chain-spec-generator ]; then
