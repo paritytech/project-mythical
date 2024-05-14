@@ -1,6 +1,8 @@
 use frame_support::{
-	derive_impl, parameter_types,
-	traits::{ConstU128, ConstU32, ConstU64},
+	derive_impl,
+	pallet_prelude::DispatchResult,
+	parameter_types,
+	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64},
 };
 use frame_system as system;
 use sp_core::H256;
@@ -101,10 +103,33 @@ impl pallet_nfts::Config for Test {
 	}
 }
 
+pub struct EscrowMock {
+	pub deposit: u128,
+}
+
+impl pallet_marketplace::Escrow<AccountId, u128, AccountId> for EscrowMock {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: u128,
+		_escrow_agent: &AccountId,
+	) -> DispatchResult {
+		Balances::transfer(
+			depositor,
+			destination,
+			value,
+			frame_support::traits::tokens::Preservation::Expendable,
+		)?;
+
+		Ok(())
+	}
+}
+
 impl pallet_marketplace::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Escrow = EscrowMock;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;

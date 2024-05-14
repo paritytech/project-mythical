@@ -30,6 +30,7 @@ use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
+	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
@@ -628,10 +629,23 @@ impl pallet_nfts::Config for Runtime {
 	type Helper = ();
 }
 
+pub struct EscrowImpl;
+
+impl pallet_marketplace::Escrow<AccountId, Balance, AccountId> for EscrowImpl {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: Balance,
+		escrow_agent: &AccountId,
+	) -> DispatchResult {
+		Escrow::make_deposit(depositor, destination, value, escrow_agent)
+	}
+}
 impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Escrow = EscrowImpl;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
@@ -640,6 +654,15 @@ impl pallet_marketplace::Config for Runtime {
 	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+}
+
+impl pallet_escrow::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = Balance;
+	type MinDeposit = ExistentialDeposit;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_migration::Config for Runtime {
@@ -688,6 +711,8 @@ construct_runtime!(
 
 		//Other
 		Migration: pallet_migration = 42,
+
+		Escrow: pallet_escrow = 50,
 	}
 );
 
@@ -755,6 +780,7 @@ mod benches {
 		[pallet_marketplace, Marketplace]
 		[pallet_nfts, Nfts]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_escrow, Escrow]
 	);
 }
 

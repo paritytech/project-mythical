@@ -63,7 +63,9 @@ pub mod pallet {
 		/// The currency trait.
 		type Currency: Inspect<Self::AccountId>
 			+ Mutate<Self::AccountId>
-			+ MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
+			+ MutateHold<Self::AccountId, Reason = <Self as pallet::Config>::RuntimeHoldReason>;
+
+		type Escrow: Escrow<Self::AccountId, BalanceOf<Self>, Self::AccountId>;
 
 		/// Overarching hold reason.
 		type RuntimeHoldReason: From<HoldReason>;
@@ -121,7 +123,7 @@ pub mod pallet {
 		T::CollectionId,
 		Blake2_128Concat,
 		T::ItemId,
-		Ask<T::AccountId, BalanceOf<T>, T::Moment>,
+		Ask<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 	>;
 
 	#[pallet::storage]
@@ -382,6 +384,7 @@ pub mod pallet {
 							order.item,
 							&order.price,
 							&order.fee,
+							order.escrow_agent,
 						)?;
 					} else {
 						ensure!(
@@ -394,6 +397,7 @@ pub mod pallet {
 							price: order.price,
 							expiration: order.expires_at,
 							fee: order.fee,
+							escrow_agent: order.escrow_agent,
 						};
 
 						Asks::<T>::insert(order.collection, order.item, ask);
@@ -429,6 +433,7 @@ pub mod pallet {
 							order.item,
 							&order.price,
 							&order.fee,
+							order.escrow_agent,
 						)?;
 					} else {
 						ensure!(
@@ -529,7 +534,7 @@ pub mod pallet {
 			collection: &T::CollectionId,
 			item: &T::ItemId,
 			price: &BalanceOf<T>,
-		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>> {
+		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>> {
 			let timestamp = pallet_timestamp::Pallet::<T>::get();
 
 			match order_type {
@@ -554,17 +559,19 @@ pub mod pallet {
 		}
 
 		pub fn execute_order(
-			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>,
+			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 			who: T::AccountId,
 			collection: T::CollectionId,
 			item: T::ItemId,
 			price: &BalanceOf<T>,
 			fee: &BalanceOf<T>,
+			order_escrow_agent: Option<T::AccountId>,
 		) -> Result<(), DispatchError> {
 			let seller: T::AccountId;
 			let buyer: T::AccountId;
 			let seller_fee: BalanceOf<T>;
 			let buyer_fee: BalanceOf<T>;
+			let escrow_agent: Option<T::AccountId>;
 
 			match exec_order {
 				ExecOrder::Bid(bid) => {
@@ -574,6 +581,7 @@ pub mod pallet {
 					buyer = bid.buyer;
 					seller_fee = *fee;
 					buyer_fee = bid.fee;
+					escrow_agent = order_escrow_agent;
 				},
 				ExecOrder::Ask(ask) => {
 					ensure!(who.clone() != ask.seller.clone(), Error::<T>::BuyerIsSeller);
@@ -582,13 +590,14 @@ pub mod pallet {
 					buyer = who;
 					seller_fee = ask.fee;
 					buyer_fee = *fee;
+					escrow_agent = ask.escrow_agent;
 				},
 			};
 
 			Asks::<T>::remove(collection, item);
 			Bids::<T>::remove((collection, item, *price));
 
-			Self::process_fees(&seller, seller_fee, &buyer, buyer_fee, *price)?;
+			Self::process_fees(&seller, seller_fee, &buyer, buyer_fee, *price, escrow_agent)?;
 
 			pallet_nfts::Pallet::<T>::enable_transfer(&collection, &item)?;
 			<pallet_nfts::Pallet<T> as Transfer<T::AccountId>>::transfer(
@@ -622,6 +631,7 @@ pub mod pallet {
 			buyer: &T::AccountId,
 			buyer_fee: BalanceOf<T>,
 			price: BalanceOf<T>,
+			escrow_agent: Option<T::AccountId>,
 		) -> Result<(), DispatchError> {
 			//Amount to be payed by the buyer
 			let buyer_payment_amount = price.checked_add(&buyer_fee).ok_or(Error::<T>::Overflow)?;
@@ -651,7 +661,19 @@ pub mod pallet {
 				Preserve,
 			)?;
 			//Pay earnings to seller
-			<T as crate::Config>::Currency::transfer(buyer, seller, seller_pay_amount, Preserve)?;
+			match escrow_agent {
+				Some(agent) => {
+					T::Escrow::make_deposit(buyer, seller, seller_pay_amount, &agent)?;
+				},
+				None => {
+					<T as crate::Config>::Currency::transfer(
+						buyer,
+						seller,
+						seller_pay_amount,
+						Preserve,
+					)?;
+				},
+			}
 
 			Ok(())
 		}

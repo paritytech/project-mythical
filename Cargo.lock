@@ -5502,6 +5502,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
+ "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
  "pallet-migration",

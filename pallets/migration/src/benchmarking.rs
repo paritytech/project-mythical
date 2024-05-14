@@ -89,6 +89,7 @@ pub mod benchmarks {
 			price: (1000 as u32).into(),
 			expiration: T::BenchmarkHelper::timestamp(100),
 			fee: (100 as u32).into(),
+			escrow_agent: None,
 		};
 
 		#[extrinsic_call]
