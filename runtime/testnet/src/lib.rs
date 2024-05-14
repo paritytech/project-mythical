@@ -583,6 +583,7 @@ parameter_types! {
 	pub const MaxCandidates: u32 = 100;
 	pub const MinEligibleCollators: u32 = 1;
 	pub const MaxInvulnerables: u32 = 20;
+	pub const KickThreshold: u32 = 5 * Period::get();
 }
 
 impl pallet_collator_staking::Config for Runtime {
@@ -594,7 +595,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type MinEligibleCollators = MinEligibleCollators;
 	type MaxInvulnerables = MaxInvulnerables;
 	// should be a multiple of session or things will get inconsistent
-	type KickThreshold = Period;
+	type KickThreshold = KickThreshold;
 	type CollatorId = <Self as frame_system::Config>::AccountId;
 	type CollatorIdOf = pallet_collator_staking::IdentityCollator;
 	type CollatorRegistration = Session;
