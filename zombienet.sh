@@ -49,7 +49,7 @@ build_chainspec_generator() {
     git clone https://github.com/polkadot-fellows/runtimes.git --branch "$RUNTIMES_V" || echo -n
     pushd runtimes
       echo "building chain-spec-generator..."
-      cargo build --release --features fast-runtime
+      cargo build --release --features fast-runtime,try-runtime
       cp target/release/chain-spec-generator "$CWD/$BIN_DIR"
     popd
   popd
