@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - release-**
+      - hack/mythical-private-net
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
