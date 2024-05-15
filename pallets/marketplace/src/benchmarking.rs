@@ -234,6 +234,8 @@ pub mod benchmarks {
 				seller,
 				buyer,
 				price: order.price,
+				seller_fee: BalanceOf::<T>::from(0u8),
+				buyer_fee: BalanceOf::<T>::from(1u8),
 			}
 			.into(),
 		);

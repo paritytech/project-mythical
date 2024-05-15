@@ -18,7 +18,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode, 
 };
 
 use sp_std::prelude::*;
@@ -27,13 +27,13 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use frame_support::traits::{InstanceFilter, WithdrawReasons};
-use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
-	genesis_builder_helper::{build_config, create_default_config},
+	genesis_builder_helper::{build_state, get_preset},
+	pallet_prelude::DispatchResult,
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
+	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse, AsEnsureOriginWithArg},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
@@ -42,17 +42,17 @@ use frame_system::{
 	EnsureRoot, EnsureSigned,
 };
 use pallet_nfts::PalletFeatures;
-use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
 	AccountId, Balance, BlockNumber, DealWithFees, Hash, IncrementableU256, Nonce, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
+	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
+	SLOT_DURATION,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::traits::ConvertInto;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
-use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
+use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -80,29 +80,6 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
-
-/// This determines the average expected block time that we are targeting.
-/// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
-/// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
-/// up by `pallet_aura` to implement `fn slot_duration()`.
-///
-/// Change this to adjust the block time.
-const MILLISECS_PER_BLOCK: u64 = 6000;
-
-// NOTE: Currently it is not possible to change the slot duration after the chain has started.
-// Attempting to do so will brick block production.
-const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
-// Time is measured by number of blocks.
-const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-const HOURS: BlockNumber = MINUTES * 60;
-const DAYS: BlockNumber = HOURS * 24;
-
-/// We allow for 2 of a second of compute with a 6-second average block time.
-const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
-	polkadot_primitives::MAX_POV_SIZE as u64,
-);
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
@@ -178,15 +155,13 @@ pub mod fee {
 	impl WeightToFeePolynomial for RefTimeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_MUSE:
-			// in our template, we map to 1/10 of that, or 1/10 MILLI_MUSE
-			let p = MILLI_MUSE / 10;
-			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+			let numerator = MILLI_MUSE / 10;
+			let denominator = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,
-				negative: false,
-				coeff_frac: Perbill::from_rational(p % q, q),
-				coeff_integer: p / q,
+				degree: 1,       // lineal function
+				negative: false, // positive growth
+				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
+				coeff_integer: numerator / denominator,
 			}]
 		}
 	}
@@ -196,15 +171,15 @@ pub mod fee {
 	impl WeightToFeePolynomial for ProofSizeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// Map 10kb proof to 1 CENT.
-			let p = MILLI_MUSE / 10;
-			let q = 10_000;
+			// Map 10kb proof to 1/10 MILLI_MYTH.
+			let numerator = MILLI_MUSE * 10;
+			let denominator = 10_000;
 
 			smallvec![WeightToFeeCoefficient {
-				degree: 1,
-				negative: false,
-				coeff_frac: Perbill::from_rational(p % q, q),
-				coeff_integer: p / q,
+				degree: 1,       // lineal function
+				negative: false, // positive growth
+				coeff_frac: Perbill::from_rational(numerator % denominator, denominator),
+				coeff_integer: numerator / denominator,
 			}]
 		}
 	}
@@ -263,10 +238,14 @@ pub const MUSE: Balance = 1_000 * MILLI_MUSE;
 pub const MICRO_ROC: Balance = 1_000_000;
 pub const MILLI_ROC: Balance = 1_000 * MICRO_ROC;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLI_MUSE;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_MUSE;
 
+/// Calculate the storage deposit based on the number of storage items and the
+/// combined byte size of those items.
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	(items as Balance * 20 * MUSE + (bytes as Balance) * 100 * MICRO_MUSE) / 100
+	let per_item_deposit = MUSE / 5;
+	let per_byte_deposit = MICRO_MUSE;
+	items as Balance * per_item_deposit + (bytes as Balance) * per_byte_deposit
 }
 
 /// The version information used to identify this runtime when compiled natively.
@@ -274,6 +253,12 @@ pub const fn deposit(items: u32, bytes: u32) -> Balance {
 pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
+
+/// Privileged origin that represents Root or more than two thirds of the Council.
+pub type RootOrCouncilTwoThirdsMajority = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 2, 3>,
+>;
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -303,6 +288,7 @@ parameter_types! {
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
 	pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
+	/// SS58 prefix of the parachain. Used for address formatting.
 	pub const SS58Prefix: u16 = 29972;
 }
 
@@ -399,7 +385,7 @@ parameter_types! {
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction =
-		pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees<Runtime>>;
+		pallet_transaction_payment::FungibleAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
@@ -478,6 +464,7 @@ impl pallet_message_queue::Config for Runtime {
 	type HeapSize = sp_core::ConstU32<{ 64 * 1024 }>;
 	type MaxStale = sp_core::ConstU32<8>;
 	type ServiceWeight = MessageQueueServiceWeight;
+	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
 parameter_types! {
@@ -566,24 +553,18 @@ impl pallet_aura::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 1000;
+	pub const MaxCandidates: u32 = 100;
 	pub const MinEligibleCollators: u32 = 5;
 	pub const SessionLength: BlockNumber = 6 * HOURS;
-	pub const MaxInvulnerables: u32 = 100;
+	pub const MaxInvulnerables: u32 = 20;
 	// StakingAdmin pluralistic body.
 	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
 }
 
-/// We allow root and the StakingAdmin to execute privileged collator selection operations.
-pub type CollatorSelectionUpdateOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureXcm<IsVoiceOfBody<RelayLocation, StakingAdminBodyId>>,
->;
-
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type UpdateOrigin = CollatorSelectionUpdateOrigin;
+	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MinEligibleCollators = MinEligibleCollators;
@@ -601,8 +582,8 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	pub const NftsCollectionDeposit: Balance = MUSE / 10;
-	pub const NftsItemDeposit: Balance = MUSE / 1_000;
+	pub const NftsCollectionDeposit: Balance = 0;
+	pub const NftsItemDeposit: Balance = 0;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
@@ -640,10 +621,24 @@ impl pallet_nfts::Config for Runtime {
 	type Helper = ();
 }
 
+pub struct EscrowImpl;
+
+impl pallet_marketplace::Escrow<AccountId, Balance, AccountId> for EscrowImpl {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: Balance,
+		escrow_agent: &AccountId,
+	) -> DispatchResult {
+		Escrow::make_deposit(depositor, destination, value, escrow_agent)
+	}
+}
+
 impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Escrow = EscrowImpl;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
@@ -732,7 +727,7 @@ impl pallet_proxy::Config for Runtime {
 impl pallet_escrow::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type MaxDeposits = ConstU32<10>;
+	type Balance = Balance;
 	type MinDeposit = ExistentialDeposit;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
@@ -755,6 +750,26 @@ impl pallet_vesting::Config for Runtime {
 	const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
+parameter_types! {
+	pub const CouncilMotionDuration: BlockNumber = 10 * MINUTES;
+	pub const CouncilMaxProposals: u32 = 100;
+	pub const CouncilMaxMembers: u32 = 100;
+}
+
+type CouncilCollective = pallet_collective::Instance1;
+impl pallet_collective::Config<CouncilCollective> for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type Proposal = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = RootOrCouncilTwoThirdsMajority;
+	type MaxProposalWeight = MaxCollectivesProposalWeight;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -775,10 +790,13 @@ construct_runtime!(
 		// NFTs
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
+
+        // Utility
 		Multibatching: pallet_multibatching = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
+		Council: pallet_collective::<Instance1> = 16,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
@@ -796,6 +814,7 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+		//Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 	}
@@ -868,6 +887,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_escrow, Escrow]
 	);
 }
 
@@ -878,7 +898,7 @@ impl_runtime_apis! {
 		}
 
 		fn authorities() -> Vec<AuraId> {
-			Aura::authorities().into_inner()
+			pallet_aura::Authorities::<Runtime>::get().into_inner()
 		}
 	}
 
@@ -897,12 +917,17 @@ impl_runtime_apis! {
 	}
 
 	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-		fn create_default_config() -> Vec<u8> {
-			create_default_config::<RuntimeGenesisConfig>()
+
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			get_preset::<RuntimeGenesisConfig>(id, |_| None)
 		}
 
-		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-			build_config::<RuntimeGenesisConfig>(config)
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			vec![]
+		}
+
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_state::<RuntimeGenesisConfig>(config)
 		}
 	}
 

@@ -20,10 +20,14 @@ sp-io = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 
+# Primitives
+account = { workspace = true }
+
 
 [features]
 default = ["std"]
 std = [
+	"account/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-balances/std",
@@ -31,12 +35,14 @@ std = [
 	"scale-info/std",
 	"sp-std/std",
 	"sp-io/std",
-	"frame-benchmarking?/std",
+	"frame-benchmarking/std",
 ]
+
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
+
 try-runtime = ["frame-support/try-runtime"]

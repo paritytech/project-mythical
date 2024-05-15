@@ -2,40 +2,36 @@ use frame_support::{
 	derive_impl,
 	pallet_prelude::DispatchResult,
 	parameter_types,
-	traits::{
-		fungible::Mutate, AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64,
-		NamedReservableCurrency,
-	},
+	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64},
 };
 use frame_system as system;
 use sp_core::H256;
-use sp_keystore::{testing::MemoryKeystore, KeystoreExt};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Verify},
 	BuildStorage,
 };
 
 use account::EthereumSignature;
+use system::EnsureSignedBy;
 
-use crate::{self as pallet_marketplace};
+use crate::{self as pallet_migration};
 use pallet_nfts::PalletFeatures;
 
 type Signature = EthereumSignature;
-pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+type AccountPublic = <Signature as Verify>::Signer;
+type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
 type Block = frame_system::mocking::MockBlock<Test>;
-
-pub const ESCROW_RESERVE_NAME: &[u8; 8] = b"escrow__";
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system,
-		Marketplace: pallet_marketplace,
+		Migration: pallet_migration,
 		Balances: pallet_balances,
 		Timestamp: pallet_timestamp,
 		Nfts: pallet_nfts,
-		Escrow: pallet_escrow,
+		Marketplace: pallet_marketplace,
 	}
 );
 
@@ -75,16 +71,18 @@ parameter_types! {
 	pub storage Features: PalletFeatures = PalletFeatures::all_enabled();
 }
 
+pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Test>, AccountId>;
+
 impl pallet_nfts::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = u32;
 	type ItemId = u32;
 	type Currency = Balances;
-	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<Self::AccountId>>;
-	type ForceOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type CreateOrigin = MigratorOrigin;
+	type ForceOrigin = MigratorOrigin;
 	type Locker = ();
-	type CollectionDeposit = ConstU128<2>;
-	type ItemDeposit = ConstU128<1>;
+	type CollectionDeposit = ConstU128<0>;
+	type ItemDeposit = ConstU128<0>;
 	type MetadataDepositBase = ConstU128<1>;
 	type AttributeDepositBase = ConstU128<1>;
 	type DepositPerByte = ConstU128<1>;
@@ -98,7 +96,7 @@ impl pallet_nfts::Config for Test {
 	type MaxAttributesPerCall = ConstU32<2>;
 	type Features = Features;
 	type OffchainSignature = Signature;
-	type OffchainPublic = <Signature as Verify>::Signer;
+	type OffchainPublic = AccountPublic;
 	type WeightInfo = ();
 	pallet_nfts::runtime_benchmarks_enabled! {
 		type Helper = ();
@@ -123,8 +121,6 @@ impl pallet_marketplace::Escrow<AccountId, u128, AccountId> for EscrowMock {
 			frame_support::traits::tokens::Preservation::Expendable,
 		)?;
 
-		Balances::reserve_named(ESCROW_RESERVE_NAME, destination, value)?;
-
 		Ok(())
 	}
 }
@@ -147,7 +143,7 @@ impl pallet_marketplace::Config for Test {
 
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
-	type MaxReserves = ConstU32<2>;
+	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 8];
 	type Balance = u128;
 	type DustRemoval = ();
@@ -168,20 +164,14 @@ impl pallet_timestamp::Config for Test {
 	type WeightInfo = ();
 }
 
-impl pallet_escrow::Config for Test {
+impl pallet_migration::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type MaxDeposits = ConstU32<2>;
-	type MinDeposit = ConstU128<1>;
-	type RuntimeHoldReason = RuntimeHoldReason;
 	type WeightInfo = ();
 }
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let t = system::GenesisConfig::<Test>::default().build_storage().unwrap();
-	let mut ext = sp_io::TestExternalities::new(t);
-	ext.register_extension(KeystoreExt::new(MemoryKeystore::new()));
-	ext.execute_with(|| System::set_block_number(1));
-	ext
+	system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
 }

@@ -19,15 +19,18 @@ hex-literal = { workspace = true }
 log = { workspace = true, default-features = false }
 parity-scale-codec = { workspace = true, default-features = false, features = [
   "derive",
-]}
+] }
 scale-info = { workspace = true, default-features = false, features = [
   "derive",
-]}
+] }
 smallvec = { workspace = true }
 
 # Local
 runtime-common = { workspace = true, default-features = false }
+pallet-marketplace = { workspace = true, default-features = false }
+pallet-migration = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
+pallet-escrow = {workspace = true, default-features = false}
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
@@ -40,6 +43,7 @@ frame-try-runtime = { workspace = true, default-features = false, optional = tru
 pallet-aura = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-collective = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
@@ -48,6 +52,7 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-feature
 pallet-utility = { workspace = true, default-features = false }
 pallet-message-queue = { workspace = true, default-features = false }
 pallet-multisig = { workspace = true, default-features = false }
+pallet-nfts = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
 sp-consensus-aura = { workspace = true, default-features = false }
@@ -79,6 +84,7 @@ cumulus-pallet-session-benchmarking = { workspace = true, default-features = fal
 cumulus-pallet-xcm = { workspace = true, default-features = false }
 cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
 cumulus-primitives-core = { workspace = true, default-features = false }
+cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 cumulus-primitives-utility = { workspace = true, default-features = false }
 pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
@@ -103,6 +109,7 @@ std = [
   "cumulus-pallet-xcm/std",
   "cumulus-pallet-xcmp-queue/std",
   "cumulus-primitives-core/std",
+  "cumulus-primitives-storage-weight-reclaim/std",
   "cumulus-primitives-utility/std",
   "fp-self-contained/std",
   "frame-executive/std",
@@ -113,7 +120,10 @@ std = [
   "pallet-authorship/std",
   "pallet-balances/std",
   "pallet-collator-selection/std",
+  "pallet-collective/std",
+  "pallet-marketplace/std",
   "pallet-multisig/std",
+  "pallet-nfts/std",
   "pallet-session/std",
   "pallet-sudo/std",
   "pallet-timestamp/std",
@@ -144,6 +154,7 @@ std = [
   "substrate-wasm-builder",
   # Local
   "xcm-primitives/std",
+  "pallet-escrow/std",
 ]
 
 runtime-benchmarks = [
@@ -154,8 +165,12 @@ runtime-benchmarks = [
   "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
   "pallet-collator-selection/runtime-benchmarks",
+  "pallet-collective/runtime-benchmarks",
+  "pallet-marketplace/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
+  "pallet-migration/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
+  "pallet-nfts/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
@@ -164,11 +179,13 @@ runtime-benchmarks = [
   "cumulus-pallet-parachain-system/runtime-benchmarks",
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
   "cumulus-pallet-xcmp-queue/runtime-benchmarks",
+  "pallet-escrow/runtime-benchmarks",
 ]
 
 try-runtime = [
   "fp-self-contained/try-runtime",
   "cumulus-pallet-aura-ext/try-runtime",
+  "pallet-marketplace/try-runtime",
   "pallet-message-queue/try-runtime",
   "cumulus-pallet-parachain-system/try-runtime",
   "cumulus-pallet-xcm/try-runtime",
@@ -180,7 +197,10 @@ try-runtime = [
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
+  "pallet-collective/try-runtime",
+  "pallet-migration/try-runtime",
   "pallet-multisig/try-runtime",
+  "pallet-nfts/try-runtime",
   "pallet-session/try-runtime",
   "pallet-sudo/try-runtime",
   "pallet-timestamp/try-runtime",
@@ -188,4 +208,5 @@ try-runtime = [
   "pallet-utility/try-runtime",
   "pallet-xcm/try-runtime",
   "parachain-info/try-runtime",
+  "pallet-escrow/try-runtime",
 ]

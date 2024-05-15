@@ -7,7 +7,7 @@ homepage = { workspace = true }
 license = { workspace = true }
 name = "mythos-node"
 repository = { workspace = true }
-version = "1.9.0"
+version = "1.11.0"
 
 [dependencies]
 clap = { workspace = true }
@@ -24,6 +24,7 @@ hex-literal = { workspace = true }
 testnet-runtime = { workspace = true }
 mainnet-runtime = { workspace = true }
 runtime-common = { workspace = true }
+custom-pool = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true }
@@ -68,7 +69,7 @@ polkadot-service = { workspace = true }
 xcm = { workspace = true, default-features = false }
 
 # Cumulus
-cumulus-primitives-aura ={ workspace = true }
+cumulus-primitives-aura = { workspace = true }
 cumulus-client-cli = { workspace = true }
 cumulus-client-consensus-aura = { workspace = true }
 cumulus-client-consensus-common = { workspace = true }

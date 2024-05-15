@@ -41,10 +41,9 @@ pub mod pallet {
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 
-	use pallet_escrow::Pallet as Escrow;
 	use sp_runtime::{
 		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
-		BoundedVec, DispatchError, SaturatedConversion, Saturating,
+		BoundedVec, DispatchError, Saturating,
 	};
 	use sp_std::vec::Vec;
 
@@ -53,10 +52,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config
-		+ pallet_nfts::Config
-		+ pallet_timestamp::Config
-		+ pallet_escrow::Config
+		frame_system::Config + pallet_nfts::Config + pallet_timestamp::Config
 	{
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
@@ -68,6 +64,8 @@ pub mod pallet {
 		type Currency: Inspect<Self::AccountId>
 			+ Mutate<Self::AccountId>
 			+ MutateHold<Self::AccountId, Reason = <Self as pallet::Config>::RuntimeHoldReason>;
+
+		type Escrow: Escrow<Self::AccountId, BalanceOf<Self>, Self::AccountId>;
 
 		/// Overarching hold reason.
 		type RuntimeHoldReason: From<HoldReason>;
@@ -125,7 +123,7 @@ pub mod pallet {
 		T::CollectionId,
 		Blake2_128Concat,
 		T::ItemId,
-		Ask<T::AccountId, BalanceOf<T>, T::Moment>,
+		Ask<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 	>;
 
 	#[pallet::storage]
@@ -156,6 +154,7 @@ pub mod pallet {
 			item: T::ItemId,
 			price: BalanceOf<T>,
 			expires_at: T::Moment,
+			fee: BalanceOf<T>,
 		},
 		/// A trade of Ask and Bid was executed.
 		OrderExecuted {
@@ -164,6 +163,8 @@ pub mod pallet {
 			seller: T::AccountId,
 			buyer: T::AccountId,
 			price: BalanceOf<T>,
+			seller_fee: BalanceOf<T>,
+			buyer_fee: BalanceOf<T>,
 		},
 		/// The order was canceled by the order creator or the pallet's authority.
 		OrderCanceled { collection: T::CollectionId, item: T::ItemId, who: T::AccountId },
@@ -356,6 +357,7 @@ pub mod pallet {
 				item: order.item,
 				price: order.price,
 				expires_at: order.expires_at,
+				fee: order.fee,
 			});
 
 			match order.order_type {
@@ -532,7 +534,7 @@ pub mod pallet {
 			collection: &T::CollectionId,
 			item: &T::ItemId,
 			price: &BalanceOf<T>,
-		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>> {
+		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>> {
 			let timestamp = pallet_timestamp::Pallet::<T>::get();
 
 			match order_type {
@@ -546,7 +548,7 @@ pub mod pallet {
 				},
 				OrderType::Bid => {
 					if let Some(ask) = Asks::<T>::get(collection, item) {
-						if timestamp >= ask.expiration {
+						if timestamp >= ask.expiration || ask.price != *price {
 							return None;
 						};
 						return Some(ExecOrder::Ask(ask));
@@ -557,7 +559,7 @@ pub mod pallet {
 		}
 
 		pub fn execute_order(
-			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment>,
+			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 			who: T::AccountId,
 			collection: T::CollectionId,
 			item: T::ItemId,
@@ -610,6 +612,8 @@ pub mod pallet {
 				seller,
 				buyer,
 				price: *price,
+				seller_fee,
+				buyer_fee,
 			});
 			Ok(())
 		}
@@ -659,10 +663,7 @@ pub mod pallet {
 			//Pay earnings to seller
 			match escrow_agent {
 				Some(agent) => {
-					// TODO: make proper types for escrow
-					let amount: u128 = seller_pay_amount.saturated_into();
-
-					Escrow::<T>::make_deposit(&buyer, &seller, amount.saturated_into(), &agent)?;
+					T::Escrow::make_deposit(buyer, seller, seller_pay_amount, &agent)?;
 				},
 				None => {
 					<T as crate::Config>::Currency::transfer(

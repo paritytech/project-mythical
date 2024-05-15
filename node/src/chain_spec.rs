@@ -141,6 +141,11 @@ pub mod testnet {
 					balance_per_account,
 				), // Faith
 			],
+			vec![
+				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
+				AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
+				AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
+			],
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 			PARA_ID.into(),
 		))
@@ -187,6 +192,7 @@ pub mod testnet {
 				),
 				(AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")), 1_000 * MUSE),
 			],
+			vec![],
 			AccountId::from(hex!("8CC95e7DFa96A86D728D2E6EB86400DEfBB56c90")),
 			PARA_ID.into(),
 		))
@@ -198,11 +204,10 @@ pub mod testnet {
 	fn testnet_genesis(
 		invulnerables: Vec<(AccountId, AuraId)>,
 		endowed_accounts: Vec<(AccountId, testnet_runtime::Balance)>,
+		council: Vec<AccountId>,
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
-		use testnet_runtime::EXISTENTIAL_DEPOSIT;
-
 		serde_json::json!({
 				"balances": {
 					"balances": endowed_accounts,
@@ -212,7 +217,10 @@ pub mod testnet {
 				},
 				"collatorSelection": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
+					"candidacyBond": 100 * MUSE,
+				},
+				"council": {
+					"members": council,
 				},
 				"session": {
 					"keys": invulnerables
@@ -253,7 +261,7 @@ pub mod mainnet {
 		MainChainSpec::builder(
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
-				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network! TODO: Change to polkadot-local
+				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network!
 				para_id: PARA_ID,
 			},
 		)
@@ -387,8 +395,6 @@ pub mod mainnet {
 		root_key: AccountId,
 		id: ParaId,
 	) -> serde_json::Value {
-		use mainnet_runtime::EXISTENTIAL_DEPOSIT;
-
 		serde_json::json!({
 				"balances": {
 					"balances": endowed_accounts,
@@ -398,7 +404,7 @@ pub mod mainnet {
 				},
 				"collatorSelection": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
+					"candidacyBond": 100 * MYTH,
 				},
 				"session": {
 					"keys": invulnerables

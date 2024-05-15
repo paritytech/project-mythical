@@ -1,4 +1,4 @@
-use frame_support::traits::fungible::Inspect;
+use frame_support::{pallet_prelude::DispatchResult, traits::fungible::Inspect};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
@@ -14,8 +14,8 @@ pub type OrderOf<T> = Order<
 	BalanceOf<T>,
 	<T as pallet_timestamp::Config>::Moment,
 	<T as Config>::Signature,
-	Vec<u8>,
 	<T as frame_system::Config>::AccountId,
+	Vec<u8>,
 >;
 
 pub type OrderMessageOf<T> = OrderMessage<
@@ -23,17 +23,17 @@ pub type OrderMessageOf<T> = OrderMessage<
 	<T as pallet_nfts::Config>::ItemId,
 	BalanceOf<T>,
 	<T as pallet_timestamp::Config>::Moment,
-	Vec<u8>,
 	<T as frame_system::Config>::AccountId,
+	Vec<u8>,
 >;
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
-pub struct Ask<AccountId, Amount, Expiration> {
+pub struct Ask<AccountId, Amount, Expiration, Agent> {
 	pub seller: AccountId,
 	pub price: Amount,
 	pub expiration: Expiration,
 	pub fee: Amount,
-	pub escrow_agent: Option<AccountId>,
+	pub escrow_agent: Option<Agent>,
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
@@ -50,28 +50,21 @@ pub enum OrderType {
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
-pub enum ExecOrder<AccountId, Amount, Expiration> {
-	Ask(Ask<AccountId, Amount, Expiration>),
+pub enum ExecOrder<AccountId, Amount, Expiration, Agent> {
+	Ask(Ask<AccountId, Amount, Expiration, Agent>),
 	Bid(Bid<AccountId, Amount, Expiration>),
 }
 
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
-pub struct Order<
-	CollectionId,
-	ItemId,
-	Amount,
-	Expiration,
-	OffchainSignature,
-	BoundedString,
-	AccountId,
-> {
+pub struct Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Agent, BoundedString>
+{
 	pub order_type: OrderType,
 	pub collection: CollectionId,
 	pub item: ItemId,
 	pub price: Amount,
 	pub expires_at: Expiration,
 	pub fee: Amount,
-	pub escrow_agent: Option<AccountId>,
+	pub escrow_agent: Option<Agent>,
 	pub signature_data: SignatureData<OffchainSignature, BoundedString>,
 }
 
@@ -83,39 +76,22 @@ pub struct SignatureData<OffchainSignature, BoundedString> {
 
 ///Message data to be signed by the fee_signer account
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
-pub struct OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString, AccountId> {
+pub struct OrderMessage<CollectionId, ItemId, Amount, Expiration, Agent, BoundedString> {
 	pub collection: CollectionId,
 	pub item: ItemId,
 	pub price: Amount,
 	pub expires_at: Expiration,
 	pub fee: Amount,
-	pub escrow_agent: Option<AccountId>,
+	pub escrow_agent: Option<Agent>,
 	pub nonce: BoundedString,
 }
 
-impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, BoundedString, AccountId>
-	From<
-		Order<
-			CollectionId,
-			ItemId,
-			Amount,
-			Expiration,
-			OffchainSignature,
-			BoundedString,
-			AccountId,
-		>,
-	> for OrderMessage<CollectionId, ItemId, Amount, Expiration, BoundedString, AccountId>
+impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Agent, BoundedString>
+	From<Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Agent, BoundedString>>
+	for OrderMessage<CollectionId, ItemId, Amount, Expiration, Agent, BoundedString>
 {
 	fn from(
-		x: Order<
-			CollectionId,
-			ItemId,
-			Amount,
-			Expiration,
-			OffchainSignature,
-			BoundedString,
-			AccountId,
-		>,
+		x: Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Agent, BoundedString>,
 	) -> Self {
 		OrderMessage {
 			collection: x.collection,
@@ -144,4 +120,13 @@ pub trait BenchmarkHelper<CollectionId, ItemId, Moment> {
 	/// Returns an nft id from a given integer.
 	fn item(id: u16) -> ItemId;
 	fn timestamp(value: u64) -> Moment;
+}
+
+pub trait Escrow<AccountId, Balance, Agent> {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: Balance,
+		escrow_agent: &Agent,
+	) -> DispatchResult;
 }

@@ -5,13 +5,13 @@ You can find linux and macOS executables of the Zombienet CLI here:
 https://github.com/paritytech/zombienet/releases
 Download the Zombienet CLI according to your operating system.
 
-Include the binary on the root of the project and allow it to be executed:
+Include the binary on the bin folder and allow it to be executed:
 
 ```sh
 # On Linux
-chmod +x zombienet-linux-x64
+chmod +x bin/zombienet-linux-x64
 # Or on Mac
-chmod +x zombienet-macos
+chmod +x bin/zombienet-macos
 ```
 
 Tip: If you want the executable to be available system-wide then you can follow these steps (otherwise just download the executable to your working directory):
