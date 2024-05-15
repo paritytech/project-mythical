@@ -18,7 +18,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode, 
+	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 
 use sp_std::prelude::*;
@@ -33,7 +33,7 @@ use frame_support::{
 	genesis_builder_helper::{build_state, get_preset},
 	pallet_prelude::DispatchResult,
 	parameter_types,
-	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse, AsEnsureOriginWithArg},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
@@ -801,7 +801,7 @@ construct_runtime!(
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
 
-        // Utility
+		// Utility
 		Multibatching: pallet_multibatching = 14,
 
 		// Governance
