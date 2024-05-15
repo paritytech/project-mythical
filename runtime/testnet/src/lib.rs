@@ -6,6 +6,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migrations;
 mod weights;
 pub mod xcm_config;
 
@@ -112,6 +113,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
+	(migrations::CollatorStakingSetupMigration,),
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
@@ -602,7 +604,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type MaxStakedCandidates = ConstU32<16>;
 	type CollatorUnstakingDelay = ConstU32<20>;
 	type UserUnstakingDelay = ConstU32<10>;
-	type WeightInfo = ();
+	type WeightInfo = pallet_collator_staking::weights::SubstrateWeight<Runtime>;
 }
 
 // Project specific pallets.
