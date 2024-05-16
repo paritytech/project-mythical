@@ -222,6 +222,7 @@ pub mod testnet {
 					"minStake": 10 * MUSE,
 					"desiredCandidates": 5,
 					"collatorRewardPercentage": Percent::from_parts(20),
+					"extraReward": 0,
 				},
 				"council": {
 					"members": council,

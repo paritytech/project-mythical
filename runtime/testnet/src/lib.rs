@@ -113,7 +113,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(migrations::CollatorStakingSetupMigration,),
+	(migrations::CollatorSelectionSetupMigration,),
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
@@ -582,6 +582,7 @@ impl pallet_aura::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"StakePot");
+	pub const ExtraRewardPotId: PalletId = PalletId(*b"ExtraPot");
 	pub const MaxCandidates: u32 = 100;
 	pub const MinEligibleCollators: u32 = 1;
 	pub const MaxInvulnerables: u32 = 20;
@@ -593,6 +594,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type Currency = Balances;
 	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
+	type ExtraRewardPotId = ExtraRewardPotId;
 	type MaxCandidates = MaxCandidates;
 	type MinEligibleCollators = MinEligibleCollators;
 	type MaxInvulnerables = MaxInvulnerables;

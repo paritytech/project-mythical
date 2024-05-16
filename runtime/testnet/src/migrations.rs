@@ -7,10 +7,10 @@ use sp_std::vec;
 
 use crate::{CollatorSelection, Runtime, RuntimeOrigin, MUSE};
 
-pub struct CollatorStakingSetupMigration;
-impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
+pub struct CollatorSelectionSetupMigration;
+impl OnRuntimeUpgrade for CollatorSelectionSetupMigration {
 	fn on_runtime_upgrade() -> Weight {
-		log::info!("Performing CollatorStakingSetupMigration");
+		log::info!("Performing CollatorSelectionSetupMigration");
 		let mut total_weight = Weight::zero();
 
 		// Add invulnerables
@@ -59,7 +59,7 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 			);
 		}
 
-		log::info!("CollatorStakingSetupMigration executed");
+		log::info!("CollatorSelectionSetupMigration executed");
 		total_weight
 	}
 }
