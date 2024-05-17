@@ -13,10 +13,10 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Verify},
+	traits::{BlakeTwo256, Block as BlockT},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
@@ -31,7 +31,6 @@ use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
-	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
@@ -39,9 +38,8 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSignedBy,
+	EnsureRoot,
 };
-use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 pub use runtime_common::{
@@ -366,16 +364,6 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
-impl pallet_multibatching::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Signature = Signature;
-	type Signer = <Signature as Verify>::Signer;
-	type MaxCalls = ConstU32<128>;
-	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
 
 parameter_types! {
 	/// Relay Chain `TransactionByteFee` / 10
@@ -577,87 +565,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
-// Project specific pallets.
 
-parameter_types! {
-	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
-	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
-	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
-	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
-	pub const NftsDepositPerByte: Balance = deposit(0, 1);
-}
-
-pub type CollectionId = IncrementableU256;
-pub type ItemId = U256;
-
-//TODO: Change to EnsureRoot<AccountId> after migration
-pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
-
-impl pallet_nfts::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type CollectionId = CollectionId;
-	type ItemId = ItemId;
-	type Currency = Balances;
-	type CreateOrigin = MigratorOrigin;
-	type ForceOrigin = MigratorOrigin;
-	type Locker = ();
-	type CollectionDeposit = NftsCollectionDeposit;
-	type ItemDeposit = NftsItemDeposit;
-	type MetadataDepositBase = NftsMetadataDepositBase;
-	type AttributeDepositBase = NftsAttributeDepositBase;
-	type DepositPerByte = NftsDepositPerByte;
-	type StringLimit = ConstU32<256>;
-	type KeyLimit = ConstU32<64>;
-	type ValueLimit = ConstU32<256>;
-	type ApprovalsLimit = ConstU32<20>;
-	type ItemAttributesApprovalsLimit = ConstU32<30>;
-	type MaxTips = ConstU32<10>;
-	type MaxDeadlineDuration = NftsMaxDeadlineDuration;
-	type MaxAttributesPerCall = ConstU32<10>;
-	type Features = NftsPalletFeatures;
-	type OffchainSignature = Signature;
-	type OffchainPublic = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type Helper = ();
-}
-
-pub struct EscrowImpl;
-
-impl pallet_marketplace::Escrow<AccountId, Balance, AccountId> for EscrowImpl {
-	fn make_deposit(
-		depositor: &AccountId,
-		destination: &AccountId,
-		value: Balance,
-		escrow_agent: &AccountId,
-	) -> DispatchResult {
-		Escrow::make_deposit(depositor, destination, value, escrow_agent)
-	}
-}
-
-impl pallet_marketplace::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type Escrow = EscrowImpl;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type MinOrderDuration = ConstU64<10>;
-	type NonceStringLimit = ConstU32<50>;
-	type Signature = Signature;
-	type Signer = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
-
-impl pallet_migration::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type WeightInfo = pallet_migration::weights::SubstrateWeight<Runtime>;
-}
 
 parameter_types! {
 	pub const ProxyDepositBase: Balance = deposit(1, 8);
@@ -734,14 +642,7 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
-impl pallet_escrow::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type Balance = Balance;
-	type MinDeposit = ExistentialDeposit;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
-}
+
 
 parameter_types! {
 	pub const MinVestedTransfer: Balance = 100 * MILLI_MUSE;
@@ -797,11 +698,6 @@ construct_runtime!(
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
 
-		// NFTs
-		Nfts: pallet_nfts = 12,
-		Marketplace: pallet_marketplace = 13,
-		Multibatching: pallet_multibatching = 14,
-
 		// Governance
 		Sudo: pallet_sudo = 15,
 		Council: pallet_collective::<Instance1> = 16,
@@ -822,9 +718,6 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		Migration: pallet_migration = 42,
-
-		Escrow: pallet_escrow = 50,
 	}
 );
 
@@ -890,13 +783,9 @@ mod benches {
 		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_multisig, Multisig]
-		[pallet_marketplace, Marketplace]
-		[pallet_multibatching, Multibatching]
-		[pallet_nfts, Nfts]
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_escrow, Escrow]
 	);
 }
 
