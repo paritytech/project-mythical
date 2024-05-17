@@ -7,12 +7,10 @@ use frame_support::{
 	traits::{tokens::imbalance::ResolveTo, ConstU32, Everything, Nothing},
 };
 use frame_system::EnsureRoot;
-use hex_literal::hex;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::ParentRelayOrSiblingParachains;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
 use sp_std::vec::Vec;
-use testnet_parachains_constants::rococo::snowbridge::EthereumNetwork;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
@@ -43,14 +41,8 @@ parameter_types! {
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
-	pub EthereumCurrencyLocation: Location = Location::new(2,
-		[
-			GlobalConsensus(EthereumNetwork::get()), // sepolia
-			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
-		]);
 	pub StakingPot: AccountId = crate::CollatorSelection::account_id();
-	// Arbitrary value to allow to test reserve transfers, only for testing.
-	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
+
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
@@ -77,22 +69,10 @@ pub type LocalAssetTransactor = FungibleAdapter<
 	(),
 >;
 
-/// Means for transacting the native currency on this chain with an Ethereum token on sepolia
-pub type BridgedLocalAssetTransactor = FungibleAdapter<
-	// Use this currency:
-	Balances,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<EthereumCurrencyLocation>,
-	// Convert an XCM Location into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports.
-	(),
->;
+
 
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (LocalAssetTransactor, BridgedLocalAssetTransactor);
+pub type AssetTransactors = LocalAssetTransactor;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
