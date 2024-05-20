@@ -593,19 +593,20 @@ parameter_types! {
 impl pallet_collator_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
 	type ExtraRewardPotId = ExtraRewardPotId;
 	type MaxCandidates = MaxCandidates;
 	type MinEligibleCollators = MinEligibleCollators;
 	type MaxInvulnerables = MaxInvulnerables;
-	type MaxStakers = MaxStakers;
 	// should be a multiple of session or things will get inconsistent
 	type KickThreshold = KickThreshold;
 	type CollatorId = <Self as frame_system::Config>::AccountId;
 	type CollatorIdOf = pallet_collator_staking::IdentityCollator;
 	type CollatorRegistration = Session;
 	type MaxStakedCandidates = ConstU32<16>;
+	type MaxStakers = MaxStakers;
 	type CollatorUnstakingDelay = ConstU32<20>;
 	type UserUnstakingDelay = ConstU32<10>;
 	type WeightInfo = pallet_collator_staking::weights::SubstrateWeight<Runtime>;
