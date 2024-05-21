@@ -2,10 +2,10 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.102
+ZOMBIENET_V=v1.3.103
 POLKADOT_V=v1.11.0
-RUNTIMES_V=v1.2.3
-BIN_DIR=bin/
+RUNTIMES_V=v1.2.4
+BIN_DIR=bin
 
 case "$(uname -s)" in
     Linux*)     MACHINE=Linux;;
@@ -14,20 +14,21 @@ case "$(uname -s)" in
 esac
 
 if [ $MACHINE = "Linux" ]; then
-  ZOMBIENET_BIN="${BIN_DIR}/zombienet-linux-x64"
+  ZOMBIENET_FILE="zombienet-linux-x64"
   IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
-  ZOMBIENET_BIN="${BIN_DIR}/zombienet-macos"
+  ZOMBIENET_FILE="zombienet-macos"
   IS_LINUX=0
 fi
 
+ZOMBIENET_BIN="${BIN_DIR}/${ZOMBIENET_FILE}"
+mkdir -p "$BIN_DIR"
 
 build_polkadot() {
   echo "cloning polkadot repository..."
   CWD=$(pwd)
-  mkdir -p "$BIN_DIR"
   pushd /tmp
-    git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git
+    git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git || echo -n
     pushd polkadot-sdk
       echo "building polkadot executable..."
       cargo build --release --features fast-runtime
@@ -43,9 +44,8 @@ build_polkadot() {
 build_chainspec_generator() {
   echo "cloning chain-spec-generator..."
   CWD=$(pwd)
-  mkdir -p "$BIN_DIR"
   pushd /tmp
-    git clone https://github.com/polkadot-fellows/runtimes.git --branch "$RUNTIMES_V" || echo -n
+    git clone --depth 1 --branch "$RUNTIMES_V" https://github.com/polkadot-fellows/runtimes.git || echo -n
     pushd runtimes
       echo "building chain-spec-generator..."
       cargo build --release --features fast-runtime
@@ -57,7 +57,6 @@ build_chainspec_generator() {
 fetch_polkadot() {
   echo "fetching from polkadot repository..."
   echo $BIN_DIR
-  mkdir -p "$BIN_DIR"
   pushd "$BIN_DIR"
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$POLKADOT_V/polkadot
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$POLKADOT_V/polkadot-execute-worker
@@ -69,7 +68,7 @@ fetch_polkadot() {
 zombienet_init() {
   if [ ! -f $ZOMBIENET_BIN ]; then
     echo "fetching zombienet executable..."
-    curl -LO https://github.com/paritytech/zombienet/releases/download/$ZOMBIENET_V/$ZOMBIENET_BIN
+    curl -o "$ZOMBIENET_BIN" -LO https://github.com/paritytech/zombienet/releases/download/$ZOMBIENET_V/$ZOMBIENET_FILE
     chmod +x $ZOMBIENET_BIN
   fi
   if [ ! -f $BIN_DIR/chain-spec-generator ]; then
