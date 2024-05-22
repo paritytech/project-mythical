@@ -597,6 +597,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
 	type ExtraRewardPotId = ExtraRewardPotId;
+	type ExtraRewardReceiver = ();
 	type MaxCandidates = MaxCandidates;
 	type MinEligibleCollators = MinEligibleCollators;
 	type MaxInvulnerables = MaxInvulnerables;
