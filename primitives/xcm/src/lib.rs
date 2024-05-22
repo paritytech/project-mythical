@@ -26,15 +26,6 @@ where
 	}
 }
 
-// /// Handles the fees that are taken by certain XCM instructions.
-// pub trait HandleFee {
-// 	/// Do something with the fee which has been paid. Doing nothing here silently burns the
-// 	/// fees.
-// 	///
-// 	/// Returns any part of the fee that wasn't consumed.
-// 	fn handle_fee(fee: Assets, context: Option<&XcmContext>, reason: FeeReason) -> Assets;
-// }
-
 /// Try to deposit the given fee in the specified account.
 /// Burns the fee in case of a failure.
 pub fn deposit_or_burn_fee<AssetTransactor: TransactAsset, AccountId: Clone + Into<[u8; 20]>>(
