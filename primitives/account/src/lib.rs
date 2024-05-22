@@ -99,14 +99,6 @@ impl From<[u8; 32]> for AccountId20 {
 	}
 }
 
-impl From<AccountId20> for [u8; 32] {
-	fn from(value: AccountId20) -> Self {
-		let mut buffer = [0u8; 32];
-		buffer[..20].copy_from_slice(&value.0);
-		buffer
-	}
-}
-
 impl From<H160> for AccountId20 {
 	fn from(h160: H160) -> Self {
 		Self(h160.0)
