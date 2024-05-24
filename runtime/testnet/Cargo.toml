@@ -28,6 +28,7 @@ pallet-migration = { workspace = true, default-features = false }
 pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 pallet-escrow = { workspace = true, default-features = false }
+pallet-nfts-wrapper = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }

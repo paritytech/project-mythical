@@ -7083,6 +7083,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-nfts-wrapper"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-nfts",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0)",
+]
+
+[[package]]
 name = "pallet-nis"
 version = "28.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0#0bb6249268c0b77d2834640b84cb52fdd3d7e860"
@@ -13569,6 +13582,7 @@ dependencies = [
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-nfts",
+ "pallet-nfts-wrapper",
  "pallet-proxy",
  "pallet-session",
  "pallet-sudo",

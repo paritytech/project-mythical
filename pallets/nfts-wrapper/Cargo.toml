@@ -1,0 +1,31 @@
+[package]
+name = "pallet-nfts-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+parity-scale-codec = { workspace = true, default-features = false, features = [
+	"derive",
+] }
+scale-info = { workspace = true, default-features = false, features = [
+	"derive",
+] }
+frame-support = { workspace = true, default-features = false }
+frame-system = { workspace = true, default-features = false }
+sp-std = { workspace = true, default-features = false }
+sp-runtime = { workspace = true, default-features = false }
+pallet-nfts = { workspace = true, default-features = false }
+
+[features]
+default = ["std"]
+std = [
+	"scale-info/std",
+	"parity-scale-codec/std",
+	"frame-support/std",
+	"frame-system/std",
+	"sp-std/std",
+	"sp-runtime/std",
+	"pallet-nfts/std"
+]

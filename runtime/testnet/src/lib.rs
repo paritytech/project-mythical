@@ -13,7 +13,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
@@ -590,7 +590,7 @@ parameter_types! {
 }
 
 pub type CollectionId = IncrementableU256;
-pub type ItemId = U256;
+pub type ItemId = u32;
 
 //TODO: Change to EnsureRoot<AccountId> after migration
 pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
@@ -622,6 +622,10 @@ impl pallet_nfts::Config for Runtime {
 	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
+}
+
+impl pallet_nfts_wrapper::Config for Runtime {
+	type NumericItemId = u32;
 }
 
 pub struct EscrowImpl;
@@ -801,6 +805,7 @@ construct_runtime!(
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
 		Multibatching: pallet_multibatching = 14,
+		NftsWrapper: pallet_nfts_wrapper = 17,
 
 		// Governance
 		Sudo: pallet_sudo = 15,

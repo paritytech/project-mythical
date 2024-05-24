@@ -48,6 +48,7 @@ pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
+pallet-nfts-wrapper = { path = "pallets/nfts-wrapper", default-features = false }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
