@@ -652,10 +652,15 @@ impl pallet_marketplace::Config for Runtime {
 	type BenchmarkHelper = ();
 }
 
+parameter_types! {
+	pub const PotId: PalletId = PalletId(*b"PotMigra");
+}
+
 impl pallet_migration::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type PotId = PotId;
 	type WeightInfo = pallet_migration::weights::SubstrateWeight<Runtime>;
 }
 

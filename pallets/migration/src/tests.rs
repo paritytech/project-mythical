@@ -232,37 +232,6 @@ mod create_ask {
 	}
 }
 
-mod set_pot_account {
-	use super::*;
-
-	#[test]
-	fn set_pot_account_works() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-
-			let res = Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1));
-			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No);
-
-			assert!(Migration::pot() == Some(account(1)));
-		})
-	}
-
-	#[test]
-	fn fails_no_migrator() {
-		new_test_ext().execute_with(|| {
-			assert_noop!(
-				Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)),
-				Error::<Test>::MigratorNotSet
-			);
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert_noop!(
-				Migration::set_pot_account(RuntimeOrigin::signed(account(2)), account(1)),
-				Error::<Test>::NotMigrator
-			);
-		})
-	}
-}
 mod send_funds_from_pot {
 	use super::*;
 
@@ -280,26 +249,11 @@ mod send_funds_from_pot {
 			);
 		})
 	}
-	#[test]
-	fn pot_not_set_fails() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert_noop!(
-				Migration::send_funds_from_pot(
-					RuntimeOrigin::signed(account(1)),
-					account(2),
-					10000
-				),
-				Error::<Test>::PotAccountNotSet
-			);
-		})
-	}
 
 	#[test]
 	fn pot_has_not_enough_funds_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(3)));
 			assert_noop!(
 				Migration::send_funds_from_pot(
 					RuntimeOrigin::signed(account(1)),
@@ -315,8 +269,8 @@ mod send_funds_from_pot {
 	fn send_funds_from_pot_passes() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			Balances::set_balance(&account(1), 100000);
-			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)));
+			let pot = Migration::pot_account_id();
+			Balances::set_balance(&pot, 100000);
 
 			let res = Migration::send_funds_from_pot(
 				RuntimeOrigin::signed(account(1)),
@@ -326,7 +280,7 @@ mod send_funds_from_pot {
 			assert!(res.is_ok());
 			assert!(res.unwrap().pays_fee == Pays::No);
 
-			assert!(Balances::free_balance(&account(1)) == 90000);
+			assert!(Balances::free_balance(&pot) == 90000);
 			assert!(Balances::free_balance(&account(2)) == 10000);
 		})
 	}

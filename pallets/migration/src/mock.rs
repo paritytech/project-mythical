@@ -2,7 +2,7 @@ use frame_support::{
 	derive_impl,
 	pallet_prelude::DispatchResult,
 	parameter_types,
-	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64},
+	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64}, PalletId,
 };
 use frame_system as system;
 use sp_core::H256;
@@ -164,9 +164,14 @@ impl pallet_timestamp::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const PotId: PalletId = PalletId(*b"PotMigra");
+}
+
 impl pallet_migration::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
+	type PotId = PotId;
 	type Currency = Balances;
 	type WeightInfo = ();
 }

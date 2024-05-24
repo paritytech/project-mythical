@@ -27,6 +27,10 @@ fn get_migrator<T: Config>() -> T::AccountId {
 	migrator
 }
 
+fn pot<T: Config>() -> T::AccountId {
+	
+}
+
 fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 	// Give the account half of the maximum value of the `Balance` type.
@@ -99,30 +103,15 @@ pub mod benchmarks {
 	}
 
 	#[benchmark]
-	fn set_pot_account() {
-		let migrator: T::AccountId = get_migrator::<T>();
-		let pot: T::AccountId = account("pot", 0, SEED);
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), pot.clone());
-
-		assert_last_event::<T>(Event::PotUpdated(pot).into());
-	}
-
-	#[benchmark]
 	fn send_funds_from_pot() {
 		let migrator: T::AccountId = get_migrator::<T>();
-		let pot: T::AccountId = account("pot", 0, SEED);
+		let pot: 
 		let receiver: T::AccountId = account("receiver", 0, SEED);
 		let ed = <T as Config>::Currency::minimum_balance();
 		let pot_multi = BalanceOf::<T>::from(1000u32);
 		let send_multi = BalanceOf::<T>::from(10u32);
 		let amount_to_send = ed * send_multi;
 		<T as Config>::Currency::set_balance(&pot, ed * pot_multi);
-		assert_ok!(Migration::<T>::set_pot_account(
-			RawOrigin::Signed(migrator.clone()).into(),
-			pot.clone()
-		));
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(migrator), receiver.clone(), amount_to_send);

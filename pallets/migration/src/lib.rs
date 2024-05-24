@@ -20,7 +20,7 @@ pub mod pallet {
 		traits::{
 			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Currency,
 			UnfilteredDispatchable,
-		},
+		}, PalletId,
 	};
 	use frame_support::{
 		pallet_prelude::*,
@@ -33,7 +33,7 @@ pub mod pallet {
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
-	use sp_runtime::traits::StaticLookup;
+	use sp_runtime::traits::{AccountIdConversion, StaticLookup};
 	use sp_std::{vec, vec::Vec};
 
 	#[pallet::pallet]
@@ -54,6 +54,12 @@ pub mod pallet {
 
 		/// The fungible trait use for balance holds and transfers.
 		type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
+
+		/// Account Identifier from which the internal pot is generated.
+		///
+		/// To initiate rewards, an ED needs to be transferred to the pot address.
+		#[pallet::constant]
+		type PotId: Get<PalletId>;
 
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
@@ -89,10 +95,6 @@ pub mod pallet {
 		}
 	}
 
-	#[pallet::storage]
-	#[pallet::getter(fn pot)]
-	pub type Pot<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
-
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
@@ -106,8 +108,6 @@ pub mod pallet {
 			item: T::ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		},
-		/// The pallet's Pot account was updated.
-		PotUpdated(T::AccountId),
 	}
 
 	#[pallet::error]
@@ -118,8 +118,6 @@ pub mod pallet {
 		ItemNotFound,
 		/// Expiration below current timestamp.
 		InvalidExpiration,
-		/// Pot account has not been set.
-		PotAccountNotSet,
 		/// Tried to store an account that is already set for this storage value.
 		AccountAlreadySet,
 		// Migrator is not set.
@@ -218,32 +216,6 @@ pub mod pallet {
 			Ok(Pays::No.into())
 		}
 
-		/// Sets the pot account which will be used as the origin to send funds from on the send_funds_from_pot() extrinsic.
-		///
-		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		///
-		/// Parameters:
-		/// - `pot`: The account ID to be set as the pallet's pot.
-		///
-		/// Emits `PotUpdated` event upon successful execution.
-		///
-		/// Weight: `WeightInfo::set_pot_account` (defined in the `Config` trait).
-		#[pallet::call_index(4)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_pot_account())]
-		pub fn set_pot_account(
-			origin: OriginFor<T>,
-			pot: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			let _who = Self::ensure_migrator(origin)?;
-
-			ensure!(Pot::<T>::get().as_ref() != Some(&pot), Error::<T>::AccountAlreadySet);
-
-			Pot::<T>::put(pot.clone());
-
-			Self::deposit_event(Event::PotUpdated(pot));
-			Ok(Pays::No.into())
-		}
-
 		/// Transfer funds to a recipient account from the pot account.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
@@ -264,7 +236,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 
-			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
+			let pot = Self::pot_account_id();
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
 
 			Ok(Pays::No.into())
@@ -421,6 +393,11 @@ pub mod pallet {
 			let migrator = Migrator::<T>::get().ok_or(Error::<T>::MigratorNotSet)?;
 			ensure!(sender == migrator, Error::<T>::NotMigrator);
 			Ok(())
+		}
+
+		/// Get a unique, inaccessible account ID from the `PotId`.
+		pub fn pot_account_id() -> T::AccountId {
+			T::PotId::get().into_account_truncating()
 		}
 
 		pub fn get_next_id() -> T::CollectionId {
