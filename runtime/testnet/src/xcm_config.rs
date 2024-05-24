@@ -21,10 +21,11 @@ use xcm_builder::{
 	FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete,
 	NativeAsset, RelayChainAsNative, SiblingParachainAsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	XcmFeeManagerFromComponents,
 };
 use xcm_executor::XcmExecutor;
 
-use xcm_primitives::SignedToAccountId20;
+use xcm_primitives::{SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
@@ -213,6 +214,7 @@ pub type Traders = (
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<AssetHubLocation>);
 pub type TrustedTeleporters = (xcm_builder::Case<AssetHubTrustedTeleporter>,);
+pub type WaivedLocations = ();
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -236,7 +238,10 @@ impl xcm_executor::Config for XcmConfig {
 	type PalletInstancesInfo = AllPalletsWithSystem;
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
 	//Currently fees are being burned.
-	type FeeManager = ();
+	type FeeManager = XcmFeeManagerFromComponents<
+		WaivedLocations,
+		XcmFeeToAccountId20<Self::AssetTransactor, AccountId, StakingPot>,
+	>;
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
