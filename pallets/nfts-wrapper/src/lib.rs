@@ -58,6 +58,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nfts::Config {
+		/// Similar to the original ItemId in pallet-nfts, but restricting the type to a numeric value.
 		type NumericItemId: Member
 			+ Parameter
 			+ MaxEncodedLen
@@ -69,7 +70,7 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The item ID cannot be converted to the correct type.
+		/// The item ID cannot be converted to the correct type, or it is over the max supply.
 		InvalidItemId,
 	}
 
@@ -127,10 +128,17 @@ pub mod pallet {
 			mint_to: AccountIdLookupOf<T>,
 			witness_data: Option<MintWitness<T::ItemId, DepositBalanceOf<T>>>,
 		) -> DispatchResult {
-			let next_item_id = Self::increment_collection_id(&collection)
-				.try_into()
-				.map_err(|_| Error::<T>::InvalidItemId)?;
-			pallet_nfts::Pallet::<T>::mint(origin, collection, next_item_id, mint_to, witness_data)
+			let next_item_id = Self::increment_collection_id(&collection);
+			let max_supply = Self::get_collection_max_supply(&collection);
+			ensure!(next_item_id <= max_supply.into(), Error::<T>::InvalidItemId);
+
+			pallet_nfts::Pallet::<T>::mint(
+				origin,
+				collection,
+				next_item_id.try_into().map_err(|_| Error::<T>::InvalidItemId)?,
+				mint_to,
+				witness_data,
+			)
 		}
 
 		/// Mint an item of a particular collection from a privileged origin.
@@ -139,17 +147,17 @@ pub mod pallet {
 		pub fn force_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			_item: T::ItemId,
+			item: T::NumericItemId,
 			mint_to: AccountIdLookupOf<T>,
 			item_config: ItemConfig,
 		) -> DispatchResult {
-			let next_item_id = Self::increment_collection_id(&collection)
-				.try_into()
-				.map_err(|_| Error::<T>::InvalidItemId)?;
+			let max_supply = Self::get_collection_max_supply(&collection);
+			ensure!(item <= max_supply.into(), Error::<T>::InvalidItemId);
+
 			pallet_nfts::Pallet::<T>::force_mint(
 				origin,
 				collection,
-				next_item_id,
+				item.try_into().map_err(|_| Error::<T>::InvalidItemId)?,
 				mint_to,
 				item_config,
 			)
@@ -611,6 +619,15 @@ pub mod pallet {
 				*next_item_id = next_item_id.saturating_add(One::one());
 				val
 			})
+		}
+
+		fn get_collection_max_supply(collection: &T::CollectionId) -> u32 {
+			if let Some(collection_config) = pallet_nfts::CollectionConfigOf::<T>::get(&collection)
+			{
+				collection_config.max_supply.unwrap_or(u32::MAX)
+			} else {
+				u32::MAX
+			}
 		}
 	}
 }
