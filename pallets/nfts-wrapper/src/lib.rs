@@ -135,6 +135,9 @@ pub mod pallet {
 			config: CollectionConfigFor<T>,
 			mint_type: MintType,
 		) -> DispatchResult {
+			if mint_type == MintType::Random {
+				ensure!(config.max_supply.is_some(), Error::<T>::InvalidMintType);
+			}
 			let collection = pallet_nfts::NextCollectionId::<T>::get()
 				.or(T::CollectionId::initial_value())
 				.ok_or(pallet_nfts::Error::<T>::UnknownCollection)?;
@@ -151,6 +154,9 @@ pub mod pallet {
 			config: CollectionConfigFor<T>,
 			mint_type: MintType,
 		) -> DispatchResult {
+			if mint_type == MintType::Random {
+				ensure!(config.max_supply.is_some(), Error::<T>::InvalidMintType);
+			}
 			let collection = pallet_nfts::NextCollectionId::<T>::get()
 				.or(T::CollectionId::initial_value())
 				.ok_or(pallet_nfts::Error::<T>::UnknownCollection)?;
