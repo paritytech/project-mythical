@@ -6,6 +6,7 @@ pub use pallet::*;
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::Currency;
+	use frame_support::traits::Incrementable;
 	use frame_system::pallet_prelude::*;
 	use pallet_nfts::{
 		AttributeNamespace, CancelAttributesApprovalWitness, CollectionSettings, DestroyWitness,
@@ -13,8 +14,8 @@ pub mod pallet {
 		PriceWithDirection,
 	};
 	use pallet_nfts::{CollectionConfig, WeightInfo};
-	use sp_runtime::traits::One;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, StaticLookup};
+	use sp_runtime::traits::{One, Zero};
 	use sp_runtime::Saturating;
 	use sp_std::prelude::*;
 
@@ -72,12 +73,56 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// The item ID cannot be converted to the correct type, or it is over the max supply.
 		InvalidItemId,
+		/// Mint type has to be `Serial` to be able to be incremented.
+		InvalidMintType,
 	}
 
-	/// Stores the next ID for a collection.
+	/// Defines how items should be minted.
+	#[derive(
+		Default, Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen,
+	)]
+	pub enum MintType {
+		/// Minting is done one by one, starting at zero.
+		#[default]
+		Serial,
+		/// Minting is done arbitrarily.
+		Random,
+	}
+
+	/// Extra information about a collection.
+	#[derive(
+		Default, Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen,
+	)]
+	pub struct ExtraCollectionDetails<ItemId> {
+		/// Next collection's item ID, if serial minting is enabled.
+		pub next_item_id: Option<ItemId>,
+		/// The minting type.
+		pub mint_type: MintType,
+	}
+
+	impl<ItemId> ExtraCollectionDetails<ItemId>
+	where
+		ItemId: Zero,
+	{
+		/// Creates a new instance of `ExtraCollectionDetails` based in the minting type.
+		pub fn new(mint_type: MintType) -> Self {
+			let next_item_id = match mint_type {
+				MintType::Serial => Some(Zero::zero()),
+				MintType::Random => None,
+			};
+			Self { next_item_id, mint_type }
+		}
+	}
+
+	/// Stores the extra data for a collection.
 	#[pallet::storage]
-	pub type NextItemId<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::CollectionId, T::NumericItemId, ValueQuery>;
+	pub type ExtraCollectionData<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::CollectionId,
+		ExtraCollectionDetails<T::NumericItemId>,
+		ValueQuery,
+	>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -88,7 +133,12 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			admin: AccountIdLookupOf<T>,
 			config: CollectionConfigFor<T>,
+			mint_type: MintType,
 		) -> DispatchResult {
+			let collection = pallet_nfts::NextCollectionId::<T>::get()
+				.or(T::CollectionId::initial_value())
+				.ok_or(pallet_nfts::Error::<T>::UnknownCollection)?;
+			ExtraCollectionData::<T>::insert(&collection, ExtraCollectionDetails::new(mint_type));
 			pallet_nfts::Pallet::<T>::create(origin, admin, config)
 		}
 
@@ -99,7 +149,12 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			owner: AccountIdLookupOf<T>,
 			config: CollectionConfigFor<T>,
+			mint_type: MintType,
 		) -> DispatchResult {
+			let collection = pallet_nfts::NextCollectionId::<T>::get()
+				.or(T::CollectionId::initial_value())
+				.ok_or(pallet_nfts::Error::<T>::UnknownCollection)?;
+			ExtraCollectionData::<T>::insert(&collection, ExtraCollectionDetails::new(mint_type));
 			pallet_nfts::Pallet::<T>::force_create(origin, owner, config)
 		}
 
@@ -118,39 +173,94 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::destroy(origin, collection, witness)
 		}
 
-		/// Mint an item of a particular collection.
+		/// Mint an item of a particular collection in serial mode.
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::mint())]
-		pub fn mint(
+		pub fn mint_serial(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			_item: T::ItemId,
 			mint_to: AccountIdLookupOf<T>,
 			witness_data: Option<MintWitness<T::ItemId, DepositBalanceOf<T>>>,
 		) -> DispatchResult {
-			let next_item_id = Self::increment_collection_id(&collection);
+			let extra = ExtraCollectionData::<T>::get(&collection);
+			ensure!(extra.mint_type == MintType::Serial, Error::<T>::InvalidMintType);
+
+			let final_item_id = Self::increment_collection_id(&collection)?;
 			let max_supply = Self::get_collection_max_supply(&collection);
-			ensure!(next_item_id <= max_supply.into(), Error::<T>::InvalidItemId);
+			ensure!(final_item_id <= max_supply.into(), Error::<T>::InvalidItemId);
 
 			pallet_nfts::Pallet::<T>::mint(
 				origin,
 				collection,
-				next_item_id.try_into().map_err(|_| Error::<T>::InvalidItemId)?,
+				final_item_id.try_into().map_err(|_| Error::<T>::InvalidItemId)?,
 				mint_to,
 				witness_data,
 			)
 		}
 
-		/// Mint an item of a particular collection from a privileged origin.
+		/// Mint an item of a particular collection in random mode.
+		#[pallet::call_index(39)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::mint())]
+		pub fn mint_any(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			item: T::NumericItemId,
+			mint_to: AccountIdLookupOf<T>,
+			witness_data: Option<MintWitness<T::ItemId, DepositBalanceOf<T>>>,
+		) -> DispatchResult {
+			let extra = ExtraCollectionData::<T>::get(&collection);
+			ensure!(extra.mint_type == MintType::Random, Error::<T>::InvalidMintType);
+
+			let max_supply = Self::get_collection_max_supply(&collection);
+			ensure!(item <= max_supply.into(), Error::<T>::InvalidItemId);
+
+			pallet_nfts::Pallet::<T>::mint(
+				origin,
+				collection,
+				item.try_into().map_err(|_| Error::<T>::InvalidItemId)?,
+				mint_to,
+				witness_data,
+			)
+		}
+
+		/// Mint an item of a particular collection in serial mode from a privileged origin.
 		#[pallet::call_index(4)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
-		pub fn force_mint(
+		pub fn force_mint_serial(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+			mint_to: AccountIdLookupOf<T>,
+			item_config: ItemConfig,
+		) -> DispatchResult {
+			let extra = ExtraCollectionData::<T>::get(&collection);
+			ensure!(extra.mint_type == MintType::Serial, Error::<T>::InvalidMintType);
+
+			let final_item_id = Self::increment_collection_id(&collection)?;
+			let max_supply = Self::get_collection_max_supply(&collection);
+			ensure!(final_item_id <= max_supply.into(), Error::<T>::InvalidItemId);
+
+			pallet_nfts::Pallet::<T>::force_mint(
+				origin,
+				collection,
+				final_item_id.try_into().map_err(|_| Error::<T>::InvalidItemId)?,
+				mint_to,
+				item_config,
+			)
+		}
+
+		/// Mint an item of a particular collection in random mode from a privileged origin.
+		#[pallet::call_index(40)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
+		pub fn force_mint_any(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 			item: T::NumericItemId,
 			mint_to: AccountIdLookupOf<T>,
 			item_config: ItemConfig,
 		) -> DispatchResult {
+			let extra = ExtraCollectionData::<T>::get(&collection);
+			ensure!(extra.mint_type == MintType::Random, Error::<T>::InvalidMintType);
+
 			let max_supply = Self::get_collection_max_supply(&collection);
 			ensure!(item <= max_supply.into(), Error::<T>::InvalidItemId);
 
@@ -613,14 +723,31 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn increment_collection_id(collection: &T::CollectionId) -> T::NumericItemId {
-			NextItemId::<T>::mutate(&collection, |next_item_id| {
-				let val = next_item_id.clone();
-				*next_item_id = next_item_id.saturating_add(One::one());
-				val
-			})
+		/// Increments the next item ID of a collection.
+		///
+		/// Returns the ID before being incremented.
+		fn increment_collection_id(
+			collection: &T::CollectionId,
+		) -> Result<T::NumericItemId, DispatchError> {
+			ExtraCollectionData::<T>::mutate(
+				&collection,
+				|extra| -> Result<T::NumericItemId, DispatchError> {
+					ensure!(extra.mint_type == MintType::Serial, Error::<T>::InvalidMintType);
+					let id = if let Some(next_item_id) = extra.next_item_id {
+						let new_item_id = next_item_id.saturating_add(One::one());
+						extra.next_item_id = Some(new_item_id);
+						new_item_id
+					} else {
+						return Err(Error::<T>::InvalidMintType.into());
+					};
+					Ok(id)
+				},
+			)
 		}
 
+		/// Returns a collection's maximum supply.
+		///
+		/// If not present, returns u32::MAX.
 		fn get_collection_max_supply(collection: &T::CollectionId) -> u32 {
 			if let Some(collection_config) = pallet_nfts::CollectionConfigOf::<T>::get(&collection)
 			{
