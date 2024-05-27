@@ -69,15 +69,18 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
+		/// The item ID cannot be converted to the correct type.
 		InvalidItemId,
 	}
 
+	/// Stores the next ID for a collection.
 	#[pallet::storage]
 	pub type NextItemId<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::CollectionId, T::NumericItemId, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Issue a new collection of non-fungible items from a public origin.
 		#[pallet::call_index(0)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::create())]
 		pub fn create(
@@ -88,6 +91,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::create(origin, admin, config)
 		}
 
+		/// Issue a new collection of non-fungible items from a privileged origin.
 		#[pallet::call_index(1)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_create())]
 		pub fn force_create(
@@ -98,6 +102,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::force_create(origin, owner, config)
 		}
 
+		/// Destroy a collection of fungible items.
 		#[pallet::call_index(2)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::destroy(
 		witness.item_metadatas,
@@ -112,6 +117,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::destroy(origin, collection, witness)
 		}
 
+		/// Mint an item of a particular collection.
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::mint())]
 		pub fn mint(
@@ -127,6 +133,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::mint(origin, collection, next_item_id, mint_to, witness_data)
 		}
 
+		/// Mint an item of a particular collection from a privileged origin.
 		#[pallet::call_index(4)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
 		pub fn force_mint(
@@ -148,6 +155,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Destroy a single item.
 		#[pallet::call_index(5)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::burn())]
 		pub fn burn(
@@ -158,6 +166,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::burn(origin, collection, item)
 		}
 
+		/// Move an item from the sender account to another.
 		#[pallet::call_index(6)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::transfer())]
 		pub fn transfer(
@@ -169,6 +178,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::transfer(origin, collection, item, dest)
 		}
 
+		/// Re-evaluate the deposits on some items.
 		#[pallet::call_index(7)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::redeposit(items.len() as u32))]
 		pub fn redeposit(
@@ -179,6 +189,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::redeposit(origin, collection, items)
 		}
 
+		/// Disallow further unprivileged transfer of an item.
 		#[pallet::call_index(8)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::lock_item_transfer())]
 		pub fn lock_item_transfer(
@@ -189,6 +200,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::lock_item_transfer(origin, collection, item)
 		}
 
+		/// Re-allow unprivileged transfer of an item.
 		#[pallet::call_index(9)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::unlock_item_transfer())]
 		pub fn unlock_item_transfer(
@@ -199,6 +211,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::unlock_item_transfer(origin, collection, item)
 		}
 
+		/// Disallows specified settings for the whole collection.
 		#[pallet::call_index(10)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::lock_collection())]
 		pub fn lock_collection(
@@ -209,6 +222,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::lock_collection(origin, collection, lock_settings)
 		}
 
+		/// Change the Owner of a collection.
 		#[pallet::call_index(11)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::transfer_ownership())]
 		pub fn transfer_ownership(
@@ -219,6 +233,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::transfer_ownership(origin, collection, new_owner)
 		}
 
+		/// Change the Issuer, Admin and Freezer of a collection.
 		#[pallet::call_index(12)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_team())]
 		pub fn set_team(
@@ -231,6 +246,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::set_team(origin, collection, issuer, admin, freezer)
 		}
 
+		/// Change the Owner of a collection.
 		#[pallet::call_index(13)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_collection_owner())]
 		pub fn force_collection_owner(
@@ -241,6 +257,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::force_collection_owner(origin, collection, owner)
 		}
 
+		/// Change the config of a collection.
 		#[pallet::call_index(14)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_collection_config())]
 		pub fn force_collection_config(
@@ -251,6 +268,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::force_collection_config(origin, collection, config)
 		}
 
+		/// Approve an item to be transferred by a delegated third-party account.
 		#[pallet::call_index(15)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::approve_transfer())]
 		pub fn approve_transfer(
@@ -269,6 +287,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Cancel one of the transfer approvals for a specific item.
 		#[pallet::call_index(16)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::cancel_approval())]
 		pub fn cancel_approval(
@@ -280,6 +299,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::cancel_approval(origin, collection, item, delegate)
 		}
 
+		/// Cancel all the approvals of a specific item.
 		#[pallet::call_index(17)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::clear_all_transfer_approvals())]
 		pub fn clear_all_transfer_approvals(
@@ -290,6 +310,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::clear_all_transfer_approvals(origin, collection, item)
 		}
 
+		/// Disallows changing the metadata or attributes of the item.
 		#[pallet::call_index(18)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::lock_item_properties())]
 		pub fn lock_item_properties(
@@ -308,6 +329,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Set an attribute for a collection or item.
 		#[pallet::call_index(19)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_attribute())]
 		pub fn set_attribute(
@@ -323,6 +345,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Force-set an attribute for a collection or item.
 		#[pallet::call_index(20)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_set_attribute())]
 		pub fn force_set_attribute(
@@ -339,6 +362,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Clear an attribute for a collection or item.
 		#[pallet::call_index(21)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::clear_attribute())]
 		pub fn clear_attribute(
@@ -353,6 +377,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Approve item's attributes to be changed by a delegated third-party account.
 		#[pallet::call_index(22)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::approve_item_attributes())]
 		pub fn approve_item_attributes(
@@ -364,6 +389,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::approve_item_attributes(origin, collection, item, delegate)
 		}
 
+		/// Cancel the previously provided approval to change item's attributes.
 		#[pallet::call_index(23)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::cancel_item_attributes_approval(
 		witness.account_attributes
@@ -380,6 +406,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Set the metadata for an item.
 		#[pallet::call_index(24)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_metadata())]
 		pub fn set_metadata(
@@ -391,6 +418,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::set_metadata(origin, collection, item, data)
 		}
 
+		/// Clear the metadata for an item.
 		#[pallet::call_index(25)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::clear_metadata())]
 		pub fn clear_metadata(
@@ -401,6 +429,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::clear_metadata(origin, collection, item)
 		}
 
+		/// Set the metadata for a collection.
 		#[pallet::call_index(26)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_collection_metadata())]
 		pub fn set_collection_metadata(
@@ -411,6 +440,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::set_collection_metadata(origin, collection, data)
 		}
 
+		/// Clear the metadata for a collection.
 		#[pallet::call_index(27)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::clear_collection_metadata())]
 		pub fn clear_collection_metadata(
@@ -420,6 +450,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::clear_collection_metadata(origin, collection)
 		}
 
+		/// Set (or reset) the acceptance of ownership for a particular account.
 		#[pallet::call_index(28)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_accept_ownership())]
 		pub fn set_accept_ownership(
@@ -429,6 +460,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::set_accept_ownership(origin, maybe_collection)
 		}
 
+		/// Set the maximum number of items a collection could have.
 		#[pallet::call_index(29)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_collection_max_supply())]
 		pub fn set_collection_max_supply(
@@ -439,6 +471,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::set_collection_max_supply(origin, collection, max_supply)
 		}
 
+		/// Update mint settings.
 		#[pallet::call_index(30)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::update_mint_settings())]
 		pub fn update_mint_settings(
@@ -449,6 +482,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::update_mint_settings(origin, collection, mint_settings)
 		}
 
+		/// Set (or reset) the price for an item.
 		#[pallet::call_index(31)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_price())]
 		pub fn set_price(
@@ -461,6 +495,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::set_price(origin, collection, item, price, whitelisted_buyer)
 		}
 
+		/// Allows to buy an item if it's up for sale.
 		#[pallet::call_index(32)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::buy_item())]
 		pub fn buy_item(
@@ -472,6 +507,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::buy_item(origin, collection, item, bid_price)
 		}
 
+		/// Allows to pay the tips.
 		#[pallet::call_index(33)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::pay_tips(tips.len() as u32))]
 		pub fn pay_tips(
@@ -481,6 +517,8 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::pay_tips(origin, tips)
 		}
 
+		/// Register a new atomic swap, declaring an intention to send an `item` in exchange for
+		/// `desired_item` from origin to target on the current blockchain.
 		#[pallet::call_index(34)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::create_swap())]
 		pub fn create_swap(
@@ -503,6 +541,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Cancel an atomic swap.
 		#[pallet::call_index(35)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::cancel_swap())]
 		pub fn cancel_swap(
@@ -513,6 +552,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::cancel_swap(origin, offered_collection, offered_item)
 		}
 
+		/// Claim an atomic swap.
 		#[pallet::call_index(36)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::claim_swap())]
 		pub fn claim_swap(
@@ -533,6 +573,7 @@ pub mod pallet {
 			)
 		}
 
+		/// Mint an item by providing the pre-signed approval.
 		#[pallet::call_index(37)]
 		#[pallet::weight(
 		// TODO cannot access data.attributes
@@ -547,6 +588,7 @@ pub mod pallet {
 			pallet_nfts::Pallet::<T>::mint_pre_signed(origin, mint_data, signature, signer)
 		}
 
+		/// Set attributes for an item by providing the pre-signed approval.
 		#[pallet::call_index(38)]
 		#[pallet::weight(
 		// TODO cannot access data.attributes
