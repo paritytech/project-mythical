@@ -802,10 +802,10 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment = 11,
 
 		// NFTs
-		Nfts: pallet_nfts = 12,
+		NftsCore: pallet_nfts exclude_parts { Call } = 12,
 		Marketplace: pallet_marketplace = 13,
 		Multibatching: pallet_multibatching = 14,
-		NftsWrapper: pallet_nfts_wrapper = 17,
+		Nfts: pallet_nfts_wrapper = 17,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
@@ -897,7 +897,7 @@ mod benches {
 		[pallet_multisig, Multisig]
 		[pallet_marketplace, Marketplace]
 		[pallet_multibatching, Multibatching]
-		[pallet_nfts, Nfts]
+		[pallet_nfts, NftsCore]
 		[pallet_proxy, Proxy]
 		[pallet_vesting, Vesting]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
