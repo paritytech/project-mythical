@@ -60,10 +60,8 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// Max block weight configuration.
 /// TODO: Revisit after tx rejection issue is resolved.
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	WEIGHT_REF_TIME_PER_SECOND,
-	polkadot_primitives::MAX_POV_SIZE as u64,
-);
+pub const MAXIMUM_BLOCK_WEIGHT: Weight =
+	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, polkadot_primitives::MAX_POV_SIZE as u64);
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
 /// the result on to `ToStakingPot`.
