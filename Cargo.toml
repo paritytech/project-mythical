@@ -39,6 +39,7 @@ smallvec = "1.13.1"
 libsecp256k1 = { version = "0.7.1", default-features = false }
 sha3 = { version = "0.10.8", default-features = false }
 hex = { version = "0.4.3", default-features = false }
+enumflags2 = { version = "0.7.7" }
 
 # Local dependencies
 testnet-runtime = { path = "runtime/testnet" }
@@ -48,6 +49,7 @@ pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
+pallet-nfts = { path = "pallets/nfts", default-features = false }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
@@ -65,7 +67,6 @@ pallet-collective = { git = "https://github.com/paritytech/polkadot-sdk", branch
 pallet-membership = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
 pallet-message-queue = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }                       #TODO check if was deleted from EPT
 pallet-multisig = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
-pallet-nfts = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
 pallet-preimage = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
 pallet-scheduler = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.11.0", default-features = false }
