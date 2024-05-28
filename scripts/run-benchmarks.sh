@@ -46,7 +46,7 @@ done
 
 # Benchmark overheads
 $BIN benchmark overhead \
-  --chain=dev \
+  --chain="$RUNTIME" \
   --wasm-execution=compiled \
   --weight-path "$WEIGHT_FOLDER" \
   --warmup=10 \
