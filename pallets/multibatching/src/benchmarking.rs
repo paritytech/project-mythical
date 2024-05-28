@@ -5,6 +5,7 @@ use crate::Pallet as Multibatching;
 use frame_benchmarking::v2::*;
 use frame_support::{dispatch::RawOrigin, BoundedVec};
 use sp_core::ecdsa::Public;
+use sp_core::Get;
 use sp_io::{
 	crypto::{ecdsa_generate, ecdsa_sign_prehashed},
 	hashing::keccak_256,
@@ -44,7 +45,7 @@ pub mod benchmarks {
 	use pallet_timestamp::Pallet as Timestamp;
 
 	#[benchmark]
-	fn batch(c: Linear<1, 1000>, s: Linear<1, 10>) {
+	fn batch(c: Linear<1, { T::MaxCalls::get() }>, s: Linear<1, 10>) {
 		let call_count = c as usize;
 		let signer_count = s as usize;
 
