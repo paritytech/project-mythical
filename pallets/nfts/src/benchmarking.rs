@@ -79,9 +79,7 @@ fn add_collection_metadata<T: Config<I>, I: 'static>() -> (T::AccountId, Account
 	(caller, caller_lookup)
 }
 
-fn mint_item<T: Config<I>, I: 'static>(
-	index: u16,
-) -> (T::ItemId, T::AccountId, AccountIdLookupOf<T>) {
+fn mint_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, AccountIdLookupOf<T>) {
 	let item = T::Helper::item(index);
 	let collection = T::Helper::collection(0);
 	let caller = Collection::<T, I>::get(collection).unwrap().owner;
@@ -113,9 +111,7 @@ fn mint_item<T: Config<I>, I: 'static>(
 	(item, caller, caller_lookup)
 }
 
-fn lock_item<T: Config<I>, I: 'static>(
-	index: u16,
-) -> (T::ItemId, T::AccountId, AccountIdLookupOf<T>) {
+fn lock_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
 		whitelist_account!(caller);
@@ -130,9 +126,7 @@ fn lock_item<T: Config<I>, I: 'static>(
 	(item, caller, caller_lookup)
 }
 
-fn burn_item<T: Config<I>, I: 'static>(
-	index: u16,
-) -> (T::ItemId, T::AccountId, AccountIdLookupOf<T>) {
+fn burn_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
 		whitelist_account!(caller);
@@ -148,7 +142,7 @@ fn burn_item<T: Config<I>, I: 'static>(
 }
 
 fn add_item_metadata<T: Config<I>, I: 'static>(
-	item: T::ItemId,
+	item: ItemId,
 ) -> (T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
@@ -165,7 +159,7 @@ fn add_item_metadata<T: Config<I>, I: 'static>(
 }
 
 fn add_item_attribute<T: Config<I>, I: 'static>(
-	item: T::ItemId,
+	item: ItemId,
 ) -> (BoundedVec<u8, T::KeyLimit>, T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {

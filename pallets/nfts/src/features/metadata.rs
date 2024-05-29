@@ -41,7 +41,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_set_item_metadata(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		data: BoundedVec<u8, T::StringLimit>,
 		maybe_depositor: Option<T::AccountId>,
 	) -> DispatchResult {
@@ -125,7 +125,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_clear_item_metadata(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 	) -> DispatchResult {
 		if let Some(check_origin) = &maybe_check_origin {
 			ensure!(

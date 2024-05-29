@@ -49,9 +49,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_create_swap(
 		caller: T::AccountId,
 		offered_collection_id: T::CollectionId,
-		offered_item_id: T::ItemId,
+		offered_item_id: ItemId,
 		desired_collection_id: T::CollectionId,
-		maybe_desired_item_id: Option<T::ItemId>,
+		maybe_desired_item_id: Option<ItemId>,
 		maybe_price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 		duration: frame_system::pallet_prelude::BlockNumberFor<T>,
 	) -> DispatchResult {
@@ -114,7 +114,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_cancel_swap(
 		caller: T::AccountId,
 		offered_collection_id: T::CollectionId,
-		offered_item_id: T::ItemId,
+		offered_item_id: ItemId,
 	) -> DispatchResult {
 		let swap = PendingSwapOf::<T, I>::get(&offered_collection_id, &offered_item_id)
 			.ok_or(Error::<T, I>::UnknownSwap)?;
@@ -160,9 +160,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_claim_swap(
 		caller: T::AccountId,
 		send_collection_id: T::CollectionId,
-		send_item_id: T::ItemId,
+		send_item_id: ItemId,
 		receive_collection_id: T::CollectionId,
-		receive_item_id: T::ItemId,
+		receive_item_id: ItemId,
 		witness_price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 	) -> DispatchResult {
 		ensure!(

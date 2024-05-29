@@ -44,7 +44,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_approve_transfer(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		delegate: T::AccountId,
 		maybe_deadline: Option<frame_system::pallet_prelude::BlockNumberFor<T>>,
 	) -> DispatchResult {
@@ -102,7 +102,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_cancel_approval(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		delegate: T::AccountId,
 	) -> DispatchResult {
 		let mut details =
@@ -152,7 +152,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_clear_all_transfer_approvals(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 	) -> DispatchResult {
 		let mut details =
 			Item::<T, I>::get(&collection, &item).ok_or(Error::<T, I>::UnknownCollection)?;

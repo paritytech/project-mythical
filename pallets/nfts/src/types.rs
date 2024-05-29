@@ -64,7 +64,7 @@ pub(super) type ItemPrice<T, I = ()> = BalanceOf<T, I>;
 /// A type alias for the tips held by a single item.
 pub(super) type ItemTipOf<T, I = ()> = ItemTip<
 	<T as Config<I>>::CollectionId,
-	<T as Config<I>>::ItemId,
+	ItemId,
 	<T as SystemConfig>::AccountId,
 	BalanceOf<T, I>,
 >;
@@ -74,7 +74,7 @@ pub(super) type CollectionConfigFor<T, I = ()> =
 /// A type alias for the pre-signed minting configuration for a specified collection.
 pub(super) type PreSignedMintOf<T, I = ()> = PreSignedMint<
 	<T as Config<I>>::CollectionId,
-	<T as Config<I>>::ItemId,
+	ItemId,
 	<T as SystemConfig>::AccountId,
 	BlockNumberFor<T>,
 	BalanceOf<T, I>,
@@ -82,7 +82,7 @@ pub(super) type PreSignedMintOf<T, I = ()> = PreSignedMint<
 /// A type alias for the pre-signed minting configuration on the attribute level of an item.
 pub(super) type PreSignedAttributesOf<T, I = ()> = PreSignedAttributes<
 	<T as Config<I>>::CollectionId,
-	<T as Config<I>>::ItemId,
+	ItemId,
 	<T as SystemConfig>::AccountId,
 	BlockNumberFor<T>,
 >;

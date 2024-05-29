@@ -69,7 +69,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_lock_item_transfer(
 		origin: T::AccountId,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 	) -> DispatchResult {
 		ensure!(
 			Self::has_role(&collection, &origin, CollectionRole::Freezer),
@@ -99,7 +99,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_unlock_item_transfer(
 		origin: T::AccountId,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 	) -> DispatchResult {
 		ensure!(
 			Self::has_role(&collection, &origin, CollectionRole::Freezer),
@@ -134,7 +134,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_lock_item_properties(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		lock_metadata: bool,
 		lock_attributes: bool,
 	) -> DispatchResult {

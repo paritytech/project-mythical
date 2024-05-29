@@ -22,7 +22,7 @@ use frame_support::pallet_prelude::*;
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// Get the owner of the item, if the item exists.
-	pub fn owner(collection: T::CollectionId, item: T::ItemId) -> Option<T::AccountId> {
+	pub fn owner(collection: T::CollectionId, item: ItemId) -> Option<T::AccountId> {
 		Item::<T, I>::get(collection, item).map(|i| i.owner)
 	}
 

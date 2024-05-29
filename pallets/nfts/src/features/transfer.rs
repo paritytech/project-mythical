@@ -45,7 +45,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	///   ([`ItemsNonTransferable`](crate::Error::ItemsNonTransferable)).
 	pub fn do_transfer(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		dest: T::AccountId,
 		with_details: impl FnOnce(
 			&CollectionDetailsFor<T, I>,

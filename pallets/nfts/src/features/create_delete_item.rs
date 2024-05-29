@@ -43,7 +43,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - If any error occurs in the `with_details_and_config` closure.
 	pub fn do_mint(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		maybe_depositor: Option<T::AccountId>,
 		mint_to: T::AccountId,
 		item_config: ItemConfig,
@@ -207,7 +207,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - If the item is locked ([`ItemLocked`](crate::Error::ItemLocked)).
 	pub fn do_burn(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		with_details: impl FnOnce(&ItemDetailsFor<T, I>) -> DispatchResult,
 	) -> DispatchResult {
 		ensure!(!T::Locker::is_locked(collection, item), Error::<T, I>::ItemLocked);

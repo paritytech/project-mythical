@@ -590,7 +590,6 @@ parameter_types! {
 }
 
 pub type CollectionId = IncrementableU256;
-pub type ItemId = U256;
 
 //TODO: Change to EnsureRoot<AccountId> after migration
 pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
@@ -598,7 +597,6 @@ pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runt
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
-	type ItemId = ItemId;
 	type Currency = Balances;
 	type CreateOrigin = MigratorOrigin;
 	type ForceOrigin = MigratorOrigin;

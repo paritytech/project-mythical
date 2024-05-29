@@ -50,7 +50,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_set_attribute(
 		origin: T::AccountId,
 		collection: T::CollectionId,
-		maybe_item: Option<T::ItemId>,
+		maybe_item: Option<ItemId>,
 		namespace: AttributeNamespace<T::AccountId>,
 		key: BoundedVec<u8, T::KeyLimit>,
 		value: BoundedVec<u8, T::ValueLimit>,
@@ -176,7 +176,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_force_set_attribute(
 		set_as: Option<T::AccountId>,
 		collection: T::CollectionId,
-		maybe_item: Option<T::ItemId>,
+		maybe_item: Option<ItemId>,
 		namespace: AttributeNamespace<T::AccountId>,
 		key: BoundedVec<u8, T::KeyLimit>,
 		value: BoundedVec<u8, T::ValueLimit>,
@@ -285,7 +285,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_clear_attribute(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		maybe_item: Option<T::ItemId>,
+		maybe_item: Option<ItemId>,
 		namespace: AttributeNamespace<T::AccountId>,
 		key: BoundedVec<u8, T::KeyLimit>,
 	) -> DispatchResult {
@@ -372,7 +372,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_approve_item_attributes(
 		check_origin: T::AccountId,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		delegate: T::AccountId,
 	) -> DispatchResult {
 		ensure!(
@@ -412,7 +412,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_cancel_item_attributes_approval(
 		check_origin: T::AccountId,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		delegate: T::AccountId,
 		witness: CancelAttributesApprovalWitness,
 	) -> DispatchResult {
@@ -457,7 +457,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		origin: &T::AccountId,
 		namespace: &AttributeNamespace<T::AccountId>,
 		collection: &T::CollectionId,
-		maybe_item: &Option<T::ItemId>,
+		maybe_item: &Option<ItemId>,
 	) -> Result<bool, DispatchError> {
 		let mut result = false;
 		match namespace {
@@ -514,7 +514,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// provided pallet attribute is too long.
 	pub fn has_system_attribute(
 		collection: &T::CollectionId,
-		item: &T::ItemId,
+		item: &ItemId,
 		attribute_key: PalletAttributes<T::CollectionId>,
 	) -> Result<bool, DispatchError> {
 		let attribute = (

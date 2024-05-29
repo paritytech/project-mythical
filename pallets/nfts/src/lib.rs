@@ -70,6 +70,8 @@ pub const LOG_TARGET: &'static str = "runtime::nfts";
 /// A type alias for the account ID type used in the dispatchable functions of this pallet.
 type AccountIdLookupOf<T> = <<T as SystemConfig>::Lookup as StaticLookup>::Source;
 
+pub type ItemId = u32;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
@@ -116,9 +118,6 @@ pub mod pallet {
 		/// should not be used as it can claim a value in the ID sequence.
 		type CollectionId: Member + Parameter + MaxEncodedLen + Copy + Incrementable;
 
-		/// The type used to identify a unique item within a collection.
-		type ItemId: Member + Parameter + MaxEncodedLen + Copy;
-
 		/// The currency mechanism, used for paying for reserves.
 		type Currency: ReservableCurrency<Self::AccountId>;
 
@@ -135,7 +134,7 @@ pub mod pallet {
 		>;
 
 		/// Locker trait to enable Locking mechanism downstream.
-		type Locker: Locker<Self::CollectionId, Self::ItemId>;
+		type Locker: Locker<Self::CollectionId, ItemId>;
 
 		/// The basic amount of funds that must be reserved for collection.
 		#[pallet::constant]
@@ -206,7 +205,7 @@ pub mod pallet {
 
 		#[cfg(feature = "runtime-benchmarks")]
 		/// A set of helper functions for benchmarking.
-		type Helper: BenchmarkHelper<Self::CollectionId, Self::ItemId>;
+		type Helper: BenchmarkHelper<Self::CollectionId, ItemId>;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -234,7 +233,7 @@ pub mod pallet {
 		(
 			NMapKey<Blake2_128Concat, T::AccountId>, // owner
 			NMapKey<Blake2_128Concat, T::CollectionId>,
-			NMapKey<Blake2_128Concat, T::ItemId>,
+			NMapKey<Blake2_128Concat, ItemId>,
 		),
 		(),
 		OptionQuery,
@@ -273,7 +272,7 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		ItemDetails<T::AccountId, ItemDepositOf<T, I>, ApprovalsOf<T, I>>,
 		OptionQuery,
 	>;
@@ -295,7 +294,7 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		ItemMetadata<ItemMetadataDepositOf<T, I>, T::StringLimit>,
 		OptionQuery,
 	>;
@@ -306,7 +305,7 @@ pub mod pallet {
 		_,
 		(
 			NMapKey<Blake2_128Concat, T::CollectionId>,
-			NMapKey<Blake2_128Concat, Option<T::ItemId>>,
+			NMapKey<Blake2_128Concat, Option<ItemId>>,
 			NMapKey<Blake2_128Concat, AttributeNamespace<T::AccountId>>,
 			NMapKey<Blake2_128Concat, BoundedVec<u8, T::KeyLimit>>,
 		),
@@ -321,7 +320,7 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		(ItemPrice<T, I>, Option<T::AccountId>),
 		OptionQuery,
 	>;
@@ -333,7 +332,7 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		ItemAttributesApprovals<T, I>,
 		ValueQuery,
 	>;
@@ -351,10 +350,10 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		PendingSwap<
 			T::CollectionId,
-			T::ItemId,
+			ItemId,
 			PriceWithDirection<ItemPrice<T, I>>,
 			BlockNumberFor<T>,
 		>,
@@ -373,7 +372,7 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		ItemConfig,
 		OptionQuery,
 	>;
@@ -388,24 +387,24 @@ pub mod pallet {
 		/// A `collection` was destroyed.
 		Destroyed { collection: T::CollectionId },
 		/// An `item` was issued.
-		Issued { collection: T::CollectionId, item: T::ItemId, owner: T::AccountId },
+		Issued { collection: T::CollectionId, item: ItemId, owner: T::AccountId },
 		/// An `item` was transferred.
 		Transferred {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			from: T::AccountId,
 			to: T::AccountId,
 		},
 		/// An `item` was destroyed.
-		Burned { collection: T::CollectionId, item: T::ItemId, owner: T::AccountId },
+		Burned { collection: T::CollectionId, item: ItemId, owner: T::AccountId },
 		/// An `item` became non-transferable.
-		ItemTransferLocked { collection: T::CollectionId, item: T::ItemId },
+		ItemTransferLocked { collection: T::CollectionId, item: ItemId },
 		/// An `item` became transferable.
-		ItemTransferUnlocked { collection: T::CollectionId, item: T::ItemId },
+		ItemTransferUnlocked { collection: T::CollectionId, item: ItemId },
 		/// `item` metadata or attributes were locked.
 		ItemPropertiesLocked {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			lock_metadata: bool,
 			lock_attributes: bool,
 		},
@@ -424,7 +423,7 @@ pub mod pallet {
 		/// a `delegate`.
 		TransferApproved {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			owner: T::AccountId,
 			delegate: T::AccountId,
 			deadline: Option<BlockNumberFor<T>>,
@@ -433,12 +432,12 @@ pub mod pallet {
 		/// `collection` was cancelled by its `owner`.
 		ApprovalCancelled {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			owner: T::AccountId,
 			delegate: T::AccountId,
 		},
 		/// All approvals of an item got cancelled.
-		AllApprovalsCancelled { collection: T::CollectionId, item: T::ItemId, owner: T::AccountId },
+		AllApprovalsCancelled { collection: T::CollectionId, item: ItemId, owner: T::AccountId },
 		/// A `collection` has had its config changed by the `Force` origin.
 		CollectionConfigChanged { collection: T::CollectionId },
 		/// New metadata has been set for a `collection`.
@@ -448,17 +447,17 @@ pub mod pallet {
 		/// New metadata has been set for an item.
 		ItemMetadataSet {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			data: BoundedVec<u8, T::StringLimit>,
 		},
 		/// Metadata has been cleared for an item.
-		ItemMetadataCleared { collection: T::CollectionId, item: T::ItemId },
+		ItemMetadataCleared { collection: T::CollectionId, item: ItemId },
 		/// The deposit for a set of `item`s within a `collection` has been updated.
-		Redeposited { collection: T::CollectionId, successful_items: Vec<T::ItemId> },
+		Redeposited { collection: T::CollectionId, successful_items: Vec<ItemId> },
 		/// New attribute metadata has been set for a `collection` or `item`.
 		AttributeSet {
 			collection: T::CollectionId,
-			maybe_item: Option<T::ItemId>,
+			maybe_item: Option<ItemId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 			value: BoundedVec<u8, T::ValueLimit>,
 			namespace: AttributeNamespace<T::AccountId>,
@@ -466,20 +465,20 @@ pub mod pallet {
 		/// Attribute metadata has been cleared for a `collection` or `item`.
 		AttributeCleared {
 			collection: T::CollectionId,
-			maybe_item: Option<T::ItemId>,
+			maybe_item: Option<ItemId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 			namespace: AttributeNamespace<T::AccountId>,
 		},
 		/// A new approval to modify item attributes was added.
 		ItemAttributesApprovalAdded {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			delegate: T::AccountId,
 		},
 		/// A new approval to modify item attributes was removed.
 		ItemAttributesApprovalRemoved {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			delegate: T::AccountId,
 		},
 		/// Ownership acceptance has changed for an account.
@@ -493,16 +492,16 @@ pub mod pallet {
 		/// The price was set for the item.
 		ItemPriceSet {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			price: ItemPrice<T, I>,
 			whitelisted_buyer: Option<T::AccountId>,
 		},
 		/// The price for the item was removed.
-		ItemPriceRemoved { collection: T::CollectionId, item: T::ItemId },
+		ItemPriceRemoved { collection: T::CollectionId, item: ItemId },
 		/// An item was bought.
 		ItemBought {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			price: ItemPrice<T, I>,
 			seller: T::AccountId,
 			buyer: T::AccountId,
@@ -510,7 +509,7 @@ pub mod pallet {
 		/// A tip was sent.
 		TipSent {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			sender: T::AccountId,
 			receiver: T::AccountId,
 			amount: DepositBalanceOf<T, I>,
@@ -518,28 +517,28 @@ pub mod pallet {
 		/// An `item` swap intent was created.
 		SwapCreated {
 			offered_collection: T::CollectionId,
-			offered_item: T::ItemId,
+			offered_item: ItemId,
 			desired_collection: T::CollectionId,
-			desired_item: Option<T::ItemId>,
+			desired_item: Option<ItemId>,
 			price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 			deadline: BlockNumberFor<T>,
 		},
 		/// The swap was cancelled.
 		SwapCancelled {
 			offered_collection: T::CollectionId,
-			offered_item: T::ItemId,
+			offered_item: ItemId,
 			desired_collection: T::CollectionId,
-			desired_item: Option<T::ItemId>,
+			desired_item: Option<ItemId>,
 			price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 			deadline: BlockNumberFor<T>,
 		},
 		/// The swap has been claimed.
 		SwapClaimed {
 			sent_collection: T::CollectionId,
-			sent_item: T::ItemId,
+			sent_item: ItemId,
 			sent_item_owner: T::AccountId,
 			received_collection: T::CollectionId,
-			received_item: T::ItemId,
+			received_item: ItemId,
 			received_item_owner: T::AccountId,
 			price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 			deadline: BlockNumberFor<T>,
@@ -547,14 +546,14 @@ pub mod pallet {
 		/// New attributes have been set for an `item` of the `collection`.
 		PreSignedAttributesSet {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			namespace: AttributeNamespace<T::AccountId>,
 		},
 		/// A new attribute in the `Pallet` namespace was set for the `collection` or an `item`
 		/// within that `collection`.
 		PalletAttributeSet {
 			collection: T::CollectionId,
-			item: Option<T::ItemId>,
+			item: Option<ItemId>,
 			attribute: PalletAttributes<T::CollectionId>,
 			value: BoundedVec<u8, T::ValueLimit>,
 		},
@@ -808,9 +807,9 @@ pub mod pallet {
 		pub fn mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			mint_to: AccountIdLookupOf<T>,
-			witness_data: Option<MintWitness<T::ItemId, DepositBalanceOf<T, I>>>,
+			witness_data: Option<MintWitness<ItemId, DepositBalanceOf<T, I>>>,
 		) -> DispatchResult {
 			let caller = ensure_signed(origin)?;
 			let mint_to = T::Lookup::lookup(mint_to)?;
@@ -919,7 +918,7 @@ pub mod pallet {
 		pub fn force_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			mint_to: AccountIdLookupOf<T>,
 			item_config: ItemConfig,
 		) -> DispatchResult {
@@ -953,7 +952,7 @@ pub mod pallet {
 		pub fn burn(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 		) -> DispatchResult {
 			let maybe_check_origin = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
@@ -986,7 +985,7 @@ pub mod pallet {
 		pub fn transfer(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			dest: AccountIdLookupOf<T>,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
@@ -1027,7 +1026,7 @@ pub mod pallet {
 		pub fn redeposit(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			items: Vec<T::ItemId>,
+			items: Vec<ItemId>,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
 
@@ -1087,7 +1086,7 @@ pub mod pallet {
 		pub fn lock_item_transfer(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
 			Self::do_lock_item_transfer(origin, collection, item)
@@ -1108,7 +1107,7 @@ pub mod pallet {
 		pub fn unlock_item_transfer(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
 			Self::do_unlock_item_transfer(origin, collection, item)
@@ -1256,7 +1255,7 @@ pub mod pallet {
 		pub fn approve_transfer(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			delegate: AccountIdLookupOf<T>,
 			maybe_deadline: Option<BlockNumberFor<T>>,
 		) -> DispatchResult {
@@ -1292,7 +1291,7 @@ pub mod pallet {
 		pub fn cancel_approval(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			delegate: AccountIdLookupOf<T>,
 		) -> DispatchResult {
 			let maybe_check_origin = T::ForceOrigin::try_origin(origin)
@@ -1320,7 +1319,7 @@ pub mod pallet {
 		pub fn clear_all_transfer_approvals(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 		) -> DispatchResult {
 			let maybe_check_origin = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
@@ -1350,7 +1349,7 @@ pub mod pallet {
 		pub fn lock_item_properties(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			lock_metadata: bool,
 			lock_attributes: bool,
 		) -> DispatchResult {
@@ -1393,7 +1392,7 @@ pub mod pallet {
 		pub fn set_attribute(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			maybe_item: Option<T::ItemId>,
+			maybe_item: Option<ItemId>,
 			namespace: AttributeNamespace<T::AccountId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 			value: BoundedVec<u8, T::ValueLimit>,
@@ -1431,7 +1430,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			set_as: Option<T::AccountId>,
 			collection: T::CollectionId,
-			maybe_item: Option<T::ItemId>,
+			maybe_item: Option<ItemId>,
 			namespace: AttributeNamespace<T::AccountId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 			value: BoundedVec<u8, T::ValueLimit>,
@@ -1460,7 +1459,7 @@ pub mod pallet {
 		pub fn clear_attribute(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			maybe_item: Option<T::ItemId>,
+			maybe_item: Option<ItemId>,
 			namespace: AttributeNamespace<T::AccountId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 		) -> DispatchResult {
@@ -1484,7 +1483,7 @@ pub mod pallet {
 		pub fn approve_item_attributes(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			delegate: AccountIdLookupOf<T>,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
@@ -1509,7 +1508,7 @@ pub mod pallet {
 		pub fn cancel_item_attributes_approval(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			delegate: AccountIdLookupOf<T>,
 			witness: CancelAttributesApprovalWitness,
 		) -> DispatchResult {
@@ -1539,7 +1538,7 @@ pub mod pallet {
 		pub fn set_metadata(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			data: BoundedVec<u8, T::StringLimit>,
 		) -> DispatchResult {
 			let maybe_check_origin = T::ForceOrigin::try_origin(origin)
@@ -1566,7 +1565,7 @@ pub mod pallet {
 		pub fn clear_metadata(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 		) -> DispatchResult {
 			let maybe_check_origin = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
@@ -1706,7 +1705,7 @@ pub mod pallet {
 		pub fn set_price(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			price: Option<ItemPrice<T, I>>,
 			whitelisted_buyer: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
@@ -1729,7 +1728,7 @@ pub mod pallet {
 		pub fn buy_item(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			bid_price: ItemPrice<T, I>,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
@@ -1774,9 +1773,9 @@ pub mod pallet {
 		pub fn create_swap(
 			origin: OriginFor<T>,
 			offered_collection: T::CollectionId,
-			offered_item: T::ItemId,
+			offered_item: ItemId,
 			desired_collection: T::CollectionId,
-			maybe_desired_item: Option<T::ItemId>,
+			maybe_desired_item: Option<ItemId>,
 			maybe_price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 			duration: BlockNumberFor<T>,
 		) -> DispatchResult {
@@ -1806,7 +1805,7 @@ pub mod pallet {
 		pub fn cancel_swap(
 			origin: OriginFor<T>,
 			offered_collection: T::CollectionId,
-			offered_item: T::ItemId,
+			offered_item: ItemId,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;
 			Self::do_cancel_swap(origin, offered_collection, offered_item)
@@ -1829,9 +1828,9 @@ pub mod pallet {
 		pub fn claim_swap(
 			origin: OriginFor<T>,
 			send_collection: T::CollectionId,
-			send_item: T::ItemId,
+			send_item: ItemId,
 			receive_collection: T::CollectionId,
-			receive_item: T::ItemId,
+			receive_item: ItemId,
 			witness_price: Option<PriceWithDirection<ItemPrice<T, I>>>,
 		) -> DispatchResult {
 			let origin = ensure_signed(origin)?;

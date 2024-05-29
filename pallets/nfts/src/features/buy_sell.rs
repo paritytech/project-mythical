@@ -71,7 +71,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	///   price.
 	pub(crate) fn do_set_price(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		sender: T::AccountId,
 		price: Option<ItemPrice<T, I>>,
 		whitelisted_buyer: Option<T::AccountId>,
@@ -127,7 +127,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - `bid_price`: The bid price offered by the buyer for the item.
 	pub(crate) fn do_buy_item(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		buyer: T::AccountId,
 		bid_price: ItemPrice<T, I>,
 	) -> DispatchResult {

@@ -12,7 +12,9 @@ use frame_support::{
 };
 use pallet_marketplace::Ask;
 use pallet_marketplace::BenchmarkHelper;
-use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
+use pallet_nfts::{
+	CollectionConfig, CollectionSettings, ItemConfig, ItemId, MintSettings, Pallet as Nfts,
+};
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -38,7 +40,7 @@ fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> 
 	caller
 }
 
-fn mint_nft<T: Config>(nft_id: T::ItemId) -> T::AccountId {
+fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
 	let caller: T::AccountId = funded_and_whitelisted_account::<T>("tokenOwner", 0);
 
 	let default_config = CollectionConfig {

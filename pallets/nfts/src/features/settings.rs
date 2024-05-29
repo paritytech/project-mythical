@@ -142,7 +142,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// otherwise, it returns a `DispatchError` with `Error::UnknownItem`.
 	pub(crate) fn get_item_config(
 		collection_id: &T::CollectionId,
-		item_id: &T::ItemId,
+		item_id: &ItemId,
 	) -> Result<ItemConfig, DispatchError> {
 		let config = ItemConfigOf::<T, I>::get(&collection_id, &item_id)
 			.ok_or(Error::<T, I>::UnknownItem)?;

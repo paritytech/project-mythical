@@ -10,6 +10,7 @@ use frame_support::{
 		tokens::nonfungibles_v2::{Create, Mutate},
 	},
 };
+use pallet_nfts::ItemId;
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
 use sp_core::ecdsa::Public;
 use sp_io::{
@@ -66,7 +67,7 @@ fn get_admin<T: Config>() -> T::AccountId {
 	admin
 }
 
-fn mint_nft<T: Config>(nft_id: T::ItemId) -> T::AccountId {
+fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
 	let caller: T::AccountId = funded_and_whitelisted_account::<T>("tokenOwner", 0);
 
 	let default_config = CollectionConfig {
