@@ -583,8 +583,8 @@ parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
 	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
-	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
+	pub const NftsCollectionDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
@@ -601,8 +601,9 @@ impl pallet_nfts::Config for Runtime {
 	type CollectionId = CollectionId;
 	type ItemId = ItemId;
 	type Currency = Balances;
-	type CreateOrigin = MigratorOrigin;
-	type ForceOrigin = MigratorOrigin;
+	type CreateOrigin =
+		frame_support::traits::AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
