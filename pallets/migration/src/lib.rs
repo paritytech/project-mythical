@@ -411,7 +411,13 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin.clone())?;
 
-			pallet_nfts::Pallet::<T>::force_mint(origin, collection, item, mint_to, item_config)?;
+			pallet_nfts::Pallet::<T>::force_mint(
+				origin,
+				collection,
+				Some(item),
+				mint_to,
+				item_config,
+			)?;
 
 			Ok(Pays::No.into())
 		}
