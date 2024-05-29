@@ -8,11 +8,12 @@ if [ "$#" -ne 1 ]; then
 fi
 
 RUNTIME=$1
-
 case $RUNTIME in
     testnet)
+        CHAIN=local-v
         ;;
     mainnet)
+        CHAIN=mainnet-local-v
         ;;
     *)
         echo "Invalid parameter. Please use 'testnet' or 'mainnet'."
@@ -24,7 +25,7 @@ echo "Building the binary. This can take a while..."
 cargo build --release --features runtime-benchmarks
 
 BIN="./target/release/mythos-node"
-BENCHMARKS=($($BIN benchmark pallet --list=pallets --no-csv-header --chain="$RUNTIME"))
+BENCHMARKS=($($BIN benchmark pallet --list=pallets --no-csv-header --chain="$CHAIN"))
 WEIGHT_FOLDER="./runtime/$RUNTIME/src/weights"
 
 # Benchmark the pallets
@@ -33,7 +34,7 @@ for PALLET in "${BENCHMARKS[@]}"; do
 
     OUTPUT="$WEIGHT_FOLDER/$PALLET.rs"
     $BIN benchmark pallet \
-        --chain "$RUNTIME" \
+        --chain "$CHAIN" \
         --pallet "$PALLET" \
         --extrinsic "*" \
         --wasm-execution compiled \
