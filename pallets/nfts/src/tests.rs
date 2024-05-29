@@ -155,10 +155,6 @@ fn default_item_config() -> ItemConfig {
 	ItemConfig { settings: ItemSettings::all_enabled() }
 }
 
-fn item_config_from_disabled_settings(settings: BitFlags<ItemSetting>) -> ItemConfig {
-	ItemConfig { settings: ItemSettings::from_disabled(settings) }
-}
-
 #[test]
 fn basic_setup_works() {
 	new_test_ext().execute_with(|| {

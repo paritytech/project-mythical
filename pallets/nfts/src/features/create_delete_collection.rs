@@ -56,6 +56,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				owner_deposit: deposit,
 				items: 0,
 				minted_items: 0,
+				highest_item_id: 0,
 				item_metadatas: 0,
 				item_configs: 0,
 				attributes: 0,

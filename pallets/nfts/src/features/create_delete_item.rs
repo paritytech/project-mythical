@@ -86,6 +86,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				collection_details.items.saturating_inc();
 				collection_details.minted_items.saturating_inc();
 
+				if collection_details.highest_item_id < item {
+					collection_details.highest_item_id = item;
+				}
+
 				let collection_config = Self::get_collection_config(&collection)?;
 				let deposit_amount = match collection_config
 					.is_setting_enabled(CollectionSetting::DepositRequired)
