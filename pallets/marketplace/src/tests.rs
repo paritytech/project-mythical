@@ -40,7 +40,7 @@ fn account(id: u8) -> AccountIdOf<Test> {
 }
 
 fn admin_accounts_setup() -> (AccountIdOf<Test>, KeyPair) {
-	let admin_pair = ecdsa_generate(0.into(), None);
+	let admin_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
 	let admin_signer: EthereumSigner = admin_pair.public().into();
 	let admin = admin_signer.clone().into_account();
 	assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin.clone()));
@@ -112,7 +112,7 @@ pub fn create_valid_order(
 	who: AccountIdOf<Test>,
 	item_owner: AccountIdOf<Test>,
 ) {
-	let fee_signer_pair = ecdsa_generate(0.into(), None);
+	let fee_signer_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
 	let expires_at = get_valid_expiration();
 	mint_item(0, item_owner);
 
@@ -1010,7 +1010,7 @@ mod execute_ask_with_existing_bid {
 			mint_item(0, seller.clone());
 			Balances::set_balance(&buyer, 100000);
 
-			let fee_signer_pair = ecdsa_generate(0.into(), None);
+			let fee_signer_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
 			let admin_signer: EthereumSigner = fee_signer_pair.public().into();
 			let admin = admin_signer.clone().into_account();
 			assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin.clone()));
