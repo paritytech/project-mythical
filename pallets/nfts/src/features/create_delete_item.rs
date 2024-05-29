@@ -43,7 +43,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - If any error occurs in the `with_details_and_config` closure.
 	pub fn do_mint(
 		collection: T::CollectionId,
-		item: ItemId,
+		maybe_item: Option<ItemId>,
 		maybe_depositor: Option<T::AccountId>,
 		mint_to: T::AccountId,
 		item_config: ItemConfig,
@@ -51,23 +51,39 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			&CollectionDetailsFor<T, I>,
 			&CollectionConfigFor<T, I>,
 		) -> DispatchResult,
-	) -> DispatchResult {
-		ensure!(!Item::<T, I>::contains_key(collection, item), Error::<T, I>::AlreadyExists);
-
+	) -> Result<u32, DispatchError> {
 		Collection::<T, I>::try_mutate(
 			&collection,
-			|maybe_collection_details| -> DispatchResult {
+			|maybe_collection_details| -> Result<u32, DispatchError> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
-
 				let collection_config = Self::get_collection_config(&collection)?;
+				let item = match collection_config.mint_settings.serial_mint {
+					true => {
+						ensure!(maybe_item.is_none(), Error::<T, I>::InvalidItemId);
+						collection_details.minted_items
+					},
+					false => {
+						ensure!(
+							collection_config.max_supply.is_some(),
+							Error::<T, I>::MaxSupplyRequired
+						);
+						maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
+					},
+				};
+				ensure!(
+					!Item::<T, I>::contains_key(collection, item),
+					Error::<T, I>::AlreadyExists
+				);
 				with_details_and_config(collection_details, &collection_config)?;
 
 				if let Some(max_supply) = collection_config.max_supply {
 					ensure!(collection_details.items < max_supply, Error::<T, I>::MaxSupplyReached);
+					ensure!(item <= max_supply, Error::<T, I>::InvalidItemId);
 				}
 
 				collection_details.items.saturating_inc();
+				collection_details.minted_items.saturating_inc();
 
 				let collection_config = Self::get_collection_config(&collection)?;
 				let deposit_amount = match collection_config
@@ -100,12 +116,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 					deposit,
 				};
 				Item::<T, I>::insert(&collection, &item, details);
-				Ok(())
+				Self::deposit_event(Event::Issued { collection, item, owner: mint_to });
+				Ok(item)
 			},
-		)?;
-
-		Self::deposit_event(Event::Issued { collection, item, owner: mint_to });
-		Ok(())
+		)
 	}
 
 	/// Mints a new item using a pre-signed message.
@@ -128,7 +142,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	) -> DispatchResult {
 		let PreSignedMint {
 			collection,
-			item,
+			maybe_item,
 			attributes,
 			metadata,
 			deadline,
@@ -154,9 +168,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		);
 
 		let item_config = ItemConfig { settings: Self::get_default_item_settings(&collection)? };
-		Self::do_mint(
+		let item = Self::do_mint(
 			collection,
-			item,
+			maybe_item,
 			Some(mint_to.clone()),
 			mint_to.clone(),
 			item_config,

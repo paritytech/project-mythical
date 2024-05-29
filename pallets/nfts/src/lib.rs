@@ -30,7 +30,6 @@
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
-pub mod migration;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
@@ -651,6 +650,12 @@ pub mod pallet {
 		CollectionNotEmpty,
 		/// The witness data should be provided.
 		WitnessRequired,
+		/// It is required to specify the collection's maximum supply.
+		MaxSupplyRequired,
+		/// ItemId must be under the collection's maximum supply.
+		InvalidItemId,
+		/// The collection must be configured for serial minting.
+		SerialMintEnabled,
 	}
 
 	#[pallet::call]
@@ -791,7 +796,7 @@ pub mod pallet {
 		/// The origin must be Signed and the sender must comply with the `mint_settings` rules.
 		///
 		/// - `collection`: The collection of the item to be minted.
-		/// - `item`: An identifier of the new item.
+		/// - `maybe_item`: An identifier of the new item. If the collection mints serially, this should be `None`.
 		/// - `mint_to`: Account into which the item will be minted.
 		/// - `witness_data`: When the mint type is `HolderOf(collection_id)`, then the owned
 		///   item_id from that collection needs to be provided within the witness data object. If
@@ -807,7 +812,7 @@ pub mod pallet {
 		pub fn mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: ItemId,
+			maybe_item: Option<ItemId>,
 			mint_to: AccountIdLookupOf<T>,
 			witness_data: Option<MintWitness<ItemId, DepositBalanceOf<T, I>>>,
 		) -> DispatchResult {
@@ -818,7 +823,7 @@ pub mod pallet {
 
 			Self::do_mint(
 				collection,
-				item,
+				maybe_item,
 				Some(caller.clone()),
 				mint_to.clone(),
 				item_config,
@@ -897,7 +902,8 @@ pub mod pallet {
 
 					Ok(())
 				},
-			)
+			)?;
+			Ok(())
 		}
 
 		/// Mint an item of a particular collection from a privileged origin.
@@ -906,7 +912,7 @@ pub mod pallet {
 		/// Issuer of the `collection`.
 		///
 		/// - `collection`: The collection of the item to be minted.
-		/// - `item`: An identifier of the new item.
+		/// - `maybe_item`: An identifier of the new item.
 		/// - `mint_to`: Account into which the item will be minted.
 		/// - `item_config`: A config of the new item.
 		///
@@ -918,7 +924,7 @@ pub mod pallet {
 		pub fn force_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: ItemId,
+			maybe_item: Option<ItemId>,
 			mint_to: AccountIdLookupOf<T>,
 			item_config: ItemConfig,
 		) -> DispatchResult {
@@ -933,7 +939,8 @@ pub mod pallet {
 					Error::<T, I>::NoPermission
 				);
 			}
-			Self::do_mint(collection, item, None, mint_to, item_config, |_, _| Ok(()))
+			Self::do_mint(collection, maybe_item, None, mint_to, item_config, |_, _| Ok(()))?;
+			Ok(())
 		}
 
 		/// Destroy a single item.

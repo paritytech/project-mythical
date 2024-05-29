@@ -41,6 +41,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		deposit: DepositBalanceOf<T, I>,
 		event: Event<T, I>,
 	) -> DispatchResult {
+		if !config.mint_settings.serial_mint {
+			ensure!(config.max_supply.is_some(), Error::<T, I>::MaxSupplyRequired);
+		}
+
 		ensure!(!Collection::<T, I>::contains_key(collection), Error::<T, I>::CollectionIdInUse);
 
 		T::Currency::reserve(&owner, deposit)?;
@@ -51,6 +55,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				owner: owner.clone(),
 				owner_deposit: deposit,
 				items: 0,
+				minted_items: 0,
 				item_metadatas: 0,
 				item_configs: 0,
 				attributes: 0,

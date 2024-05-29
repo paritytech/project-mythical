@@ -95,7 +95,7 @@ fn mint_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, Acc
 		assert_ok!(Nfts::<T, I>::force_mint(
 			SystemOrigin::Signed(caller.clone()).into(),
 			collection,
-			item,
+			Some(item),
 			caller_lookup.clone(),
 			item_config,
 		));
@@ -103,7 +103,7 @@ fn mint_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, Acc
 		assert_ok!(Nfts::<T, I>::mint(
 			SystemOrigin::Signed(caller.clone()).into(),
 			collection,
-			item,
+			Some(item),
 			caller_lookup.clone(),
 			None,
 		));
@@ -211,7 +211,7 @@ fn make_collection_config<T: Config<I>, I: 'static>(
 ) -> CollectionConfigFor<T, I> {
 	CollectionConfig {
 		settings: CollectionSettings::from_disabled(disable_settings),
-		max_supply: None,
+		max_supply: Some(u32::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
@@ -291,7 +291,7 @@ benchmarks_instance_pallet! {
 	mint {
 		let (collection, caller, caller_lookup) = create_collection::<T, I>();
 		let item = T::Helper::item(0);
-	}: _(SystemOrigin::Signed(caller.clone()), collection, item, caller_lookup, None)
+	}: _(SystemOrigin::Signed(caller.clone()), collection, Some(item), caller_lookup, None)
 	verify {
 		assert_last_event::<T, I>(Event::Issued { collection, item, owner: caller }.into());
 	}
@@ -299,7 +299,7 @@ benchmarks_instance_pallet! {
 	force_mint {
 		let (collection, caller, caller_lookup) = create_collection::<T, I>();
 		let item = T::Helper::item(0);
-	}: _(SystemOrigin::Signed(caller.clone()), collection, item, caller_lookup, default_item_config())
+	}: _(SystemOrigin::Signed(caller.clone()), collection, Some(item), caller_lookup, default_item_config())
 	verify {
 		assert_last_event::<T, I>(Event::Issued { collection, item, owner: caller }.into());
 	}
@@ -654,6 +654,7 @@ benchmarks_instance_pallet! {
 			end_block: Some(One::one()),
 			price: Some(ItemPrice::<T, I>::from(1u32)),
 			default_item_settings: ItemSettings::all_enabled(),
+			serial_mint: false,
 		};
 	}: _(SystemOrigin::Signed(caller.clone()), collection, mint_settings)
 	verify {
@@ -827,7 +828,7 @@ benchmarks_instance_pallet! {
 		}
 		let mint_data = PreSignedMint {
 			collection,
-			item,
+			maybe_item: Some(item),
 			attributes,
 			metadata: metadata.clone(),
 			only_account: None,
@@ -863,7 +864,7 @@ benchmarks_instance_pallet! {
 		assert_ok!(Nfts::<T, I>::force_mint(
 			SystemOrigin::Root.into(),
 			collection,
-			item,
+			Some(item),
 			item_owner_lookup.clone(),
 			default_item_config(),
 		));

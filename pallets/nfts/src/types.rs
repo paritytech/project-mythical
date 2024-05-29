@@ -97,6 +97,8 @@ pub struct CollectionDetails<AccountId, DepositBalance> {
 	pub(super) owner_deposit: DepositBalance,
 	/// The total number of outstanding items of this collection.
 	pub(super) items: u32,
+	/// The total number of items ever minted of this collection.
+	pub(super) minted_items: u32,
 	/// The total number of outstanding item metadata of this collection.
 	pub(super) item_metadatas: u32,
 	/// The total number of outstanding item configs of this collection.
@@ -314,6 +316,8 @@ pub struct MintSettings<Price, BlockNumber, CollectionId> {
 	pub end_block: Option<BlockNumber>,
 	/// Default settings each item will get during the mint.
 	pub default_item_settings: ItemSettings,
+	/// Mint items in serial or random mode.
+	pub serial_mint: bool,
 }
 
 impl<Price, BlockNumber, CollectionId> Default for MintSettings<Price, BlockNumber, CollectionId> {
@@ -324,6 +328,7 @@ impl<Price, BlockNumber, CollectionId> Default for MintSettings<Price, BlockNumb
 			start_block: None,
 			end_block: None,
 			default_item_settings: ItemSettings::all_enabled(),
+			serial_mint: false,
 		}
 	}
 }
@@ -519,7 +524,7 @@ pub struct PreSignedMint<CollectionId, ItemId, AccountId, Deadline, Balance> {
 	/// A collection of the item to be minted.
 	pub(super) collection: CollectionId,
 	/// Item's ID.
-	pub(super) item: ItemId,
+	pub(super) maybe_item: Option<ItemId>,
 	/// Additional item's key-value attributes.
 	pub(super) attributes: Vec<(Vec<u8>, Vec<u8>)>,
 	/// Additional item's metadata.
