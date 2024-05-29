@@ -587,6 +587,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
+	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
 	pub const NftsCollectionDeposit: Balance = 0;
 	pub const NftsItemDeposit: Balance = 0;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
