@@ -219,6 +219,18 @@ pub mod pallet {
 		CollectionDetails<T::AccountId, DepositBalanceOf<T, I>>,
 	>;
 
+	/// Burned items in a collection.
+	#[pallet::storage]
+	pub type BurnedItems<T: Config<I>, I: 'static = ()> = StorageDoubleMap<
+		_,
+		Blake2_128Concat,
+		T::CollectionId,
+		Blake2_128Concat,
+		ItemId,
+		bool,
+		ValueQuery,
+	>;
+
 	/// The collection, if any, of which an account is willing to take ownership.
 	#[pallet::storage]
 	pub type OwnershipAcceptance<T: Config<I>, I: 'static = ()> =
@@ -656,6 +668,8 @@ pub mod pallet {
 		InvalidItemId,
 		/// The collection must be configured for serial minting.
 		SerialMintEnabled,
+		/// The item as already burned.
+		AlreadyBurned,
 	}
 
 	#[pallet::call]

@@ -93,7 +93,12 @@ fn attributes(
 	let mut s: Vec<_> = Attribute::<Test>::iter_prefix((collection,))
 		.map(|(k, v)| (k.0, k.1, k.2.into(), v.0.into()))
 		.collect();
-	s.sort_by_key(|k: &(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| k.0);
+	s.sort_by_key(|k: &(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| {
+		k.0
+	});
+	s.sort_by_key(|k: &(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| {
+		k.1.clone()
+	});
 	s.sort_by_key(|k: &(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| {
 		k.2.clone()
 	});
@@ -322,9 +327,9 @@ fn destroy_should_work() {
 		);
 		assert_ok!(Nfts::lock_item_transfer(RuntimeOrigin::signed(account(1)), 0, 42));
 		assert_ok!(Nfts::burn(RuntimeOrigin::signed(account(2)), 0, 42));
-		assert_eq!(Collection::<Test>::get(0).unwrap().item_configs, 1);
-		assert_eq!(ItemConfigOf::<Test>::iter_prefix(0).count() as u32, 1);
-		assert!(ItemConfigOf::<Test>::contains_key(0, 42));
+		assert_eq!(Collection::<Test>::get(0).unwrap().item_configs, 0);
+		assert_eq!(ItemConfigOf::<Test>::iter_prefix(0).count() as u32, 0);
+		assert!(!ItemConfigOf::<Test>::contains_key(0, 42));
 		assert_ok!(Nfts::destroy(
 			RuntimeOrigin::signed(account(1)),
 			0,
@@ -1545,62 +1550,6 @@ fn set_attribute_should_respect_lock() {
 }
 
 #[test]
-fn preserve_config_for_frozen_items() {
-	new_test_ext().execute_with(|| {
-		Balances::make_free_balance_be(&account(1), 100);
-
-		assert_ok!(Nfts::force_create(
-			RuntimeOrigin::root(),
-			account(1),
-			collection_config_with_all_settings_enabled()
-		));
-		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(0), account(1), None));
-		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(1), account(1), None));
-
-		// if the item is not locked/frozen then the config gets deleted on item burn
-		assert_ok!(Nfts::burn(RuntimeOrigin::signed(account(1)), 0, 1));
-		assert!(!ItemConfigOf::<Test>::contains_key(0, 1));
-
-		// lock the item and ensure the config stays unchanged
-		assert_ok!(Nfts::lock_item_properties(RuntimeOrigin::signed(account(1)), 0, 0, true, true));
-
-		let expect_config = item_config_from_disabled_settings(
-			ItemSetting::UnlockedAttributes | ItemSetting::UnlockedMetadata,
-		);
-		let config = ItemConfigOf::<Test>::get(0, 0).unwrap();
-		assert_eq!(config, expect_config);
-
-		assert_ok!(Nfts::burn(RuntimeOrigin::signed(account(1)), 0, 0));
-		let config = ItemConfigOf::<Test>::get(0, 0).unwrap();
-		assert_eq!(config, expect_config);
-
-		// can't mint with the different config
-		assert_noop!(
-			Nfts::force_mint(
-				RuntimeOrigin::signed(account(1)),
-				0,
-				Some(0),
-				account(2),
-				default_item_config()
-			),
-			Error::<Test>::InconsistentItemConfig
-		);
-
-		assert_ok!(Nfts::update_mint_settings(
-			RuntimeOrigin::signed(account(1)),
-			0,
-			MintSettings {
-				default_item_settings: ItemSettings::from_disabled(
-					ItemSetting::UnlockedAttributes | ItemSetting::UnlockedMetadata
-				),
-				..Default::default()
-			}
-		));
-		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(0), account(1), None));
-	});
-}
-
-#[test]
 fn force_update_collection_should_work() {
 	new_test_ext().execute_with(|| {
 		Balances::make_free_balance_be(&account(1), 100);
@@ -2208,7 +2157,10 @@ fn max_supply_should_work() {
 			user_id.clone(),
 			default_collection_config()
 		));
-		assert_ne!(CollectionConfigOf::<Test>::get(collection_id).unwrap().max_supply, Some(max_supply));
+		assert_ne!(
+			CollectionConfigOf::<Test>::get(collection_id).unwrap().max_supply,
+			Some(max_supply)
+		);
 		assert!(!events().contains(&Event::<Test>::CollectionMaxSupplySet {
 			collection: collection_id,
 			max_supply,

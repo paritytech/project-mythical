@@ -335,7 +335,16 @@ impl<Price, BlockNumber, CollectionId> Default for MintSettings<Price, BlockNumb
 
 /// Attribute namespaces for non-fungible tokens.
 #[derive(
-	Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo, MaxEncodedLen,
+	Clone,
+	Encode,
+	Decode,
+	Eq,
+	PartialEq,
+	RuntimeDebug,
+	scale_info::TypeInfo,
+	MaxEncodedLen,
+	PartialOrd,
+	Ord,
 )]
 pub enum AttributeNamespace<AccountId> {
 	/// An attribute was set by the pallet.

@@ -75,6 +75,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 					!Item::<T, I>::contains_key(collection, item),
 					Error::<T, I>::AlreadyExists
 				);
+				ensure!(!BurnedItems::<T, I>::get(collection, item), Error::<T, I>::AlreadyBurned);
 				with_details_and_config(collection_details, &collection_config)?;
 
 				if let Some(max_supply) = collection_config.max_supply {
@@ -229,10 +230,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			!Self::has_system_attribute(&collection, &item, PalletAttributes::TransferDisabled)?,
 			Error::<T, I>::ItemLocked
 		);
-		let item_config = Self::get_item_config(&collection, &item)?;
-		// NOTE: if item's settings are not empty (e.g. item's metadata is locked)
-		// then we keep the config record and don't remove it
-		let remove_config = !item_config.has_disabled_settings();
+		ensure!(!BurnedItems::<T, I>::get(&collection, &item), Error::<T, I>::AlreadyBurned);
+		// Check the item exists first.
+		let _ = Self::get_item_config(&collection, &item)?;
 		let owner = Collection::<T, I>::try_mutate(
 			&collection,
 			|maybe_collection_details| -> Result<T::AccountId, DispatchError> {
@@ -245,25 +245,17 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				// Return the deposit.
 				T::Currency::unreserve(&details.deposit.account, details.deposit.amount);
 				collection_details.items.saturating_dec();
+				collection_details.item_configs.saturating_dec();
 
-				if remove_config {
-					collection_details.item_configs.saturating_dec();
-				}
+				if let Some(metadata) = ItemMetadataOf::<T, I>::take(&collection, &item) {
+					let depositor_account =
+						metadata.deposit.account.unwrap_or(collection_details.owner.clone());
 
-				// Clear the metadata if it's not locked.
-				if item_config.is_setting_enabled(ItemSetting::UnlockedMetadata) {
-					if let Some(metadata) = ItemMetadataOf::<T, I>::take(&collection, &item) {
-						let depositor_account =
-							metadata.deposit.account.unwrap_or(collection_details.owner.clone());
+					T::Currency::unreserve(&depositor_account, metadata.deposit.amount);
+					collection_details.item_metadatas.saturating_dec();
 
-						T::Currency::unreserve(&depositor_account, metadata.deposit.amount);
-						collection_details.item_metadatas.saturating_dec();
-
-						if depositor_account == collection_details.owner {
-							collection_details
-								.owner_deposit
-								.saturating_reduce(metadata.deposit.amount);
-						}
+					if depositor_account == collection_details.owner {
+						collection_details.owner_deposit.saturating_reduce(metadata.deposit.amount);
 					}
 				}
 
@@ -276,10 +268,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		ItemPriceOf::<T, I>::remove(&collection, &item);
 		PendingSwapOf::<T, I>::remove(&collection, &item);
 		ItemAttributesApprovalsOf::<T, I>::remove(&collection, &item);
-
-		if remove_config {
-			ItemConfigOf::<T, I>::remove(&collection, &item);
-		}
+		ItemConfigOf::<T, I>::remove(&collection, &item);
+		BurnedItems::<T, I>::insert(&collection, item, true);
 
 		Self::deposit_event(Event::Burned { collection, item, owner });
 		Ok(())

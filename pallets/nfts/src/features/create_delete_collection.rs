@@ -133,6 +133,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			CollectionMetadataOf::<T, I>::remove(&collection);
 			Self::clear_roles(&collection)?;
 
+			let _ = BurnedItems::<T, I>::clear_prefix(&collection, u32::MAX, None);
+
 			for (_, (_, deposit)) in Attribute::<T, I>::drain_prefix((&collection,)) {
 				if !deposit.amount.is_zero() {
 					if let Some(account) = deposit.account {

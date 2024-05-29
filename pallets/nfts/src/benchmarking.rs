@@ -263,7 +263,6 @@ benchmarks_instance_pallet! {
 
 	destroy {
 		let m in 0 .. 1_000;
-		let c in 0 .. 1_000;
 		let a in 0 .. 1_000;
 
 		let (collection, caller, _) = create_collection::<T, I>();
@@ -271,11 +270,6 @@ benchmarks_instance_pallet! {
 		for i in 0..m {
 			mint_item::<T, I>(i as u16);
 			add_item_metadata::<T, I>(T::Helper::item(i as u16));
-			lock_item::<T, I>(i as u16);
-			burn_item::<T, I>(i as u16);
-		}
-		for i in 0..c {
-			mint_item::<T, I>(i as u16);
 			lock_item::<T, I>(i as u16);
 			burn_item::<T, I>(i as u16);
 		}
