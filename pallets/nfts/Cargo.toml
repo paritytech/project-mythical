@@ -24,6 +24,7 @@ sp-core = { workspace = true, default-features = false }
 sp-io = { workspace = true, default-features = false }
 sp-runtime = { workspace = true, default-features = false }
 sp-std = { workspace = true, default-features = false }
+account = { workspace = true }
 
 [dev-dependencies]
 pallet-balances = { workspace = true }
@@ -40,6 +41,7 @@ std = [
 	"log/std",
 	"pallet-balances/std",
 	"scale-info/std",
+	"account/std",
 	"sp-core/std",
 	"sp-io/std",
 	"sp-keystore/std",

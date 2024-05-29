@@ -7068,6 +7068,7 @@ dependencies = [
 name = "pallet-nfts"
 version = "22.0.0"
 dependencies = [
+ "account",
  "enumflags2",
  "frame-benchmarking",
  "frame-support",

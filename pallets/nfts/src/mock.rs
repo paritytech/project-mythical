@@ -20,6 +20,7 @@
 use super::*;
 use crate as pallet_nfts;
 
+use account::EthereumSignature;
 use frame_support::{
 	construct_runtime, derive_impl, parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64},
@@ -27,7 +28,7 @@ use frame_support::{
 use sp_keystore::{testing::MemoryKeystore, KeystoreExt};
 use sp_runtime::{
 	traits::{IdentifyAccount, IdentityLookup, Verify},
-	BuildStorage, MultiSignature,
+	BuildStorage,
 };
 
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -41,7 +42,7 @@ construct_runtime!(
 	}
 );
 
-pub type Signature = MultiSignature;
+pub type Signature = EthereumSignature;
 pub type AccountPublic = <Signature as Verify>::Signer;
 pub type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
 

@@ -19,7 +19,6 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use super::*;
 use enumflags2::{BitFlag, BitFlags};
 use frame_benchmarking::v1::{
 	account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller, BenchmarkError,
@@ -30,16 +29,27 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin as SystemOrigin};
-use sp_io::crypto::{sr25519_generate, sr25519_sign};
+use sp_core::ecdsa;
+use sp_io::crypto::{ecdsa_generate, ecdsa_sign_prehashed};
+use sp_io::hashing::keccak_256;
 use sp_runtime::{
-	traits::{Bounded, IdentifyAccount, One},
-	AccountId32, MultiSignature, MultiSigner,
+	traits::{Bounded, One},
+	MultiSignature,
 };
 use sp_std::prelude::*;
 
+use account::{AccountId20, EthereumSigner};
+
 use crate::Pallet as Nfts;
 
+use super::*;
+
 const SEED: u32 = 0;
+
+fn sign(pair: &ecdsa::Public, raw_message: &[u8]) -> ecdsa::Signature {
+	let hash = keccak_256(raw_message);
+	ecdsa_sign_prehashed(0.into(), pair, &hash).unwrap()
+}
 
 fn create_collection<T: Config<I>, I: 'static>(
 ) -> (T::CollectionId, T::AccountId, AccountIdLookupOf<T>) {
@@ -232,7 +242,7 @@ benchmarks_instance_pallet! {
 	where_clause {
 		where
 			T::OffchainSignature: From<MultiSignature>,
-			T::AccountId: From<AccountId32>,
+			T::AccountId: From<AccountId20>,
 	}
 
 	create {
@@ -800,8 +810,9 @@ benchmarks_instance_pallet! {
 
 	mint_pre_signed {
 		let n in 0 .. T::MaxAttributesPerCall::get() as u32;
-		let caller_public = sr25519_generate(0.into(), None);
-		let caller = MultiSigner::Sr25519(caller_public).into_account().into();
+		let caller_public = ecdsa_generate(0.into(), None);
+		let ethereum_caller: EthereumSigner = caller_public.into();
+		let caller = ethereum_caller.into_account().into();
 		T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T, I>::max_value());
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
 
@@ -830,7 +841,7 @@ benchmarks_instance_pallet! {
 			mint_price: Some(DepositBalanceOf::<T, I>::min_value()),
 		};
 		let message = Encode::encode(&mint_data);
-		let signature = MultiSignature::Sr25519(sr25519_sign(0.into(), &caller_public, &message).unwrap());
+		let signature = MultiSignature::Ecdsa(sign(&caller_public, &message));
 
 		let target: T::AccountId = account("target", 0, SEED);
 		T::Currency::make_free_balance_be(&target, DepositBalanceOf::<T, I>::max_value());
@@ -848,8 +859,9 @@ benchmarks_instance_pallet! {
 		let item_owner: T::AccountId = account("item_owner", 0, SEED);
 		let item_owner_lookup = T::Lookup::unlookup(item_owner.clone());
 
-		let signer_public = sr25519_generate(0.into(), None);
-		let signer: T::AccountId = MultiSigner::Sr25519(signer_public).into_account().into();
+		let signer_public = ecdsa_generate(0.into(), None);
+		let ethereum_signer: EthereumSigner = signer_public.into();
+		let signer: T::AccountId = ethereum_signer.clone().into_account().into();
 
 		T::Currency::make_free_balance_be(&item_owner, DepositBalanceOf::<T, I>::max_value());
 
@@ -876,7 +888,7 @@ benchmarks_instance_pallet! {
 			deadline: One::one(),
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(sr25519_sign(0.into(), &signer_public, &message).unwrap());
+		let signature = MultiSignature::Ecdsa(sign(&signer_public, &message));
 
 		frame_system::Pallet::<T>::set_block_number(One::one());
 	}: _(SystemOrigin::Signed(item_owner.clone()), pre_signed_data, signature.into(), signer.clone())

@@ -17,7 +17,6 @@
 
 //! Tests for Nfts pallet.
 
-use crate::{mock::*, Event, SystemConfig, *};
 use enumflags2::BitFlags;
 use frame_support::{
 	assert_noop, assert_ok,
@@ -27,12 +26,15 @@ use frame_support::{
 	},
 };
 use pallet_balances::Error as BalancesError;
-use sp_core::{bounded::BoundedVec, Pair};
-use sp_runtime::{
-	traits::{Dispatchable, IdentifyAccount},
-	MultiSignature, MultiSigner,
-};
+use sp_core::{bounded::BoundedVec, ecdsa};
+use sp_io::crypto::{ecdsa_generate, ecdsa_sign_prehashed};
+use sp_io::hashing::keccak_256;
+use sp_runtime::{traits::Dispatchable, MultiSignature};
 use sp_std::prelude::*;
+
+use account::{EthereumSignature, EthereumSigner};
+
+use crate::{mock::*, Event, SystemConfig, *};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 
@@ -72,6 +74,11 @@ fn collections() -> Vec<(AccountIdOf<Test>, u32)> {
 	s.sort();
 	assert_eq!(r, s);
 	r
+}
+
+fn sign(pair: &ecdsa::Public, raw_message: &[u8]) -> ecdsa::Signature {
+	let hash = keccak_256(raw_message);
+	ecdsa_sign_prehashed(0.into(), pair, &hash).unwrap()
 }
 
 macro_rules! bvec {
@@ -3292,8 +3299,8 @@ fn add_remove_item_attributes_approval_should_work() {
 #[test]
 fn validate_signature() {
 	new_test_ext().execute_with(|| {
-		let user_1_pair = sp_core::sr25519::Pair::from_string("//Alice", None).unwrap();
-		let user_1_signer = MultiSigner::Sr25519(user_1_pair.public());
+		let user_1_public = ecdsa_generate(0.into(), None);
+		let user_1_signer: EthereumSigner = user_1_public.into();
 		let user_1 = user_1_signer.clone().into_account();
 		let mint_data: PreSignedMint<u32, u32, AccountId, u32, u64> = PreSignedMint {
 			collection: 0,
@@ -3305,7 +3312,8 @@ fn validate_signature() {
 			mint_price: None,
 		};
 		let encoded_data = Encode::encode(&mint_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&encoded_data));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &encoded_data)).into();
 		assert_ok!(Nfts::validate_signature(&encoded_data, &signature, &user_1));
 
 		let mut wrapped_data: Vec<u8> = Vec::new();
@@ -3313,7 +3321,8 @@ fn validate_signature() {
 		wrapped_data.extend(&encoded_data);
 		wrapped_data.extend(b"</Bytes>");
 
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&wrapped_data));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &wrapped_data)).into();
 		assert_ok!(Nfts::validate_signature(&encoded_data, &signature, &user_1));
 	})
 }
@@ -3322,8 +3331,8 @@ fn validate_signature() {
 fn pre_signed_mints_should_work() {
 	new_test_ext().execute_with(|| {
 		let user_0 = account(0);
-		let user_1_pair = sp_core::sr25519::Pair::from_string("//Alice", None).unwrap();
-		let user_1_signer = MultiSigner::Sr25519(user_1_pair.public());
+		let user_1_public = ecdsa_generate(0.into(), None);
+		let user_1_signer: EthereumSigner = user_1_public.into();
 		let user_1 = user_1_signer.clone().into_account();
 		let mint_data = PreSignedMint {
 			collection: 0,
@@ -3335,7 +3344,8 @@ fn pre_signed_mints_should_work() {
 			mint_price: Some(10),
 		};
 		let message = Encode::encode(&mint_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 		let user_2 = account(2);
 		let user_3 = account(3);
 
@@ -3418,7 +3428,8 @@ fn pre_signed_mints_should_work() {
 		);
 
 		let message = Encode::encode(&mint_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 
 		assert_noop!(
 			Nfts::mint_pre_signed(
@@ -3454,7 +3465,8 @@ fn pre_signed_mints_should_work() {
 			mint_price: None,
 		};
 		let message = Encode::encode(&mint_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 
 		assert_noop!(
 			Nfts::mint_pre_signed(
@@ -3477,7 +3489,8 @@ fn pre_signed_mints_should_work() {
 			mint_price: None,
 		};
 		let message = Encode::encode(&mint_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 		assert_noop!(
 			Nfts::mint_pre_signed(
 				RuntimeOrigin::signed(user_2),
@@ -3493,12 +3506,12 @@ fn pre_signed_mints_should_work() {
 #[test]
 fn pre_signed_attributes_should_work() {
 	new_test_ext().execute_with(|| {
-		let user_1_pair = sp_core::sr25519::Pair::from_string("//Alice", None).unwrap();
-		let user_1_signer = MultiSigner::Sr25519(user_1_pair.public());
+		let user_1_public = ecdsa_generate(0.into(), None);
+		let user_1_signer: EthereumSigner = user_1_public.into();
 		let user_1 = user_1_signer.clone().into_account();
 		let user_2 = account(2);
-		let user_3_pair = sp_core::sr25519::Pair::from_string("//Bob", None).unwrap();
-		let user_3_signer = MultiSigner::Sr25519(user_3_pair.public());
+		let user_3_public = ecdsa_generate(0.into(), None);
+		let user_3_signer: EthereumSigner = user_3_public.into();
 		let user_3 = user_3_signer.clone().into_account();
 		let collection_id = 0;
 		let item_id = 0;
@@ -3528,7 +3541,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 
 		assert_ok!(Nfts::set_attributes_pre_signed(
 			RuntimeOrigin::signed(user_2.clone()),
@@ -3587,7 +3601,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_3_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_3_public, &message)).into();
 
 		assert_noop!(
 			Nfts::set_attributes_pre_signed(
@@ -3620,7 +3635,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_3_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_3_public, &message)).into();
 
 		assert_ok!(Nfts::set_attributes_pre_signed(
 			RuntimeOrigin::signed(user_2.clone()),
@@ -3708,7 +3724,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_3_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_3_public, &message)).into();
 
 		assert_noop!(
 			Nfts::set_attributes_pre_signed(
@@ -3742,7 +3759,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 
 		assert_noop!(
 			Nfts::set_attributes_pre_signed(
@@ -3763,7 +3781,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 
 		assert_noop!(
 			Nfts::set_attributes_pre_signed(
@@ -3784,7 +3803,8 @@ fn pre_signed_attributes_should_work() {
 			deadline: 10000000,
 		};
 		let message = Encode::encode(&pre_signed_data);
-		let signature = MultiSignature::Sr25519(user_1_pair.sign(&message));
+		let signature: EthereumSignature =
+			MultiSignature::Ecdsa(sign(&user_1_public, &message)).into();
 
 		assert_noop!(
 			Nfts::set_attributes_pre_signed(

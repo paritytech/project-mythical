@@ -600,8 +600,9 @@ impl pallet_nfts::Config for Runtime {
 	type CollectionId = CollectionId;
 	type ItemId = ItemId;
 	type Currency = Balances;
-	type CreateOrigin = MigratorOrigin;
-	type ForceOrigin = MigratorOrigin;
+	type CreateOrigin =
+		frame_support::traits::AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
