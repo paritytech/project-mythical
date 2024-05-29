@@ -43,11 +43,3 @@ for PALLET in "${BENCHMARKS[@]}"; do
         --output "$OUTPUT"
     echo "Benchmarks for $PALLET successfully generated in $OUTPUT"
 done
-
-# Benchmark overheads
-$BIN benchmark overhead \
-  --chain="$RUNTIME" \
-  --wasm-execution=compiled \
-  --weight-path "$WEIGHT_FOLDER" \
-  --warmup=10 \
-  --repeat=100
