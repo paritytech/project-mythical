@@ -42,7 +42,7 @@ fn account(id: u8) -> AccountIdOf<Test> {
 	[id; 32].into()
 }
 
-fn items() -> Vec<(AccountIdOf<Test>, u32, u32)> {
+fn items() -> Vec<(AccountIdOf<Test>, u32, ItemId)> {
 	let mut r: Vec<_> = Account::<Test>::iter().map(|x| x.0).collect();
 	r.sort();
 	let mut s: Vec<_> = Item::<Test>::iter().map(|x| (x.2.owner, x.0, x.1)).collect();
@@ -61,7 +61,7 @@ fn items() -> Vec<(AccountIdOf<Test>, u32, u32)> {
 		.flatten()
 	{
 		let details = Collection::<Test>::get(collection).unwrap();
-		let items = Item::<Test>::iter_prefix(collection).count() as u32;
+		let items = Item::<Test>::iter_prefix(collection).count() as u128;
 		assert_eq!(details.items, items);
 	}
 	r
@@ -89,24 +89,24 @@ macro_rules! bvec {
 
 fn attributes(
 	collection: u32,
-) -> Vec<(Option<u32>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)> {
+) -> Vec<(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)> {
 	let mut s: Vec<_> = Attribute::<Test>::iter_prefix((collection,))
 		.map(|(k, v)| (k.0, k.1, k.2.into(), v.0.into()))
 		.collect();
-	s.sort_by_key(|k: &(Option<u32>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| k.0);
-	s.sort_by_key(|k: &(Option<u32>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| {
+	s.sort_by_key(|k: &(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| k.0);
+	s.sort_by_key(|k: &(Option<u128>, AttributeNamespace<AccountIdOf<Test>>, Vec<u8>, Vec<u8>)| {
 		k.2.clone()
 	});
 	s
 }
 
-fn approvals(collection_id: u32, item_id: u32) -> Vec<(AccountIdOf<Test>, Option<u64>)> {
+fn approvals(collection_id: u32, item_id: u128) -> Vec<(AccountIdOf<Test>, Option<u64>)> {
 	let item = Item::<Test>::get(collection_id, item_id).unwrap();
 	let s: Vec<_> = item.approvals.into_iter().collect();
 	s
 }
 
-fn item_attributes_approvals(collection_id: u32, item_id: u32) -> Vec<AccountIdOf<Test>> {
+fn item_attributes_approvals(collection_id: u32, item_id: u128) -> Vec<AccountIdOf<Test>> {
 	let approvals = ItemAttributesApprovalsOf::<Test>::get(collection_id, item_id);
 	let s: Vec<_> = approvals.into_iter().collect();
 	s
@@ -129,7 +129,7 @@ fn collection_config_from_disabled_settings(
 ) -> CollectionConfigFor<Test> {
 	CollectionConfig {
 		settings: CollectionSettings::from_disabled(settings),
-		max_supply: Some(u32::MAX),
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
@@ -137,7 +137,7 @@ fn collection_config_from_disabled_settings(
 fn collection_config_with_all_settings_enabled() -> CollectionConfigFor<Test> {
 	CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
-		max_supply: Some(u32::MAX),
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
@@ -1816,8 +1816,8 @@ fn approval_lifecycle_works() {
 
 		assert_ok!(Nfts::mint(
 			RuntimeOrigin::signed(account(1)),
-			1,
-			Some(collection_id),
+			collection_id,
+			Some(1),
 			account(1),
 			None,
 		));
@@ -3648,10 +3648,10 @@ fn pre_signed_attributes_should_work() {
 		assert_eq!(
 			attributes(0),
 			vec![
-				(Some(0), AttributeNamespace::Account(user_3.clone()), bvec![0], bvec![1]),
 				(Some(0), AttributeNamespace::CollectionOwner, bvec![0], bvec![1]),
-				(Some(0), AttributeNamespace::Account(user_3.clone()), bvec![2], bvec![3]),
+				(Some(0), AttributeNamespace::Account(user_3.clone()), bvec![0], bvec![1]),
 				(Some(0), AttributeNamespace::CollectionOwner, bvec![2], bvec![3]),
+				(Some(0), AttributeNamespace::Account(user_3.clone()), bvec![2], bvec![3]),
 			]
 		);
 		assert_eq!(item_attributes_approvals(collection_id, item_id), vec![user_3.clone()]);

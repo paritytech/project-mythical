@@ -51,10 +51,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			&CollectionDetailsFor<T, I>,
 			&CollectionConfigFor<T, I>,
 		) -> DispatchResult,
-	) -> Result<u32, DispatchError> {
+	) -> Result<ItemId, DispatchError> {
 		Collection::<T, I>::try_mutate(
 			&collection,
-			|maybe_collection_details| -> Result<u32, DispatchError> {
+			|maybe_collection_details| -> Result<ItemId, DispatchError> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
 				let collection_config = Self::get_collection_config(&collection)?;

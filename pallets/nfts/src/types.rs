@@ -96,9 +96,9 @@ pub struct CollectionDetails<AccountId, DepositBalance> {
 	/// collection. Used by `destroy`.
 	pub(super) owner_deposit: DepositBalance,
 	/// The total number of outstanding items of this collection.
-	pub(super) items: u32,
+	pub(super) items: u128,
 	/// The total number of items ever minted of this collection.
-	pub(super) minted_items: u32,
+	pub(super) minted_items: u128,
 	/// The total number of outstanding item metadata of this collection.
 	pub(super) item_metadatas: u32,
 	/// The total number of outstanding item configs of this collection.
@@ -372,7 +372,7 @@ pub struct CollectionConfig<Price, BlockNumber, CollectionId> {
 	/// Collection's settings.
 	pub settings: CollectionSettings,
 	/// Collection's max supply.
-	pub max_supply: Option<u32>,
+	pub max_supply: Option<u128>,
 	/// Default settings each item will get during the mint.
 	pub mint_settings: MintSettings<Price, BlockNumber, CollectionId>,
 }

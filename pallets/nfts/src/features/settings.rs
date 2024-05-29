@@ -57,7 +57,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_set_collection_max_supply(
 		maybe_check_owner: Option<T::AccountId>,
 		collection: T::CollectionId,
-		max_supply: u32,
+		max_supply: u128,
 	) -> DispatchResult {
 		let collection_config = Self::get_collection_config(&collection)?;
 		ensure!(

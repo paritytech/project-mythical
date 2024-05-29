@@ -69,7 +69,7 @@ pub const LOG_TARGET: &'static str = "runtime::nfts";
 /// A type alias for the account ID type used in the dispatchable functions of this pallet.
 type AccountIdLookupOf<T> = <<T as SystemConfig>::Lookup as StaticLookup>::Source;
 
-pub type ItemId = u32;
+pub type ItemId = u128;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -483,7 +483,7 @@ pub mod pallet {
 		/// Ownership acceptance has changed for an account.
 		OwnershipAcceptanceChanged { who: T::AccountId, maybe_collection: Option<T::CollectionId> },
 		/// Max supply has been set for a collection.
-		CollectionMaxSupplySet { collection: T::CollectionId, max_supply: u32 },
+		CollectionMaxSupplySet { collection: T::CollectionId, max_supply: u128 },
 		/// Mint settings for a collection had changed.
 		CollectionMintSettingsUpdated { collection: T::CollectionId },
 		/// Event gets emitted when the `NextCollectionId` gets incremented.
@@ -1666,7 +1666,7 @@ pub mod pallet {
 		pub fn set_collection_max_supply(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			max_supply: u32,
+			max_supply: u128,
 		) -> DispatchResult {
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)

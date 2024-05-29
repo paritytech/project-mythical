@@ -211,7 +211,7 @@ fn make_collection_config<T: Config<I>, I: 'static>(
 ) -> CollectionConfigFor<T, I> {
 	CollectionConfig {
 		settings: CollectionSettings::from_disabled(disable_settings),
-		max_supply: Some(u32::MAX),
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
@@ -638,11 +638,11 @@ benchmarks_instance_pallet! {
 
 	set_collection_max_supply {
 		let (collection, caller, _) = create_collection::<T, I>();
-	}: _(SystemOrigin::Signed(caller.clone()), collection, u32::MAX)
+	}: _(SystemOrigin::Signed(caller.clone()), collection, u128::MAX)
 	verify {
 		assert_last_event::<T, I>(Event::CollectionMaxSupplySet {
 			collection,
-			max_supply: u32::MAX,
+			max_supply: u128::MAX,
 		}.into());
 	}
 
