@@ -23,8 +23,6 @@
 // 50
 // --repeat
 // 20
-// --template
-// ./.maintain/template.hbs
 // --output
 // ./runtime/mainnet/src/weights/pallet_message_queue.rs
 
@@ -36,23 +34,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_message_queue`.
-pub trait WeightInfo {
-	fn ready_ring_knit() -> Weight;
-	fn ready_ring_unknit() -> Weight;
-	fn service_queue_base() -> Weight;
-	fn service_page_base_completion() -> Weight;
-	fn service_page_base_no_completion() -> Weight;
-	fn service_page_item() -> Weight;
-	fn bump_service_head() -> Weight;
-	fn reap_page() -> Weight;
-	fn execute_overweight_page_removed() -> Weight;
-	fn execute_overweight_page_updated() -> Weight;
-}
-
 /// Weights for `pallet_message_queue` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T> {
 	/// Storage: `MessageQueue::ServiceHead` (r:1 w:0)
 	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
 	/// Storage: `MessageQueue::BookStateFor` (r:2 w:2)
@@ -175,132 +159,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(146_540_000, 69050)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:0)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::BookStateFor` (r:2 w:2)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	fn ready_ring_knit() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `261`
-		//  Estimated: `6044`
-		// Minimum execution time: 19_630_000 picoseconds.
-		Weight::from_parts(20_080_000, 6044)
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `MessageQueue::BookStateFor` (r:2 w:2)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	fn ready_ring_unknit() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `256`
-		//  Estimated: `6044`
-		// Minimum execution time: 17_120_000 picoseconds.
-		Weight::from_parts(17_600_000, 6044)
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-	}
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	fn service_queue_base() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `43`
-		//  Estimated: `3517`
-		// Minimum execution time: 6_900_000 picoseconds.
-		Weight::from_parts(7_070_000, 3517)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `MessageQueue::Pages` (r:1 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn service_page_base_completion() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `110`
-		//  Estimated: `69050`
-		// Minimum execution time: 10_520_000 picoseconds.
-		Weight::from_parts(10_891_000, 69050)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `MessageQueue::Pages` (r:1 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn service_page_base_no_completion() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `110`
-		//  Estimated: `69050`
-		// Minimum execution time: 10_530_000 picoseconds.
-		Weight::from_parts(11_030_000, 69050)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `MessageQueue::BookStateFor` (r:0 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::Pages` (r:0 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn service_page_item() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 217_481_000 picoseconds.
-		Weight::from_parts(218_711_000, 0)
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:0)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	fn bump_service_head() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `209`
-		//  Estimated: `3517`
-		// Minimum execution time: 11_400_000 picoseconds.
-		Weight::from_parts(11_650_000, 3517)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::Pages` (r:1 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn reap_page() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `65705`
-		//  Estimated: `69050`
-		// Minimum execution time: 63_040_000 picoseconds.
-		Weight::from_parts(63_951_000, 69050)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::Pages` (r:1 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn execute_overweight_page_removed() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `65705`
-		//  Estimated: `69050`
-		// Minimum execution time: 80_670_000 picoseconds.
-		Weight::from_parts(81_550_000, 69050)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::Pages` (r:1 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn execute_overweight_page_updated() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `65705`
-		//  Estimated: `69050`
-		// Minimum execution time: 144_850_000 picoseconds.
-		Weight::from_parts(146_540_000, 69050)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }

@@ -23,8 +23,6 @@
 // 50
 // --repeat
 // 20
-// --template
-// ./.maintain/template.hbs
 // --output
 // ./runtime/mainnet/src/weights/pallet_collator_selection.rs
 

@@ -10156,6 +10156,7 @@ dependencies = [
  "frame-system",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-message-queue",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-primitives",
