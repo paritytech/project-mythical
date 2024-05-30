@@ -60,7 +60,12 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				let collection_config = Self::get_collection_config(&collection)?;
 				let item = match collection_config.mint_settings.serial_mint {
 					true => {
-						ensure!(maybe_item.is_none(), Error::<T, I>::InvalidItemId);
+						ensure!(
+							maybe_item.is_none()
+								|| maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
+									== collection_details.minted_items,
+							Error::<T, I>::InvalidItemId
+						);
 						collection_details.minted_items
 					},
 					false => {
