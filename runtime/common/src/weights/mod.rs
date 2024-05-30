@@ -11,3 +11,4 @@ pub mod pallet_multisig;
 pub mod pallet_nfts;
 pub mod pallet_session;
 pub mod pallet_timestamp;
+pub mod pallet_xcm;

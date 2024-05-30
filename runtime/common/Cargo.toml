@@ -32,6 +32,7 @@ pallet-session = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
+pallet-xcm = { workspace = true, default-features = false }
 
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
@@ -57,6 +58,7 @@ std = [
   "pallet-timestamp/std",
   "pallet-marketplace/std",
   "pallet-nfts/std",
+  "pallet-xcm/std",
 ]
 
 runtime-benchmarks = [
