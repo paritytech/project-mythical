@@ -45,14 +45,8 @@ fn admin_accounts_setup() -> (AccountIdOf<Test>, KeyPair) {
 	let admin_signer: EthereumSigner = admin_pair.public().into();
 	let admin = admin_signer.into_account();
 	assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin));
-	assert_ok!(Marketplace::set_fee_signer_address(
-		RuntimeOrigin::signed(admin),
-		admin
-	));
-	assert_ok!(Marketplace::set_payout_address(
-		RuntimeOrigin::signed(admin),
-		admin
-	));
+	assert_ok!(Marketplace::set_fee_signer_address(RuntimeOrigin::signed(admin), admin));
+	assert_ok!(Marketplace::set_payout_address(RuntimeOrigin::signed(admin), admin));
 
 	(admin, admin_pair)
 }
