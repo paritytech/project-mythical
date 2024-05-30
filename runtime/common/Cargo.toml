@@ -30,6 +30,7 @@ pallet-message-queue = { workspace = true, default-features = false }
 pallet-multisig = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
+pallet-marketplace = { workspace = true, default-features = false }
 
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }

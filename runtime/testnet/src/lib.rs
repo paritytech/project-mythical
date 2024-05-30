@@ -649,7 +649,7 @@ impl pallet_marketplace::Config for Runtime {
 	type NonceStringLimit = ConstU32<50>;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = runtime_common::weights::pallet_marketplace::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }
