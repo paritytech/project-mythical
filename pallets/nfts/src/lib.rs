@@ -785,7 +785,6 @@ pub mod pallet {
 		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::destroy(
 			witness.item_metadatas,
-			witness.item_configs,
 			witness.attributes,
  		))]
 		pub fn destroy(
@@ -798,12 +797,7 @@ pub mod pallet {
 				.or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
 			let details = Self::do_destroy_collection(collection, witness, maybe_check_owner)?;
 
-			Ok(Some(T::WeightInfo::destroy(
-				details.item_metadatas,
-				details.item_configs,
-				details.attributes,
-			))
-			.into())
+			Ok(Some(T::WeightInfo::destroy(details.item_metadatas, details.attributes)).into())
 		}
 
 		/// Mint an item of a particular collection.
