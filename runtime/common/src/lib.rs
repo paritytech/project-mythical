@@ -17,6 +17,7 @@ pub use account::EthereumSignature;
 use frame_support::traits::{Currency, Imbalance, Incrementable, OnUnbalanced};
 use pallet_balances::NegativeImbalance;
 use sp_std::marker::PhantomData;
+pub mod weights;
 
 // Cumulus types re-export
 // These types are shared between the mainnet and testnet runtimes
