@@ -10156,6 +10156,7 @@ dependencies = [
  "frame-system",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
  "pallet-multisig",

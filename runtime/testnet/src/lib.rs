@@ -742,7 +742,7 @@ impl pallet_escrow::Config for Runtime {
 	type Balance = Balance;
 	type MinDeposit = ExistentialDeposit;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = runtime_common::weights::pallet_escrow::WeightInfo<Runtime>;
 }
 
 parameter_types! {
