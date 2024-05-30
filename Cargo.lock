@@ -10159,6 +10159,7 @@ dependencies = [
  "pallet-marketplace",
  "pallet-message-queue",
  "pallet-multisig",
+ "pallet-nfts",
  "pallet-session",
  "pallet-timestamp",
  "parachains-common",
