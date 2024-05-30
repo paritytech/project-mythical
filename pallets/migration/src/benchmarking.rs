@@ -84,7 +84,7 @@ pub mod benchmarks {
 		let migrator: T::AccountId = get_migrator::<T>();
 		// Nft Setup
 		let collection = T::BenchmarkHelper::collection(0);
-		let item = T::BenchmarkHelper::item(0);
+		let item = T::BenchmarkHelper::item(1);
 		let caller = mint_nft::<T>(item);
 		let ask = Ask {
 			seller: caller.clone(),
@@ -136,7 +136,7 @@ pub mod benchmarks {
 	fn set_item_owner() {
 		let migrator: T::AccountId = get_migrator::<T>();
 		let collection = T::BenchmarkHelper::collection(0);
-		let item = T::BenchmarkHelper::item(0);
+		let item = T::BenchmarkHelper::item(1);
 		let _ = mint_nft::<T>(item);
 		let receiver: T::AccountId = account("receiver", 0, SEED);
 

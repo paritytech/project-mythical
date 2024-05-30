@@ -20,7 +20,7 @@ fn account(id: u8) -> AccountIdOf<Test> {
 
 fn mint_item(item: u128, owner: AccountIdOf<Test>) {
 	Balances::set_balance(&account(1), 100000);
-	if Nfts::collection_owner(0) == None {
+	if Nfts::collection_owner(0).is_none() {
 		assert_ok!(Nfts::create(
 			RuntimeOrigin::signed(account(1)),
 			account(1),
@@ -50,7 +50,7 @@ mod force_set_migrator {
 	fn force_set_migrator_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert!(Migration::migrator() == Some(account(1)));
+			assert_eq!(Migration::migrator(), Some(account(1)));
 		})
 	}
 
@@ -75,9 +75,9 @@ mod set_next_collection_id {
 
 			let res = Migration::set_next_collection_id(RuntimeOrigin::signed(account(1)), 25);
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No);
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert!(Migration::get_next_id() == 25);
+			assert_eq!(Migration::get_next_id(), 25);
 		})
 	}
 	#[test]
@@ -107,7 +107,7 @@ mod create_ask {
 				Migration::create_ask(
 					RuntimeOrigin::signed(account(2)),
 					0,
-					0,
+					1,
 					Ask {
 						seller: account(1),
 						price: 10000,
@@ -129,7 +129,7 @@ mod create_ask {
 				Migration::create_ask(
 					RuntimeOrigin::signed(account(1)),
 					0,
-					0,
+					1,
 					Ask {
 						seller: account(1),
 						price: 10000,
@@ -147,12 +147,12 @@ mod create_ask {
 	fn invalid_expiration_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			assert_noop!(
 				Migration::create_ask(
 					RuntimeOrigin::signed(account(1)),
 					0,
-					0,
+					1,
 					Ask {
 						seller: account(1),
 						price: 10000,
@@ -170,7 +170,7 @@ mod create_ask {
 	fn create_ask_passes() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			let ask = Ask {
 				seller: account(1),
 				price: 10000,
@@ -179,12 +179,12 @@ mod create_ask {
 				escrow_agent: None,
 			};
 
-			let res = Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone());
+			let res = Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 1, ask.clone());
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No);
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert!(Asks::<Test>::get(0, 0) == Some(ask));
-			assert!(!Nfts::can_transfer(&0, &0));
+			assert_eq!(Asks::<Test>::get(0, 1), Some(ask));
+			assert!(!Nfts::can_transfer(&0, &1));
 		})
 	}
 
@@ -192,7 +192,7 @@ mod create_ask {
 	fn create_ask_on_disabled_transfer_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			let ask = Ask {
 				seller: account(1),
 				price: 10000,
@@ -200,9 +200,9 @@ mod create_ask {
 				fee: 1,
 				escrow_agent: None,
 			};
-			assert_ok!(Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()));
+			assert_ok!(Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 1, ask.clone()));
 			assert_noop!(
-				Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 0, ask.clone()),
+				Migration::create_ask(RuntimeOrigin::signed(account(1)), 0, 1, ask.clone()),
 				pallet_nfts::Error::<Test>::ItemLocked
 			);
 		})
@@ -212,12 +212,12 @@ mod create_ask {
 	fn ask_seller_is_not_nft_owner_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			assert_noop!(
 				Migration::create_ask(
 					RuntimeOrigin::signed(account(1)),
 					0,
-					0,
+					1,
 					Ask {
 						seller: account(2),
 						price: 10000,
@@ -242,9 +242,9 @@ mod set_pot_account {
 
 			let res = Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1));
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No);
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert!(Migration::pot() == Some(account(1)));
+			assert_eq!(Migration::pot(), Some(account(1)));
 		})
 	}
 
@@ -324,10 +324,10 @@ mod send_funds_from_pot {
 				10000,
 			);
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No);
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert!(Balances::free_balance(&account(1)) == 90000);
-			assert!(Balances::free_balance(&account(2)) == 10000);
+			assert_eq!(Balances::free_balance(&account(1)), 90000);
+			assert_eq!(Balances::free_balance(&account(2)), 10000);
 		})
 	}
 }
@@ -339,7 +339,7 @@ mod set_item_owner {
 	fn sender_is_not_migrator_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			assert_noop!(
 				Migration::set_item_owner(RuntimeOrigin::signed(account(2)), 0, 0, account(2)),
 				Error::<Test>::NotMigrator
@@ -362,9 +362,9 @@ mod set_item_owner {
 	fn already_owner_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			assert_noop!(
-				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(1)),
+				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 1, account(1)),
 				Error::<Test>::AlreadyOwner
 			);
 		})
@@ -374,14 +374,14 @@ mod set_item_owner {
 	fn set_item_owner_passes() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let res =
-				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 0, account(2));
+				Migration::set_item_owner(RuntimeOrigin::signed(account(1)), 0, 1, account(2));
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No);
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert!(Nfts::owner(0, 0) == Some(account(2)));
+			assert_eq!(Nfts::owner(0, 1), Some(account(2)));
 		})
 	}
 }
@@ -416,7 +416,7 @@ mod force_create {
 				collection_config_with_all_settings_enabled(),
 			);
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No)
+			assert_eq!(res.unwrap().pays_fee, Pays::No)
 		})
 	}
 }
@@ -459,7 +459,7 @@ mod set_team {
 				Some(account(3)),
 			);
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No)
+			assert_eq!(res.unwrap().pays_fee, Pays::No)
 		})
 	}
 }
@@ -500,7 +500,7 @@ mod set_collection_metadata {
 				BoundedVec::new(),
 			);
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No)
+			assert_eq!(res.unwrap().pays_fee, Pays::No)
 		})
 	}
 }
@@ -538,12 +538,12 @@ mod force_mint {
 			let res = Migration::force_mint(
 				RuntimeOrigin::signed(account(2)),
 				0,
-				0,
+				1,
 				account(3),
 				default_item_config(),
 			);
 			assert!(res.is_ok());
-			assert!(res.unwrap().pays_fee == Pays::No)
+			assert_eq!(res.unwrap().pays_fee, Pays::No)
 		})
 	}
 }

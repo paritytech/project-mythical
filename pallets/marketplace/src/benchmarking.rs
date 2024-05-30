@@ -102,7 +102,7 @@ pub mod benchmarks {
 		let mut order = Order {
 			order_type,
 			collection: T::BenchmarkHelper::collection(0),
-			item: T::BenchmarkHelper::item(0),
+			item: T::BenchmarkHelper::item(1),
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
 			fee: BalanceOf::<T>::from(0u8),
@@ -199,7 +199,7 @@ pub mod benchmarks {
 	#[benchmark]
 	fn create_order() {
 		// Nft setup
-		let item = T::BenchmarkHelper::item(0);
+		let item = T::BenchmarkHelper::item(1);
 		let seller = mint_nft::<T>(item);
 		// Create ask order
 		let (_, fee_signer) = admin_accounts_setup::<T>();
@@ -242,13 +242,13 @@ pub mod benchmarks {
 		);
 	}
 
-	// Benchmark `cancel_order` wxtrinsic with the worst possible conditions:
+	// Benchmark `cancel_order` extrinsic with the worst possible conditions:
 	// Cancel a bid
 	#[benchmark]
 	fn cancel_order() {
 		// Nft Setup
 		let collection = T::BenchmarkHelper::collection(0);
-		let item = T::BenchmarkHelper::item(0);
+		let item = T::BenchmarkHelper::item(1);
 		let _ = mint_nft::<T>(item);
 
 		// Setup Bid order

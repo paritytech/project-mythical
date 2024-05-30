@@ -70,7 +70,7 @@ impl pallet_multibatching::Config for Test {
 	type RuntimeCall = RuntimeCall;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
-	type MaxCalls = ConstU32<1000>;
+	type MaxCalls = ConstU32<10>;
 	type WeightInfo = ();
 	pallet_multibatching::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = ();

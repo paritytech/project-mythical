@@ -3,7 +3,6 @@ use crate::{mock::*, *};
 use account::{EthereumSignature, EthereumSigner};
 use frame_support::{
 	assert_noop, assert_ok,
-	error::BadOrigin,
 	traits::{
 		fungible::{Inspect as InspectFungible, InspectHold, Mutate},
 		nonfungibles_v2::{Inspect, Transfer},
@@ -18,7 +17,10 @@ use sp_core::{
 	Get, Pair,
 };
 use sp_io::hashing::keccak_256;
-use sp_runtime::{traits::IdentifyAccount, BoundedVec};
+use sp_runtime::{
+	traits::{BadOrigin, IdentifyAccount},
+	BoundedVec,
+};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 type CollectionId<Test> = <Test as pallet_nfts::Config>::CollectionId;
@@ -41,15 +43,15 @@ fn account(id: u8) -> AccountIdOf<Test> {
 fn admin_accounts_setup() -> (AccountIdOf<Test>, KeyPair) {
 	let admin_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
 	let admin_signer: EthereumSigner = admin_pair.public().into();
-	let admin = admin_signer.clone().into_account();
-	assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin.clone()));
+	let admin = admin_signer.into_account();
+	assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin));
 	assert_ok!(Marketplace::set_fee_signer_address(
-		RuntimeOrigin::signed(admin.clone()),
-		admin.clone()
+		RuntimeOrigin::signed(admin),
+		admin
 	));
 	assert_ok!(Marketplace::set_payout_address(
-		RuntimeOrigin::signed(admin.clone()),
-		admin.clone()
+		RuntimeOrigin::signed(admin),
+		admin
 	));
 
 	(admin, admin_pair)
@@ -92,7 +94,7 @@ fn append_valid_signature(
 
 fn mint_item(item: u128, owner: AccountIdOf<Test>) {
 	Balances::set_balance(&account(1), 100000);
-	if Nfts::collection_owner(0) == None {
+	if Nfts::collection_owner(0).is_none() {
 		assert_ok!(Nfts::create(
 			RuntimeOrigin::signed(account(1)),
 			account(1),
@@ -111,9 +113,9 @@ pub fn create_valid_order(
 	who: AccountIdOf<Test>,
 	item_owner: AccountIdOf<Test>,
 ) {
-	let fee_signer_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
+	let fee_signer_pair = Pair::from_string("//Alice", None).unwrap();
 	let expires_at = get_valid_expiration();
-	mint_item(0, item_owner);
+	mint_item(1, item_owner);
 
 	if order_type.clone() == OrderType::Bid {
 		Balances::set_balance(&who, 100000);
@@ -122,7 +124,7 @@ pub fn create_valid_order(
 	let mut order = Order {
 		order_type,
 		collection: 0,
-		item: 0,
+		item: 1,
 		expires_at,
 		price: 10000,
 		fee: 1,
@@ -145,10 +147,10 @@ mod force_set_authority {
 	use super::*;
 	// Force set Authority
 	#[test]
-	fn force_set_authoity_works() {
+	fn force_set_authority_works() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), account(1)));
-			assert!(Authority::<Test>::get() == Some(account(1)));
+			assert_eq!(Authority::<Test>::get(), Some(account(1)));
 		})
 	}
 
@@ -189,7 +191,7 @@ mod set_fee_signer {
 				RuntimeOrigin::signed(account(1)),
 				account(2)
 			));
-			assert!(FeeSigner::<Test>::get() == Some(account(2)));
+			assert_eq!(FeeSigner::<Test>::get(), Some(account(2)));
 		})
 	}
 
@@ -243,7 +245,7 @@ mod set_payout_address {
 				RuntimeOrigin::signed(account(1)),
 				account(2)
 			));
-			assert!(PayoutAddress::<Test>::get() == Some(account(2)));
+			assert_eq!(PayoutAddress::<Test>::get(), Some(account(2)));
 		})
 	}
 
@@ -297,7 +299,7 @@ mod create_order_initial_checks {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 1,
 				fee: 1,
@@ -325,14 +327,14 @@ mod create_order_initial_checks {
 		new_test_ext().execute_with(|| {
 			let timestamp: u64 = Timestamp::get();
 			let min_order_duration: u64 = <Test as Config>::MinOrderDuration::get();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at: timestamp + min_order_duration,
 				price: 10000,
 				fee: 1,
@@ -359,14 +361,14 @@ mod create_order_initial_checks {
 	fn invalid_signed_message() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let _ = admin_accounts_setup();
 
 			let order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 1,
 				fee: 1,
@@ -397,12 +399,12 @@ mod create_order_initial_checks {
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -433,14 +435,14 @@ mod create_ask {
 	fn ask_not_item_owner() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -467,15 +469,15 @@ mod create_ask {
 	fn ask_item_locked() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
-			Nfts::disable_transfer(&0, &0).unwrap();
+			mint_item(1, account(1));
+			Nfts::disable_transfer(&0, &1).unwrap();
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -502,14 +504,14 @@ mod create_ask {
 	fn ask_created_with_allow_creation() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -535,8 +537,8 @@ mod create_ask {
 				escrow_agent: order.escrow_agent,
 			};
 
-			assert!(Asks::<Test>::get(0, 0) == Some(ask));
-			assert!(!Nfts::can_transfer(&0, &0));
+			assert_eq!(Asks::<Test>::get(0, 1), Some(ask));
+			assert!(!Nfts::can_transfer(&0, &1));
 		})
 	}
 
@@ -544,14 +546,14 @@ mod create_ask {
 	fn ask_should_not_create_with_execution_force() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -586,7 +588,7 @@ mod create_ask {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -614,7 +616,7 @@ mod create_bid {
 	fn bid_created_with_allow_creation() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(2));
+			mint_item(1, account(2));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
@@ -625,7 +627,7 @@ mod create_bid {
 			let mut order = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -644,13 +646,14 @@ mod create_bid {
 			));
 
 			let bid = Bid { buyer: account(1), expiration: order.expires_at, fee: order.fee };
-			assert!(
+			assert_eq!(
 				Some(
 					Balances::balance_on_hold(&HoldReason::MarketplaceBid.into(), &account(1))
 						.saturating_sub(initial_reserved)
-				) == Marketplace::calc_bid_payment(&order.price, &order.fee).ok()
+				),
+				Marketplace::calc_bid_payment(&order.price, &order.fee).ok()
 			);
-			assert!(Bids::<Test>::get((0, 0, order.price)) == Some(bid));
+			assert_eq!(Bids::<Test>::get((0, 1, order.price)), Some(bid));
 		})
 	}
 
@@ -658,7 +661,7 @@ mod create_bid {
 	fn bid_should_not_create_with_execution_force() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(2));
+			mint_item(1, account(2));
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
@@ -667,7 +670,7 @@ mod create_bid {
 			let mut order = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -694,7 +697,7 @@ mod create_bid {
 	fn bid_on_owned_item() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(1));
+			mint_item(1, account(1));
 			Balances::set_balance(&account(1), 100000);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -702,7 +705,7 @@ mod create_bid {
 			let mut order = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -729,7 +732,7 @@ mod create_bid {
 	fn bid_already_exists() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(2));
+			mint_item(1, account(2));
 			Balances::set_balance(&account(1), 100000);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -737,7 +740,7 @@ mod create_bid {
 			let mut order = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -773,7 +776,7 @@ mod create_bid {
 	}
 
 	#[test]
-	fn should_calculte_bid_payment() {
+	fn should_calculate_bid_payment() {
 		new_test_ext().execute_with(|| {
 			let price = 10000;
 			let fee = 2000;
@@ -785,7 +788,7 @@ mod create_bid {
 	fn bid_not_enough_balance() {
 		new_test_ext().execute_with(|| {
 			let expires_at = get_valid_expiration();
-			mint_item(0, account(2));
+			mint_item(1, account(2));
 			Balances::set_balance(&account(1), 1);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -793,7 +796,7 @@ mod create_bid {
 			let mut order = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000000000,
 				fee: 1,
@@ -824,7 +827,7 @@ mod create_bid {
 
 			let expires_at = get_valid_expiration();
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
@@ -834,17 +837,17 @@ mod create_bid {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: ask_price,
-				fee: ask_fee.clone(),
+				fee: ask_fee,
 				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(seller.clone()),
+				RuntimeOrigin::signed(seller),
 				order,
 				Execution::AllowCreation
 			));
@@ -856,7 +859,7 @@ mod create_bid {
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: bid_price,
 				fee: bid_fee,
@@ -869,13 +872,13 @@ mod create_bid {
 			append_valid_signature(fee_signer_pair, &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
 
 			let stored_bid = Bid { buyer, expiration: expires_at, fee: bid_fee };
-			assert!(Bids::<Test>::get((0, 0, bid_price)) == Some(stored_bid));
+			assert_eq!(Bids::<Test>::get((0, 1, bid_price)), Some(stored_bid));
 		})
 	}
 }
@@ -892,7 +895,7 @@ mod execute_ask_with_existing_bid {
 			let expires_at = get_valid_expiration();
 			let price = 10000;
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 			Balances::set_balance(&buyer, 100000);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
@@ -901,7 +904,7 @@ mod execute_ask_with_existing_bid {
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price,
 				fee: bid_fee,
@@ -914,7 +917,7 @@ mod execute_ask_with_existing_bid {
 			append_valid_signature(fee_signer_pair.clone(), &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
@@ -929,10 +932,10 @@ mod execute_ask_with_existing_bid {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
-				fee: ask_fee.clone(),
+				price,
+				fee: ask_fee,
 				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
@@ -940,15 +943,15 @@ mod execute_ask_with_existing_bid {
 
 			let buyer_payment = price + bid_fee;
 			let marketplace_pay = bid_fee + ask_fee;
-			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
+			let seller_pay = buyer_payment - marketplace_pay;
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(seller.clone()),
+				RuntimeOrigin::signed(seller),
 				order,
 				Execution::AllowCreation
 			));
-			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
-			assert!(Nfts::can_transfer(&0, &0));
+			assert_eq!(Nfts::owner(0, 1), Some(buyer));
+			assert!(Nfts::can_transfer(&0, &1));
 			assert_eq!(
 				payout_address_balance_before + marketplace_pay,
 				Balances::balance(&payout_address)
@@ -968,16 +971,16 @@ mod execute_ask_with_existing_bid {
 
 			create_valid_order(OrderType::Bid, account(2), account(1));
 
-			let mut bid = Bids::<Test>::get((0, 0, 10000)).unwrap();
+			let mut bid = Bids::<Test>::get((0, 1, 10000)).unwrap();
 			bid.buyer = account(1);
-			Bids::<Test>::set((0, 0, 10000), Some(bid.clone()));
+			Bids::<Test>::set((0, 1, 10000), Some(bid.clone()));
 
 			let expires_at = get_valid_expiration();
 
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
 				price: 10000,
 				fee: 1,
@@ -1006,25 +1009,22 @@ mod execute_ask_with_existing_bid {
 			let expires_at = get_valid_expiration();
 			let price = 10000;
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 			Balances::set_balance(&buyer, 100000);
 
 			let fee_signer_pair = sp_core::ecdsa::Pair::from_string("//Alice", None).unwrap();
 			let admin_signer: EthereumSigner = fee_signer_pair.public().into();
 			let admin = admin_signer.clone().into_account();
-			assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin.clone()));
-			assert_ok!(Marketplace::set_fee_signer_address(
-				RuntimeOrigin::signed(admin.clone()),
-				admin.clone()
-			));
+			assert_ok!(Marketplace::force_set_authority(RuntimeOrigin::root(), admin));
+			assert_ok!(Marketplace::set_fee_signer_address(RuntimeOrigin::signed(admin), admin));
 
 			let bid_fee = 3;
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
+				price,
 				fee: bid_fee,
 				escrow_agent: None,
 				signature_data: SignatureData {
@@ -1035,7 +1035,7 @@ mod execute_ask_with_existing_bid {
 			append_valid_signature(fee_signer_pair.clone(), &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
@@ -1044,10 +1044,10 @@ mod execute_ask_with_existing_bid {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
-				fee: ask_fee.clone(),
+				price,
+				fee: ask_fee,
 				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
@@ -1055,7 +1055,7 @@ mod execute_ask_with_existing_bid {
 
 			assert_noop!(
 				Marketplace::create_order(
-					RuntimeOrigin::signed(seller.clone()),
+					RuntimeOrigin::signed(seller),
 					order,
 					Execution::AllowCreation
 				),
@@ -1075,16 +1075,16 @@ mod execute_ask_with_existing_bid {
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 			Balances::set_balance(&buyer, 100000);
 
 			let bid_fee = 0;
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
+				price,
 				fee: bid_fee,
 				escrow_agent: None,
 				signature_data: SignatureData {
@@ -1095,7 +1095,7 @@ mod execute_ask_with_existing_bid {
 			append_valid_signature(fee_signer_pair.clone(), &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
@@ -1110,10 +1110,10 @@ mod execute_ask_with_existing_bid {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
-				fee: ask_fee.clone(),
+				price,
+				fee: ask_fee,
 				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
@@ -1121,15 +1121,15 @@ mod execute_ask_with_existing_bid {
 
 			let buyer_payment = price + bid_fee;
 			let marketplace_pay = bid_fee + ask_fee;
-			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
+			let seller_pay = buyer_payment - marketplace_pay;
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(seller.clone()),
+				RuntimeOrigin::signed(seller),
 				order,
 				Execution::AllowCreation
 			));
-			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
-			assert!(Nfts::can_transfer(&0, &0));
+			assert_eq!(Nfts::owner(0, 1), Some(buyer));
+			assert!(Nfts::can_transfer(&0, &1));
 			assert_eq!(
 				payout_address_balance_before + marketplace_pay,
 				Balances::balance(&payout_address)
@@ -1155,7 +1155,7 @@ mod execute_bid_with_existing_ask {
 			let expires_at = get_valid_expiration();
 			let price = 10000;
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
@@ -1163,17 +1163,17 @@ mod execute_bid_with_existing_ask {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
-				fee: ask_fee.clone(),
+				price,
+				fee: ask_fee,
 				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(seller.clone()),
+				RuntimeOrigin::signed(seller),
 				order,
 				Execution::AllowCreation
 			));
@@ -1189,9 +1189,9 @@ mod execute_bid_with_existing_ask {
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
+				price,
 				fee: bid_fee,
 				escrow_agent: None,
 				signature_data: SignatureData {
@@ -1202,17 +1202,17 @@ mod execute_bid_with_existing_ask {
 			append_valid_signature(fee_signer_pair, &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
 
 			let buyer_payment = price + bid_fee;
 			let marketplace_pay = bid_fee + ask_fee;
-			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
+			let seller_pay = buyer_payment - marketplace_pay;
 
-			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
-			assert!(Nfts::can_transfer(&0, &0));
+			assert_eq!(Nfts::owner(0, 1), Some(buyer));
+			assert!(Nfts::can_transfer(&0, &1));
 			assert_eq!(
 				payout_address_balance_before + marketplace_pay,
 				Balances::balance(&payout_address)
@@ -1231,7 +1231,7 @@ mod execute_bid_with_existing_ask {
 			let expires_at = get_valid_expiration();
 			let price = 100000;
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
@@ -1239,17 +1239,17 @@ mod execute_bid_with_existing_ask {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
-				fee: ask_fee.clone(),
+				price,
+				fee: ask_fee,
 				escrow_agent: None,
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(seller.clone()),
+				RuntimeOrigin::signed(seller),
 				order,
 				Execution::AllowCreation
 			));
@@ -1265,9 +1265,9 @@ mod execute_bid_with_existing_ask {
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
+				price,
 				fee: bid_fee,
 				escrow_agent: None,
 				signature_data: SignatureData {
@@ -1278,17 +1278,17 @@ mod execute_bid_with_existing_ask {
 			append_valid_signature(fee_signer_pair, &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
 
 			let buyer_payment = price + bid_fee;
 			let marketplace_pay = bid_fee + ask_fee;
-			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
+			let seller_pay = buyer_payment - marketplace_pay;
 
-			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
-			assert!(Nfts::can_transfer(&0, &0));
+			assert_eq!(Nfts::owner(0, 1), Some(buyer));
+			assert!(Nfts::can_transfer(&0, &1));
 			assert_eq!(
 				payout_address_balance_before + marketplace_pay,
 				Balances::balance(&payout_address)
@@ -1309,7 +1309,7 @@ mod execute_bid_with_existing_ask {
 			let expires_at = get_valid_expiration();
 			let price = 10000;
 
-			mint_item(0, seller.clone());
+			mint_item(1, seller);
 
 			let (_, fee_signer_pair) = admin_accounts_setup();
 
@@ -1317,17 +1317,17 @@ mod execute_bid_with_existing_ask {
 			let mut order = Order {
 				order_type: OrderType::Ask,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
-				fee: ask_fee.clone(),
+				price,
+				fee: ask_fee,
 				escrow_agent: Some(escrow_agent),
 				signature_data: SignatureData { signature: raw_signature([0; 65]), nonce: vec![1] },
 			};
 			append_valid_signature(fee_signer_pair.clone(), &mut order);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(seller.clone()),
+				RuntimeOrigin::signed(seller),
 				order,
 				Execution::AllowCreation
 			));
@@ -1343,9 +1343,9 @@ mod execute_bid_with_existing_ask {
 			let mut bid = Order {
 				order_type: OrderType::Bid,
 				collection: 0,
-				item: 0,
+				item: 1,
 				expires_at,
-				price: price.clone(),
+				price,
 				fee: bid_fee,
 				escrow_agent: None,
 				signature_data: SignatureData {
@@ -1356,17 +1356,17 @@ mod execute_bid_with_existing_ask {
 			append_valid_signature(fee_signer_pair, &mut bid);
 
 			assert_ok!(Marketplace::create_order(
-				RuntimeOrigin::signed(buyer.clone()),
+				RuntimeOrigin::signed(buyer),
 				bid.clone(),
 				Execution::AllowCreation
 			));
 
 			let buyer_payment = price + bid_fee;
 			let marketplace_pay = bid_fee + ask_fee;
-			let seller_pay = buyer_payment.clone() - marketplace_pay.clone();
+			let seller_pay = buyer_payment - marketplace_pay;
 
-			assert_eq!(Nfts::owner(0, 0), Some(buyer.clone()));
-			assert!(Nfts::can_transfer(&0, &0));
+			assert_eq!(Nfts::owner(0, 1), Some(buyer));
+			assert!(Nfts::can_transfer(&0, &1));
 			assert_eq!(
 				payout_address_balance_before + marketplace_pay,
 				Balances::balance(&payout_address)
@@ -1409,7 +1409,7 @@ mod cancel_ask {
 					RuntimeOrigin::signed(account(2)),
 					OrderType::Ask,
 					0,
-					0,
+					1,
 					0
 				),
 				Error::<Test>::NotOrderCreatorOrAdmin
@@ -1421,7 +1421,7 @@ mod cancel_ask {
 					RuntimeOrigin::signed(account(2)),
 					OrderType::Ask,
 					0,
-					0,
+					1,
 					0
 				),
 				Error::<Test>::NotOrderCreatorOrAdmin
@@ -1440,12 +1440,12 @@ mod cancel_ask {
 				RuntimeOrigin::signed(account(1)),
 				OrderType::Ask,
 				0,
-				0,
+				1,
 				0
 			));
 
-			assert!(Asks::<Test>::get(0, 0) == None);
-			assert!(Nfts::can_transfer(&0, &0));
+			assert!(Asks::<Test>::get(0, 1).is_none());
+			assert!(Nfts::can_transfer(&0, &1));
 		})
 	}
 
@@ -1461,12 +1461,12 @@ mod cancel_ask {
 				RuntimeOrigin::signed(account(3)),
 				OrderType::Ask,
 				0,
-				0,
+				1,
 				0
 			));
 
-			assert!(Asks::<Test>::get(0, 0) == None);
-			assert!(Nfts::can_transfer(&0, &0));
+			assert!(Asks::<Test>::get(0, 1).is_none());
+			assert!(Nfts::can_transfer(&0, &1));
 		})
 	}
 }
@@ -1501,7 +1501,7 @@ mod cancel_bid {
 					RuntimeOrigin::signed(account(3)),
 					OrderType::Bid,
 					0,
-					0,
+					1,
 					10000
 				),
 				Error::<Test>::NotOrderCreatorOrAdmin
@@ -1513,7 +1513,7 @@ mod cancel_bid {
 					RuntimeOrigin::signed(account(3)),
 					OrderType::Bid,
 					0,
-					0,
+					1,
 					10000
 				),
 				Error::<Test>::NotOrderCreatorOrAdmin
@@ -1536,19 +1536,20 @@ mod cancel_bid {
 				RuntimeOrigin::signed(account(1)),
 				OrderType::Bid,
 				0,
-				0,
+				1,
 				price
 			));
 
 			let fee = 1;
-			assert!(Asks::<Test>::get(0, 0) == None);
+			assert!(Asks::<Test>::get(0, 1).is_none());
 
 			let bid_payment = Marketplace::calc_bid_payment(&price, &fee).unwrap_or_default();
-			assert!(
+			assert_eq!(
 				bid_payment.saturating_add(Balances::balance_on_hold(
 					&HoldReason::MarketplaceBid.into(),
 					&account(1)
-				)) == reserved
+				)),
+				reserved
 			);
 		})
 	}
@@ -1568,19 +1569,20 @@ mod cancel_bid {
 				RuntimeOrigin::signed(account(3)),
 				OrderType::Bid,
 				0,
-				0,
+				1,
 				price
 			));
 
 			let fee = 1;
-			assert!(Asks::<Test>::get(0, 0) == None);
+			assert!(Asks::<Test>::get(0, 1).is_none());
 
 			let bid_payment = Marketplace::calc_bid_payment(&price, &fee).unwrap_or_default();
-			assert!(
+			assert_eq!(
 				bid_payment.saturating_add(Balances::balance_on_hold(
 					&HoldReason::MarketplaceBid.into(),
 					&account(1)
-				)) == reserved
+				)),
+				reserved
 			);
 		})
 	}

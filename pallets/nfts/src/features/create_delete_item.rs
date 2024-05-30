@@ -63,10 +63,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 						ensure!(
 							maybe_item.is_none()
 								|| maybe_item.ok_or(Error::<T, I>::ItemIdNotSerial)?
-									== collection_details.minted_items,
+									== collection_details.minted_items.saturating_add(1),
 							Error::<T, I>::ItemIdNotSerial
 						);
-						collection_details.minted_items
+						collection_details.minted_items.saturating_add(1)
 					},
 					false => {
 						ensure!(
@@ -76,6 +76,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 						maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
 					},
 				};
+				ensure!(item > 0, Error::<T, I>::InvalidItemId);
 				ensure!(
 					!Item::<T, I>::contains_key(collection, item),
 					Error::<T, I>::AlreadyExists
@@ -84,7 +85,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				with_details_and_config(collection_details, &collection_config)?;
 
 				if let Some(max_supply) = collection_config.max_supply {
-					ensure!(collection_details.items < max_supply, Error::<T, I>::MaxSupplyReached);
+					ensure!(
+						collection_details.minted_items < max_supply,
+						Error::<T, I>::MaxSupplyReached
+					);
 					ensure!(item <= max_supply, Error::<T, I>::InvalidItemId);
 				}
 
