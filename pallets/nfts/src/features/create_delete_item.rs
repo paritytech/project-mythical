@@ -53,7 +53,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		) -> DispatchResult,
 	) -> Result<ItemId, DispatchError> {
 		Collection::<T, I>::try_mutate(
-			&collection,
+			collection,
 			|maybe_collection_details| -> Result<ItemId, DispatchError> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
@@ -109,10 +109,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				let item_owner = mint_to.clone();
 				Account::<T, I>::insert((&item_owner, &collection, &item), ());
 
-				if let Ok(existing_config) = ItemConfigOf::<T, I>::try_get(&collection, &item) {
+				if let Ok(existing_config) = ItemConfigOf::<T, I>::try_get(collection, item) {
 					ensure!(existing_config == item_config, Error::<T, I>::InconsistentItemConfig);
 				} else {
-					ItemConfigOf::<T, I>::insert(&collection, &item, item_config);
+					ItemConfigOf::<T, I>::insert(collection, item, item_config);
 					collection_details.item_configs.saturating_inc();
 				}
 
@@ -124,7 +124,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 					approvals: ApprovalsOf::<T, I>::default(),
 					deposit,
 				};
-				Item::<T, I>::insert(&collection, &item, details);
+				Item::<T, I>::insert(collection, item, details);
 				Self::deposit_event(Event::Issued { collection, item, owner: mint_to });
 				Ok(item)
 			},
@@ -238,16 +238,16 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			!Self::has_system_attribute(&collection, &item, PalletAttributes::TransferDisabled)?,
 			Error::<T, I>::ItemLocked
 		);
-		ensure!(!BurnedItems::<T, I>::get(&collection, &item), Error::<T, I>::AlreadyBurned);
+		ensure!(!BurnedItems::<T, I>::get(collection, item), Error::<T, I>::AlreadyBurned);
 		// Check the item exists first.
 		let _ = Self::get_item_config(&collection, &item)?;
 		let owner = Collection::<T, I>::try_mutate(
-			&collection,
+			collection,
 			|maybe_collection_details| -> Result<T::AccountId, DispatchError> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
-				let details = Item::<T, I>::get(&collection, &item)
-					.ok_or(Error::<T, I>::UnknownCollection)?;
+				let details =
+					Item::<T, I>::get(collection, item).ok_or(Error::<T, I>::UnknownCollection)?;
 				with_details(&details)?;
 
 				// Return the deposit.
@@ -255,7 +255,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				collection_details.items.saturating_dec();
 				collection_details.item_configs.saturating_dec();
 
-				if let Some(metadata) = ItemMetadataOf::<T, I>::take(&collection, &item) {
+				if let Some(metadata) = ItemMetadataOf::<T, I>::take(collection, item) {
 					let depositor_account =
 						metadata.deposit.account.unwrap_or(collection_details.owner.clone());
 
@@ -271,13 +271,13 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			},
 		)?;
 
-		Item::<T, I>::remove(&collection, &item);
+		Item::<T, I>::remove(collection, item);
 		Account::<T, I>::remove((&owner, &collection, &item));
-		ItemPriceOf::<T, I>::remove(&collection, &item);
-		PendingSwapOf::<T, I>::remove(&collection, &item);
-		ItemAttributesApprovalsOf::<T, I>::remove(&collection, &item);
-		ItemConfigOf::<T, I>::remove(&collection, &item);
-		BurnedItems::<T, I>::insert(&collection, item, true);
+		ItemPriceOf::<T, I>::remove(collection, item);
+		PendingSwapOf::<T, I>::remove(collection, item);
+		ItemAttributesApprovalsOf::<T, I>::remove(collection, item);
+		ItemConfigOf::<T, I>::remove(collection, item);
+		BurnedItems::<T, I>::insert(collection, item, true);
 
 		Self::deposit_event(Event::Burned { collection, item, owner });
 		Ok(())

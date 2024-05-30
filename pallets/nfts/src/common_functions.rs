@@ -42,7 +42,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		signature: &T::OffchainSignature,
 		signer: &T::AccountId,
 	) -> DispatchResult {
-		if signature.verify(&**data, &signer) {
+		if signature.verify(&**data, signer) {
 			return Ok(());
 		}
 
@@ -55,7 +55,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		wrapped.extend(data);
 		wrapped.extend(suffix);
 
-		ensure!(signature.verify(&*wrapped, &signer), Error::<T, I>::WrongSignature);
+		ensure!(signature.verify(&*wrapped, signer), Error::<T, I>::WrongSignature);
 
 		Ok(())
 	}

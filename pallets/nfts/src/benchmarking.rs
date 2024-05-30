@@ -17,8 +17,6 @@
 
 //! Nfts pallet benchmarking.
 
-#![cfg(feature = "runtime-benchmarks")]
-
 use enumflags2::{BitFlag, BitFlags};
 use frame_benchmarking::v1::{
 	account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller, BenchmarkError,
@@ -87,8 +85,8 @@ fn mint_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, Acc
 		whitelist_account!(caller);
 	}
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
-	let item_exists = Item::<T, I>::contains_key(&collection, &item);
-	let item_config = ItemConfigOf::<T, I>::get(&collection, &item);
+	let item_exists = Item::<T, I>::contains_key(collection, item);
+	let item_config = ItemConfigOf::<T, I>::get(collection, item);
 	if item_exists {
 		return (item, caller, caller_lookup);
 	} else if let Some(item_config) = item_config {
@@ -692,7 +690,7 @@ benchmarks_instance_pallet! {
 	}
 
 	pay_tips {
-		let n in 0 .. T::MaxTips::get() as u32;
+		let n in 0 .. T::MaxTips::get();
 		let amount = BalanceOf::<T, I>::from(100u32);
 		let caller: T::AccountId = whitelisted_caller();
 		let collection = T::Helper::collection(0);
@@ -798,7 +796,7 @@ benchmarks_instance_pallet! {
 	}
 
 	mint_pre_signed {
-		let n in 0 .. T::MaxAttributesPerCall::get() as u32;
+		let n in 0 .. T::MaxAttributesPerCall::get();
 		let caller_public = ecdsa_generate(0.into(), None);
 		let ethereum_caller: EthereumSigner = caller_public.into();
 		let caller = ethereum_caller.into_account().into();
@@ -842,7 +840,7 @@ benchmarks_instance_pallet! {
 	}
 
 	set_attributes_pre_signed {
-		let n in 0 .. T::MaxAttributesPerCall::get() as u32;
+		let n in 0 .. T::MaxAttributesPerCall::get();
 		let (collection, _, _) = create_collection::<T, I>();
 
 		let item_owner: T::AccountId = account("item_owner", 0, SEED);
