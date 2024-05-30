@@ -332,7 +332,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<0>;
-	type WeightInfo = ();
+	type WeightInfo = runtime_common::weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
 parameter_types! {

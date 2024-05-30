@@ -29,6 +29,7 @@ pallet-collator-selection = { workspace = true, default-features = false }
 pallet-message-queue = { workspace = true, default-features = false }
 pallet-multisig = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
+pallet-timestamp = { workspace = true, default-features = false }
 
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
@@ -51,6 +52,7 @@ std = [
   "pallet-message-queue/std",
   "pallet-multisig/std",
   "pallet-session/std",
+  "pallet-timestamp/std",
 ]
 
 runtime-benchmarks = [
