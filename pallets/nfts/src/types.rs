@@ -64,7 +64,7 @@ pub(super) type ItemPrice<T, I = ()> = BalanceOf<T, I>;
 /// A type alias for the tips held by a single item.
 pub(super) type ItemTipOf<T, I = ()> = ItemTip<
 	<T as Config<I>>::CollectionId,
-	<T as Config<I>>::ItemId,
+	ItemId,
 	<T as SystemConfig>::AccountId,
 	BalanceOf<T, I>,
 >;
@@ -74,7 +74,7 @@ pub(super) type CollectionConfigFor<T, I = ()> =
 /// A type alias for the pre-signed minting configuration for a specified collection.
 pub(super) type PreSignedMintOf<T, I = ()> = PreSignedMint<
 	<T as Config<I>>::CollectionId,
-	<T as Config<I>>::ItemId,
+	ItemId,
 	<T as SystemConfig>::AccountId,
 	BlockNumberFor<T>,
 	BalanceOf<T, I>,
@@ -82,7 +82,7 @@ pub(super) type PreSignedMintOf<T, I = ()> = PreSignedMint<
 /// A type alias for the pre-signed minting configuration on the attribute level of an item.
 pub(super) type PreSignedAttributesOf<T, I = ()> = PreSignedAttributes<
 	<T as Config<I>>::CollectionId,
-	<T as Config<I>>::ItemId,
+	ItemId,
 	<T as SystemConfig>::AccountId,
 	BlockNumberFor<T>,
 >;
@@ -96,7 +96,11 @@ pub struct CollectionDetails<AccountId, DepositBalance> {
 	/// collection. Used by `destroy`.
 	pub(super) owner_deposit: DepositBalance,
 	/// The total number of outstanding items of this collection.
-	pub(super) items: u32,
+	pub(super) items: u128,
+	/// The total number of items ever minted of this collection.
+	pub(super) minted_items: u128,
+	/// The highers Item ID.
+	pub(super) highest_item_id: Option<u128>,
 	/// The total number of outstanding item metadata of this collection.
 	pub(super) item_metadatas: u32,
 	/// The total number of outstanding item configs of this collection.
@@ -314,6 +318,8 @@ pub struct MintSettings<Price, BlockNumber, CollectionId> {
 	pub end_block: Option<BlockNumber>,
 	/// Default settings each item will get during the mint.
 	pub default_item_settings: ItemSettings,
+	/// Mint items in serial or random mode.
+	pub serial_mint: bool,
 }
 
 impl<Price, BlockNumber, CollectionId> Default for MintSettings<Price, BlockNumber, CollectionId> {
@@ -324,13 +330,23 @@ impl<Price, BlockNumber, CollectionId> Default for MintSettings<Price, BlockNumb
 			start_block: None,
 			end_block: None,
 			default_item_settings: ItemSettings::all_enabled(),
+			serial_mint: false,
 		}
 	}
 }
 
 /// Attribute namespaces for non-fungible tokens.
 #[derive(
-	Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo, MaxEncodedLen,
+	Clone,
+	Encode,
+	Decode,
+	Eq,
+	PartialEq,
+	RuntimeDebug,
+	scale_info::TypeInfo,
+	MaxEncodedLen,
+	PartialOrd,
+	Ord,
 )]
 pub enum AttributeNamespace<AccountId> {
 	/// An attribute was set by the pallet.
@@ -367,7 +383,7 @@ pub struct CollectionConfig<Price, BlockNumber, CollectionId> {
 	/// Collection's settings.
 	pub settings: CollectionSettings,
 	/// Collection's max supply.
-	pub max_supply: Option<u32>,
+	pub max_supply: Option<u128>,
 	/// Default settings each item will get during the mint.
 	pub mint_settings: MintSettings<Price, BlockNumber, CollectionId>,
 }
@@ -519,7 +535,7 @@ pub struct PreSignedMint<CollectionId, ItemId, AccountId, Deadline, Balance> {
 	/// A collection of the item to be minted.
 	pub(super) collection: CollectionId,
 	/// Item's ID.
-	pub(super) item: ItemId,
+	pub(super) maybe_item: Option<ItemId>,
 	/// Additional item's key-value attributes.
 	pub(super) attributes: Vec<(Vec<u8>, Vec<u8>)>,
 	/// Additional item's metadata.
