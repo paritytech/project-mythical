@@ -1029,7 +1029,7 @@ fn set_collection_system_attributes_should_work() {
 			<Nfts as Inspect<AccountIdOf<Test>>>::system_attribute(
 				&collection_id,
 				None,
-				&attribute_key
+				&attribute_key,
 			),
 			Some(attribute_value.to_vec())
 		);
@@ -1052,7 +1052,7 @@ fn set_collection_system_attributes_should_work() {
 			<Nfts as Inspect<AccountIdOf<Test>>>::typed_system_attribute(
 				&collection_id,
 				None,
-				&typed_attribute_key
+				&typed_attribute_key,
 			),
 			Some(typed_attribute_value)
 		);
@@ -1200,7 +1200,7 @@ fn set_item_owner_attributes_should_work() {
 			attributes(0),
 			vec![
 				(Some(0), AttributeNamespace::ItemOwner, bvec![0], bvec![0; 10]),
-				(Some(0), AttributeNamespace::ItemOwner, bvec![2], bvec![0])
+				(Some(0), AttributeNamespace::ItemOwner, bvec![2], bvec![0]),
 			]
 		);
 		assert_eq!(Balances::reserved_balance(account(2)), 15);
@@ -1213,7 +1213,7 @@ fn set_item_owner_attributes_should_work() {
 			attributes(0),
 			vec![
 				(Some(0), AttributeNamespace::ItemOwner, bvec![0], bvec![0; 10]),
-				(Some(0), AttributeNamespace::ItemOwner, bvec![2], bvec![0])
+				(Some(0), AttributeNamespace::ItemOwner, bvec![2], bvec![0]),
 			]
 		);
 		let key: BoundedVec<_, _> = bvec![0];
@@ -1244,7 +1244,7 @@ fn set_item_owner_attributes_should_work() {
 			attributes(0),
 			vec![
 				(Some(0), AttributeNamespace::ItemOwner, bvec![0], bvec![0; 11]),
-				(Some(0), AttributeNamespace::ItemOwner, bvec![2], bvec![0])
+				(Some(0), AttributeNamespace::ItemOwner, bvec![2], bvec![0]),
 			]
 		);
 		assert_ok!(Nfts::clear_attribute(
@@ -2369,7 +2369,7 @@ fn set_price_should_work() {
 		));
 		assert!(events().contains(&Event::<Test>::ItemPriceRemoved {
 			collection: collection_id,
-			item: item_2
+			item: item_2,
 		}));
 		assert!(!ItemPriceOf::<Test>::contains_key(collection_id, item_2));
 
@@ -3842,5 +3842,149 @@ fn clear_collection_metadata_works() {
 		));
 		assert_eq!(Collection::<Test>::get(0), None);
 		assert_eq!(Balances::reserved_balance(&account(1)), 10);
+	});
+}
+
+#[test]
+fn test_serial_minting_should_work() {
+	new_test_ext().execute_with(|| {
+		Balances::make_free_balance_be(&account(1), 100);
+
+		// Cannot create without max_supply if no serial minting is specified.
+		assert_noop!(
+			Nfts::create(
+				RuntimeOrigin::signed(account(1)),
+				account(1),
+				CollectionConfig {
+					settings: CollectionSettings::all_enabled(),
+					max_supply: None,
+					mint_settings: MintSettings::default(),
+				}
+			),
+			Error::<Test>::MaxSupplyRequired
+		);
+
+		assert_ok!(Nfts::create(
+			RuntimeOrigin::signed(account(1)),
+			account(1),
+			CollectionConfig {
+				settings: CollectionSettings::all_enabled(),
+				max_supply: None,
+				mint_settings: MintSettings { serial_mint: true, ..Default::default() },
+			}
+		));
+
+		assert!(events().contains(&Event::<Test>::Created {
+			collection: 0,
+			owner: account(1),
+			creator: account(1),
+		}));
+		{
+			let details = Collection::<Test>::get(&0).unwrap();
+			assert_eq!(details.items, 0);
+			assert_eq!(details.minted_items, 0);
+			assert_eq!(details.item_configs, 0);
+			assert_eq!(details.highest_item_id, None);
+		}
+
+		// Cannot select the item ID.
+		assert_noop!(
+			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(5), account(1), None,),
+			Error::<Test>::InvalidItemId
+		);
+
+		// Minting the item
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, None, account(1), None,));
+		assert!(events().contains(&Event::<Test>::Issued {
+			collection: 0,
+			item: 0,
+			owner: account(1),
+		}));
+		{
+			let details = Collection::<Test>::get(&0).unwrap();
+			assert_eq!(details.items, 1);
+			assert_eq!(details.minted_items, 1);
+			assert_eq!(details.item_configs, 1);
+			assert_eq!(details.highest_item_id, Some(0));
+		}
+
+		// After burning it
+		assert_ok!(Nfts::burn(RuntimeOrigin::signed(account(1)), 0, 0,));
+		assert!(events().contains(&Event::<Test>::Burned {
+			collection: 0,
+			item: 0,
+			owner: account(1),
+		}));
+		{
+			let details = Collection::<Test>::get(&0).unwrap();
+			assert_eq!(details.items, 0);
+			assert_eq!(details.minted_items, 1); // Remains the same
+			assert_eq!(details.item_configs, 0);
+			assert_eq!(details.highest_item_id, Some(0));
+		}
+
+		// Minting again
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, None, account(1), None,));
+		assert!(events().contains(&Event::<Test>::Issued {
+			collection: 0,
+			item: 1,
+			owner: account(1),
+		}));
+		{
+			let details = Collection::<Test>::get(&0).unwrap();
+			assert_eq!(details.items, 1);
+			assert_eq!(details.minted_items, 2);
+			assert_eq!(details.item_configs, 1);
+			assert_eq!(details.highest_item_id, Some(1));
+		}
+
+		// Cannot set the collection's max_supply under the current supply.
+		assert_noop!(
+			Nfts::set_collection_max_supply(RuntimeOrigin::signed(account(1)), 0, 0),
+			Error::<Test>::MaxSupplyTooSmall
+		);
+
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, None, account(1), None,));
+		{
+			let details = Collection::<Test>::get(&0).unwrap();
+			assert_eq!(details.items, 2);
+			assert_eq!(details.minted_items, 3);
+			assert_eq!(details.item_configs, 2);
+			assert_eq!(details.highest_item_id, Some(2));
+		}
+		// Cannot set the collection's max_supply under the highest item ID.
+		assert_noop!(
+			Nfts::set_collection_max_supply(RuntimeOrigin::signed(account(1)), 0, 1),
+			Error::<Test>::MaxSupplyTooSmall
+		);
+
+		// After this we cannot keep minting.
+		assert_ok!(Nfts::set_collection_max_supply(RuntimeOrigin::signed(account(1)), 0, 2),);
+		assert_noop!(
+			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, None, account(1), None,),
+			Error::<Test>::MaxSupplyReached
+		);
+	});
+}
+
+#[test]
+fn test_random_minting_over_max_supply_should_fail() {
+	new_test_ext().execute_with(|| {
+		Balances::make_free_balance_be(&account(1), 100);
+		assert_ok!(Nfts::create(
+			RuntimeOrigin::signed(account(1)),
+			account(1),
+			CollectionConfig {
+				settings: CollectionSettings::all_enabled(),
+				max_supply: Some(5),
+				mint_settings: Default::default(),
+			}
+		));
+
+		assert_noop!(
+			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(10), account(1), None,),
+			Error::<Test>::InvalidItemId
+		);
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(5), account(1), None,));
 	});
 }

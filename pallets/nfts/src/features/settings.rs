@@ -71,10 +71,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			ensure!(check_owner == &details.owner, Error::<T, I>::NoPermission);
 		}
 
-		ensure!(
-			details.items <= max_supply || details.highest_item_id <= max_supply,
-			Error::<T, I>::MaxSupplyTooSmall
-		);
+		ensure!(details.items <= max_supply, Error::<T, I>::MaxSupplyTooSmall);
+		if let Some(highest_item_id) = details.highest_item_id {
+			ensure!(highest_item_id <= max_supply, Error::<T, I>::MaxSupplyTooSmall);
+		}
 
 		CollectionConfigOf::<T, I>::try_mutate(collection, |maybe_config| {
 			let config = maybe_config.as_mut().ok_or(Error::<T, I>::NoConfig)?;

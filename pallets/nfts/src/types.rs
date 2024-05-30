@@ -100,7 +100,7 @@ pub struct CollectionDetails<AccountId, DepositBalance> {
 	/// The total number of items ever minted of this collection.
 	pub(super) minted_items: u128,
 	/// The highers Item ID.
-	pub(super) highest_item_id: u128,
+	pub(super) highest_item_id: Option<u128>,
 	/// The total number of outstanding item metadata of this collection.
 	pub(super) item_metadatas: u32,
 	/// The total number of outstanding item configs of this collection.
