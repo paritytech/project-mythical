@@ -35,16 +35,9 @@
 
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
-
-/// Weight functions needed for `pallet_session`.
-pub trait WeightInfo {
-	fn set_keys() -> Weight;
-	fn purge_keys() -> Weight;
-}
-
 /// Weights for `pallet_session` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_session::WeightInfo for WeightInfo<T> {
 	/// Storage: `Session::NextKeys` (r:1 w:1)
 	/// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Session::KeyOwner` (r:1 w:1)
@@ -70,35 +63,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(18_690_000, 3727)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `Session::NextKeys` (r:1 w:1)
-	/// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Session::KeyOwner` (r:1 w:1)
-	/// Proof: `Session::KeyOwner` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn set_keys() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `253`
-		//  Estimated: `3718`
-		// Minimum execution time: 25_720_000 picoseconds.
-		Weight::from_parts(26_480_000, 3718)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `Session::NextKeys` (r:1 w:1)
-	/// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Session::KeyOwner` (r:0 w:1)
-	/// Proof: `Session::KeyOwner` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn purge_keys() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `262`
-		//  Estimated: `3727`
-		// Minimum execution time: 18_330_000 picoseconds.
-		Weight::from_parts(18_690_000, 3727)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }

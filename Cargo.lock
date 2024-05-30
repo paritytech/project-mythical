@@ -10158,6 +10158,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-message-queue",
  "pallet-multisig",
+ "pallet-session",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-primitives",
