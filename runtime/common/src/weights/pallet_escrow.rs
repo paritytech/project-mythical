@@ -39,7 +39,7 @@ use core::marker::PhantomData;
 
 /// Weights for `pallet_escrow` using the Substrate node and recommended hardware.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_escrow::weights::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> pallet_escrow::WeightInfo for WeightInfo<T> {
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `Escrow::Deposits` (r:1 w:1)
