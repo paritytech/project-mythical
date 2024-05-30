@@ -3890,7 +3890,7 @@ fn test_serial_minting_should_work() {
 		// Cannot select the item ID.
 		assert_noop!(
 			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(5), account(1), None,),
-			Error::<Test>::InvalidItemId
+			Error::<Test>::ItemIdNotSerial
 		);
 
 		// Minting the item
@@ -3986,5 +3986,28 @@ fn test_random_minting_over_max_supply_should_fail() {
 			Error::<Test>::InvalidItemId
 		);
 		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(5), account(1), None,));
+	});
+}
+
+#[test]
+fn test_mint_burned_item_should_fail() {
+	new_test_ext().execute_with(|| {
+		Balances::make_free_balance_be(&account(1), 100);
+		assert_ok!(Nfts::create(
+			RuntimeOrigin::signed(account(1)),
+			account(1),
+			CollectionConfig {
+				settings: CollectionSettings::all_enabled(),
+				max_supply: Some(5),
+				mint_settings: Default::default(),
+			}
+		));
+
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(3), account(1), None,),);
+		assert_ok!(Nfts::burn(RuntimeOrigin::signed(account(1)), 0, 3,),);
+		assert_noop!(
+			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(3), account(1), None,),
+			Error::<Test>::AlreadyBurned
+		);
 	});
 }

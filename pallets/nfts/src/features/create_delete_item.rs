@@ -62,9 +62,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 					true => {
 						ensure!(
 							maybe_item.is_none()
-								|| maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
+								|| maybe_item.ok_or(Error::<T, I>::ItemIdNotSerial)?
 									== collection_details.minted_items,
-							Error::<T, I>::InvalidItemId
+							Error::<T, I>::ItemIdNotSerial
 						);
 						collection_details.minted_items
 					},

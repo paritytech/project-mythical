@@ -667,6 +667,8 @@ pub mod pallet {
 		MaxSupplyRequired,
 		/// ItemId must be under the collection's maximum supply.
 		InvalidItemId,
+		/// When serial minting is enabled items must be consecutive.
+		ItemIdNotSerial,
 		/// The collection must be configured for serial minting.
 		SerialMintEnabled,
 		/// The item as already burned.
