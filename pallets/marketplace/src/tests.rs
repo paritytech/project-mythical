@@ -11,7 +11,7 @@ use frame_support::{
 	},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
-use pallet_nfts::{CollectionConfig, CollectionSettings, MintSettings};
+use pallet_nfts::{CollectionConfig, CollectionSettings, ItemId, MintSettings};
 use parity_scale_codec::Encode;
 use sp_core::{
 	ecdsa::{Pair as KeyPair, Signature},
@@ -23,12 +23,11 @@ use sp_runtime::{traits::IdentifyAccount, BoundedVec};
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 type CollectionId<Test> = <Test as pallet_nfts::Config>::CollectionId;
 type OffchainSignature<Test> = <Test as pallet_nfts::Config>::OffchainSignature;
-type ItemId<Test> = <Test as pallet_nfts::Config>::ItemId;
 type Moment<Test> = <Test as pallet_timestamp::Config>::Moment;
 type Balance<Test> = <Test as pallet_balances::Config>::Balance;
 type MessageOf<Test> = OrderMessage<
 	CollectionId<Test>,
-	ItemId<Test>,
+	ItemId,
 	BalanceOf<Test>,
 	Moment<Test>,
 	AccountIdOf<Test>,
@@ -67,7 +66,7 @@ fn collection_config_with_all_settings_enabled(
 ) -> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
 	CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
-		max_supply: None,
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
@@ -76,7 +75,7 @@ fn append_valid_signature(
 	fee_signer_pair: KeyPair,
 	order: &mut Order<
 		CollectionId<Test>,
-		ItemId<Test>,
+		ItemId,
 		BalanceOf<Test>,
 		Moment<Test>,
 		OffchainSignature<Test>,
@@ -91,7 +90,7 @@ fn append_valid_signature(
 	order.signature_data.signature = signature;
 }
 
-fn mint_item(item: u32, owner: AccountIdOf<Test>) {
+fn mint_item(item: u128, owner: AccountIdOf<Test>) {
 	Balances::set_balance(&account(1), 100000);
 	if Nfts::collection_owner(0) == None {
 		assert_ok!(Nfts::create(
@@ -100,7 +99,7 @@ fn mint_item(item: u32, owner: AccountIdOf<Test>) {
 			collection_config_with_all_settings_enabled()
 		));
 	};
-	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, item, owner, None));
+	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(item), owner, None));
 }
 
 pub fn raw_signature(bytes: [u8; 65]) -> EthereumSignature {

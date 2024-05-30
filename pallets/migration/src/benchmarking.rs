@@ -45,7 +45,7 @@ fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
 
 	let default_config = CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
-		max_supply: None,
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	};
 

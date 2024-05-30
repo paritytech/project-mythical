@@ -18,7 +18,7 @@ fn account(id: u8) -> AccountIdOf<Test> {
 	[id; 32].into()
 }
 
-fn mint_item(item: u32, owner: AccountIdOf<Test>) {
+fn mint_item(item: u128, owner: AccountIdOf<Test>) {
 	Balances::set_balance(&account(1), 100000);
 	if Nfts::collection_owner(0) == None {
 		assert_ok!(Nfts::create(
@@ -27,14 +27,14 @@ fn mint_item(item: u32, owner: AccountIdOf<Test>) {
 			collection_config_with_all_settings_enabled()
 		));
 	};
-	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, item, owner, None));
+	assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(item), owner, None));
 }
 
 fn collection_config_with_all_settings_enabled(
 ) -> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
 	CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
-		max_supply: None,
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
