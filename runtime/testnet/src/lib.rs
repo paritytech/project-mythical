@@ -540,7 +540,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = runtime_common::weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
 impl pallet_aura::Config for Runtime {
