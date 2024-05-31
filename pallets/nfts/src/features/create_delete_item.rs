@@ -43,7 +43,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - If any error occurs in the `with_details_and_config` closure.
 	pub fn do_mint(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		maybe_item: Option<ItemId>,
 		maybe_depositor: Option<T::AccountId>,
 		mint_to: T::AccountId,
 		item_config: ItemConfig,
@@ -51,23 +51,57 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			&CollectionDetailsFor<T, I>,
 			&CollectionConfigFor<T, I>,
 		) -> DispatchResult,
-	) -> DispatchResult {
-		ensure!(!Item::<T, I>::contains_key(collection, item), Error::<T, I>::AlreadyExists);
-
+	) -> Result<ItemId, DispatchError> {
 		Collection::<T, I>::try_mutate(
-			&collection,
-			|maybe_collection_details| -> DispatchResult {
+			collection,
+			|maybe_collection_details| -> Result<ItemId, DispatchError> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
-
 				let collection_config = Self::get_collection_config(&collection)?;
+				let item = match collection_config.mint_settings.serial_mint {
+					true => {
+						ensure!(
+							maybe_item.is_none()
+								|| maybe_item.ok_or(Error::<T, I>::ItemIdNotSerial)?
+									== collection_details.minted_items.saturating_add(1),
+							Error::<T, I>::ItemIdNotSerial
+						);
+						collection_details.minted_items.saturating_add(1)
+					},
+					false => {
+						ensure!(
+							collection_config.max_supply.is_some(),
+							Error::<T, I>::MaxSupplyRequired
+						);
+						maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
+					},
+				};
+				ensure!(item > 0, Error::<T, I>::InvalidItemId);
+				ensure!(
+					!Item::<T, I>::contains_key(collection, item),
+					Error::<T, I>::AlreadyExists
+				);
+				ensure!(!BurnedItems::<T, I>::get(collection, item), Error::<T, I>::AlreadyBurned);
 				with_details_and_config(collection_details, &collection_config)?;
 
 				if let Some(max_supply) = collection_config.max_supply {
-					ensure!(collection_details.items < max_supply, Error::<T, I>::MaxSupplyReached);
+					ensure!(
+						collection_details.minted_items < max_supply,
+						Error::<T, I>::MaxSupplyReached
+					);
+					ensure!(item <= max_supply, Error::<T, I>::InvalidItemId);
 				}
 
 				collection_details.items.saturating_inc();
+				collection_details.minted_items.saturating_inc();
+
+				if let Some(highest_item_id) = collection_details.highest_item_id {
+					if highest_item_id < item {
+						collection_details.highest_item_id = Some(item);
+					}
+				} else {
+					collection_details.highest_item_id = Some(item);
+				}
 
 				let collection_config = Self::get_collection_config(&collection)?;
 				let deposit_amount = match collection_config
@@ -84,10 +118,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				let item_owner = mint_to.clone();
 				Account::<T, I>::insert((&item_owner, &collection, &item), ());
 
-				if let Ok(existing_config) = ItemConfigOf::<T, I>::try_get(&collection, &item) {
+				if let Ok(existing_config) = ItemConfigOf::<T, I>::try_get(collection, item) {
 					ensure!(existing_config == item_config, Error::<T, I>::InconsistentItemConfig);
 				} else {
-					ItemConfigOf::<T, I>::insert(&collection, &item, item_config);
+					ItemConfigOf::<T, I>::insert(collection, item, item_config);
 					collection_details.item_configs.saturating_inc();
 				}
 
@@ -99,13 +133,11 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 					approvals: ApprovalsOf::<T, I>::default(),
 					deposit,
 				};
-				Item::<T, I>::insert(&collection, &item, details);
-				Ok(())
+				Item::<T, I>::insert(collection, item, details);
+				Self::deposit_event(Event::Issued { collection, item, owner: mint_to });
+				Ok(item)
 			},
-		)?;
-
-		Self::deposit_event(Event::Issued { collection, item, owner: mint_to });
-		Ok(())
+		)
 	}
 
 	/// Mints a new item using a pre-signed message.
@@ -128,7 +160,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	) -> DispatchResult {
 		let PreSignedMint {
 			collection,
-			item,
+			maybe_item,
 			attributes,
 			metadata,
 			deadline,
@@ -154,9 +186,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		);
 
 		let item_config = ItemConfig { settings: Self::get_default_item_settings(&collection)? };
-		Self::do_mint(
+		let item = Self::do_mint(
 			collection,
-			item,
+			maybe_item,
 			Some(mint_to.clone()),
 			mint_to.clone(),
 			item_config,
@@ -207,7 +239,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - If the item is locked ([`ItemLocked`](crate::Error::ItemLocked)).
 	pub fn do_burn(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		with_details: impl FnOnce(&ItemDetailsFor<T, I>) -> DispatchResult,
 	) -> DispatchResult {
 		ensure!(!T::Locker::is_locked(collection, item), Error::<T, I>::ItemLocked);
@@ -215,41 +247,32 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			!Self::has_system_attribute(&collection, &item, PalletAttributes::TransferDisabled)?,
 			Error::<T, I>::ItemLocked
 		);
-		let item_config = Self::get_item_config(&collection, &item)?;
-		// NOTE: if item's settings are not empty (e.g. item's metadata is locked)
-		// then we keep the config record and don't remove it
-		let remove_config = !item_config.has_disabled_settings();
+		ensure!(!BurnedItems::<T, I>::get(collection, item), Error::<T, I>::AlreadyBurned);
+		// Check the item exists first.
+		let _ = Self::get_item_config(&collection, &item)?;
 		let owner = Collection::<T, I>::try_mutate(
-			&collection,
+			collection,
 			|maybe_collection_details| -> Result<T::AccountId, DispatchError> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
-				let details = Item::<T, I>::get(&collection, &item)
-					.ok_or(Error::<T, I>::UnknownCollection)?;
+				let details =
+					Item::<T, I>::get(collection, item).ok_or(Error::<T, I>::UnknownCollection)?;
 				with_details(&details)?;
 
 				// Return the deposit.
 				T::Currency::unreserve(&details.deposit.account, details.deposit.amount);
 				collection_details.items.saturating_dec();
+				collection_details.item_configs.saturating_dec();
 
-				if remove_config {
-					collection_details.item_configs.saturating_dec();
-				}
+				if let Some(metadata) = ItemMetadataOf::<T, I>::take(collection, item) {
+					let depositor_account =
+						metadata.deposit.account.unwrap_or(collection_details.owner.clone());
 
-				// Clear the metadata if it's not locked.
-				if item_config.is_setting_enabled(ItemSetting::UnlockedMetadata) {
-					if let Some(metadata) = ItemMetadataOf::<T, I>::take(&collection, &item) {
-						let depositor_account =
-							metadata.deposit.account.unwrap_or(collection_details.owner.clone());
+					T::Currency::unreserve(&depositor_account, metadata.deposit.amount);
+					collection_details.item_metadatas.saturating_dec();
 
-						T::Currency::unreserve(&depositor_account, metadata.deposit.amount);
-						collection_details.item_metadatas.saturating_dec();
-
-						if depositor_account == collection_details.owner {
-							collection_details
-								.owner_deposit
-								.saturating_reduce(metadata.deposit.amount);
-						}
+					if depositor_account == collection_details.owner {
+						collection_details.owner_deposit.saturating_reduce(metadata.deposit.amount);
 					}
 				}
 
@@ -257,15 +280,13 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			},
 		)?;
 
-		Item::<T, I>::remove(&collection, &item);
+		Item::<T, I>::remove(collection, item);
 		Account::<T, I>::remove((&owner, &collection, &item));
-		ItemPriceOf::<T, I>::remove(&collection, &item);
-		PendingSwapOf::<T, I>::remove(&collection, &item);
-		ItemAttributesApprovalsOf::<T, I>::remove(&collection, &item);
-
-		if remove_config {
-			ItemConfigOf::<T, I>::remove(&collection, &item);
-		}
+		ItemPriceOf::<T, I>::remove(collection, item);
+		PendingSwapOf::<T, I>::remove(collection, item);
+		ItemAttributesApprovalsOf::<T, I>::remove(collection, item);
+		ItemConfigOf::<T, I>::remove(collection, item);
+		BurnedItems::<T, I>::insert(collection, item, true);
 
 		Self::deposit_event(Event::Burned { collection, item, owner });
 		Ok(())

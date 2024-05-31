@@ -32,8 +32,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		collection: T::CollectionId,
 		config: CollectionConfigFor<T, I>,
 	) -> DispatchResult {
-		ensure!(Collection::<T, I>::contains_key(&collection), Error::<T, I>::UnknownCollection);
-		CollectionConfigOf::<T, I>::insert(&collection, config);
+		ensure!(Collection::<T, I>::contains_key(collection), Error::<T, I>::UnknownCollection);
+		CollectionConfigOf::<T, I>::insert(collection, config);
 		Self::deposit_event(Event::CollectionConfigChanged { collection });
 		Ok(())
 	}
@@ -57,7 +57,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_set_collection_max_supply(
 		maybe_check_owner: Option<T::AccountId>,
 		collection: T::CollectionId,
-		max_supply: u32,
+		max_supply: u128,
 	) -> DispatchResult {
 		let collection_config = Self::get_collection_config(&collection)?;
 		ensure!(
@@ -66,12 +66,15 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		);
 
 		let details =
-			Collection::<T, I>::get(&collection).ok_or(Error::<T, I>::UnknownCollection)?;
+			Collection::<T, I>::get(collection).ok_or(Error::<T, I>::UnknownCollection)?;
 		if let Some(check_owner) = &maybe_check_owner {
 			ensure!(check_owner == &details.owner, Error::<T, I>::NoPermission);
 		}
 
 		ensure!(details.items <= max_supply, Error::<T, I>::MaxSupplyTooSmall);
+		if let Some(highest_item_id) = details.highest_item_id {
+			ensure!(highest_item_id <= max_supply, Error::<T, I>::MaxSupplyTooSmall);
+		}
 
 		CollectionConfigOf::<T, I>::try_mutate(collection, |maybe_config| {
 			let config = maybe_config.as_mut().ok_or(Error::<T, I>::NoConfig)?;
@@ -104,7 +107,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	) -> DispatchResult {
 		if let Some(check_origin) = &maybe_check_origin {
 			ensure!(
-				Self::has_role(&collection, &check_origin, CollectionRole::Issuer),
+				Self::has_role(&collection, check_origin, CollectionRole::Issuer),
 				Error::<T, I>::NoPermission
 			);
 		}
@@ -128,7 +131,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		collection_id: &T::CollectionId,
 	) -> Result<CollectionConfigFor<T, I>, DispatchError> {
 		let config =
-			CollectionConfigOf::<T, I>::get(&collection_id).ok_or(Error::<T, I>::NoConfig)?;
+			CollectionConfigOf::<T, I>::get(collection_id).ok_or(Error::<T, I>::NoConfig)?;
 		Ok(config)
 	}
 
@@ -142,10 +145,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// otherwise, it returns a `DispatchError` with `Error::UnknownItem`.
 	pub(crate) fn get_item_config(
 		collection_id: &T::CollectionId,
-		item_id: &T::ItemId,
+		item_id: &ItemId,
 	) -> Result<ItemConfig, DispatchError> {
-		let config = ItemConfigOf::<T, I>::get(&collection_id, &item_id)
-			.ok_or(Error::<T, I>::UnknownItem)?;
+		let config =
+			ItemConfigOf::<T, I>::get(collection_id, item_id).ok_or(Error::<T, I>::UnknownItem)?;
 		Ok(config)
 	}
 
@@ -173,6 +176,6 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// otherwise it returns `false`.
 	pub(crate) fn is_pallet_feature_enabled(feature: PalletFeature) -> bool {
 		let features = T::Features::get();
-		return features.is_enabled(feature);
+		features.is_enabled(feature)
 	}
 }

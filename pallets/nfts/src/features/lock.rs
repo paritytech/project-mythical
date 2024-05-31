@@ -69,7 +69,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_lock_item_transfer(
 		origin: T::AccountId,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 	) -> DispatchResult {
 		ensure!(
 			Self::has_role(&collection, &origin, CollectionRole::Freezer),
@@ -80,7 +80,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		if !config.has_disabled_setting(ItemSetting::Transferable) {
 			config.disable_setting(ItemSetting::Transferable);
 		}
-		ItemConfigOf::<T, I>::insert(&collection, &item, config);
+		ItemConfigOf::<T, I>::insert(collection, item, config);
 
 		Self::deposit_event(Event::<T, I>::ItemTransferLocked { collection, item });
 		Ok(())
@@ -99,7 +99,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_unlock_item_transfer(
 		origin: T::AccountId,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 	) -> DispatchResult {
 		ensure!(
 			Self::has_role(&collection, &origin, CollectionRole::Freezer),
@@ -110,7 +110,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		if config.has_disabled_setting(ItemSetting::Transferable) {
 			config.enable_setting(ItemSetting::Transferable);
 		}
-		ItemConfigOf::<T, I>::insert(&collection, &item, config);
+		ItemConfigOf::<T, I>::insert(collection, item, config);
 
 		Self::deposit_event(Event::<T, I>::ItemTransferUnlocked { collection, item });
 		Ok(())
@@ -134,13 +134,13 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub(crate) fn do_lock_item_properties(
 		maybe_check_origin: Option<T::AccountId>,
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		lock_metadata: bool,
 		lock_attributes: bool,
 	) -> DispatchResult {
 		if let Some(check_origin) = &maybe_check_origin {
 			ensure!(
-				Self::has_role(&collection, &check_origin, CollectionRole::Admin),
+				Self::has_role(&collection, check_origin, CollectionRole::Admin),
 				Error::<T, I>::NoPermission
 			);
 		}

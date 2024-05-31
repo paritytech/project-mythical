@@ -41,6 +41,13 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		deposit: DepositBalanceOf<T, I>,
 		event: Event<T, I>,
 	) -> DispatchResult {
+		if !config.mint_settings.serial_mint {
+			ensure!(
+				config.max_supply.ok_or(Error::<T, I>::MaxSupplyRequired)? > 0,
+				Error::<T, I>::MaxSupplyRequired
+			);
+		}
+
 		ensure!(!Collection::<T, I>::contains_key(collection), Error::<T, I>::CollectionIdInUse);
 
 		T::Currency::reserve(&owner, deposit)?;
@@ -51,6 +58,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				owner: owner.clone(),
 				owner_deposit: deposit,
 				items: 0,
+				minted_items: 0,
+				highest_item_id: None,
 				item_metadatas: 0,
 				item_configs: 0,
 				attributes: 0,
@@ -64,8 +73,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			),
 		);
 
-		CollectionConfigOf::<T, I>::insert(&collection, config);
-		CollectionAccount::<T, I>::insert(&owner, &collection, ());
+		CollectionConfigOf::<T, I>::insert(collection, config);
+		CollectionAccount::<T, I>::insert(&owner, collection, ());
 
 		Self::deposit_event(event);
 
@@ -119,14 +128,16 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				Error::<T, I>::BadWitness
 			);
 
-			for (_, metadata) in ItemMetadataOf::<T, I>::drain_prefix(&collection) {
+			for (_, metadata) in ItemMetadataOf::<T, I>::drain_prefix(collection) {
 				if let Some(depositor) = metadata.deposit.account {
 					T::Currency::unreserve(&depositor, metadata.deposit.amount);
 				}
 			}
 
-			CollectionMetadataOf::<T, I>::remove(&collection);
+			CollectionMetadataOf::<T, I>::remove(collection);
 			Self::clear_roles(&collection)?;
+
+			let _ = BurnedItems::<T, I>::clear_prefix(collection, u32::MAX, None);
 
 			for (_, (_, deposit)) in Attribute::<T, I>::drain_prefix((&collection,)) {
 				if !deposit.amount.is_zero() {
@@ -136,10 +147,10 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				}
 			}
 
-			CollectionAccount::<T, I>::remove(&collection_details.owner, &collection);
+			CollectionAccount::<T, I>::remove(&collection_details.owner, collection);
 			T::Currency::unreserve(&collection_details.owner, collection_details.owner_deposit);
-			CollectionConfigOf::<T, I>::remove(&collection);
-			let _ = ItemConfigOf::<T, I>::clear_prefix(&collection, witness.item_configs, None);
+			CollectionConfigOf::<T, I>::remove(collection);
+			let _ = ItemConfigOf::<T, I>::clear_prefix(collection, witness.item_configs, None);
 
 			Self::deposit_event(Event::Destroyed { collection });
 

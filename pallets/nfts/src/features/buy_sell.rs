@@ -71,7 +71,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	///   price.
 	pub(crate) fn do_set_price(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		sender: T::AccountId,
 		price: Option<ItemPrice<T, I>>,
 		whitelisted_buyer: Option<T::AccountId>,
@@ -81,7 +81,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			Error::<T, I>::MethodDisabled
 		);
 
-		let details = Item::<T, I>::get(&collection, &item).ok_or(Error::<T, I>::UnknownItem)?;
+		let details = Item::<T, I>::get(collection, item).ok_or(Error::<T, I>::UnknownItem)?;
 		ensure!(details.owner == sender, Error::<T, I>::NoPermission);
 
 		let collection_config = Self::get_collection_config(&collection)?;
@@ -97,7 +97,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		);
 
 		if let Some(ref price) = price {
-			ItemPriceOf::<T, I>::insert(&collection, &item, (price, whitelisted_buyer.clone()));
+			ItemPriceOf::<T, I>::insert(collection, item, (price, whitelisted_buyer.clone()));
 			Self::deposit_event(Event::ItemPriceSet {
 				collection,
 				item,
@@ -105,7 +105,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				whitelisted_buyer,
 			});
 		} else {
-			ItemPriceOf::<T, I>::remove(&collection, &item);
+			ItemPriceOf::<T, I>::remove(collection, item);
 			Self::deposit_event(Event::ItemPriceRemoved { collection, item });
 		}
 
@@ -127,7 +127,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// - `bid_price`: The bid price offered by the buyer for the item.
 	pub(crate) fn do_buy_item(
 		collection: T::CollectionId,
-		item: T::ItemId,
+		item: ItemId,
 		buyer: T::AccountId,
 		bid_price: ItemPrice<T, I>,
 	) -> DispatchResult {
@@ -136,11 +136,11 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			Error::<T, I>::MethodDisabled
 		);
 
-		let details = Item::<T, I>::get(&collection, &item).ok_or(Error::<T, I>::UnknownItem)?;
+		let details = Item::<T, I>::get(collection, item).ok_or(Error::<T, I>::UnknownItem)?;
 		ensure!(details.owner != buyer, Error::<T, I>::NoPermission);
 
 		let price_info =
-			ItemPriceOf::<T, I>::get(&collection, &item).ok_or(Error::<T, I>::NotForSale)?;
+			ItemPriceOf::<T, I>::get(collection, item).ok_or(Error::<T, I>::NotForSale)?;
 
 		ensure!(bid_price >= price_info.0, Error::<T, I>::BidTooLow);
 

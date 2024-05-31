@@ -41,6 +41,7 @@ pub mod pallet {
 
 	use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
 
+	use pallet_nfts::ItemId;
 	use sp_runtime::{
 		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
 		BoundedVec, DispatchError, Saturating,
@@ -93,7 +94,7 @@ pub mod pallet {
 
 		#[cfg(feature = "runtime-benchmarks")]
 		/// A set of helper functions for benchmarking.
-		type BenchmarkHelper: BenchmarkHelper<Self::CollectionId, Self::ItemId, Self::Moment>;
+		type BenchmarkHelper: BenchmarkHelper<Self::CollectionId, ItemId, Self::Moment>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.
@@ -122,7 +123,7 @@ pub mod pallet {
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
+		ItemId,
 		Ask<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 	>;
 
@@ -131,7 +132,7 @@ pub mod pallet {
 		_,
 		(
 			NMapKey<Blake2_128Concat, T::CollectionId>,
-			NMapKey<Blake2_128Concat, T::ItemId>,
+			NMapKey<Blake2_128Concat, ItemId>,
 			NMapKey<Blake2_128Concat, BalanceOf<T>>,
 		),
 		Bid<T::AccountId, BalanceOf<T>, T::Moment>,
@@ -151,7 +152,7 @@ pub mod pallet {
 			who: T::AccountId,
 			order_type: OrderType,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			price: BalanceOf<T>,
 			expires_at: T::Moment,
 			fee: BalanceOf<T>,
@@ -159,7 +160,7 @@ pub mod pallet {
 		/// A trade of Ask and Bid was executed.
 		OrderExecuted {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			seller: T::AccountId,
 			buyer: T::AccountId,
 			price: BalanceOf<T>,
@@ -167,7 +168,7 @@ pub mod pallet {
 			buyer_fee: BalanceOf<T>,
 		},
 		/// The order was canceled by the order creator or the pallet's authority.
-		OrderCanceled { collection: T::CollectionId, item: T::ItemId, who: T::AccountId },
+		OrderCanceled { collection: T::CollectionId, item: ItemId, who: T::AccountId },
 	}
 
 	#[pallet::error]
@@ -473,7 +474,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			order_type: OrderType,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			price: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -532,7 +533,7 @@ pub mod pallet {
 		pub fn valid_match_exists_for(
 			order_type: OrderType,
 			collection: &T::CollectionId,
-			item: &T::ItemId,
+			item: &ItemId,
 			price: &BalanceOf<T>,
 		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>> {
 			let timestamp = pallet_timestamp::Pallet::<T>::get();
@@ -562,7 +563,7 @@ pub mod pallet {
 			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 			who: T::AccountId,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			price: &BalanceOf<T>,
 			fee: &BalanceOf<T>,
 			order_escrow_agent: Option<T::AccountId>,
