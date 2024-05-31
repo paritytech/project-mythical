@@ -600,7 +600,7 @@ impl pallet_nfts::Config for Runtime {
 	//TODO: Change to AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>> after migration
 	type CreateOrigin = MigratorOrigin;
 	//TODO: Change to EnsureRoot<AccountId> after migration
-	type ForceOrigin = MigratorOrigin
+	type ForceOrigin = MigratorOrigin;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
