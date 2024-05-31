@@ -332,7 +332,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<0>;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -351,7 +351,7 @@ parameter_types! {
 impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = crate::weights::pallet_balances::WeightInfo<Runtime>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	type DustRemoval = ();
@@ -446,7 +446,7 @@ parameter_types! {
 
 impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::pallet_message_queue::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type MessageProcessor = pallet_message_queue::mock_helpers::NoopMessageProcessor<
 		cumulus_primitives_core::AggregateMessageOrigin,
@@ -517,7 +517,7 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::pallet_session::WeightInfo<Runtime>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -540,7 +540,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = crate::weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -574,7 +574,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::pallet_collator_selection::WeightInfo<Runtime>;
 }
 
 // Project specific pallets.
@@ -583,8 +583,8 @@ parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
 	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
-	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
+	pub const NftsCollectionDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
@@ -599,8 +599,9 @@ impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type Currency = Balances;
-	type CreateOrigin = MigratorOrigin;
-	type ForceOrigin = MigratorOrigin;
+	type CreateOrigin =
+		frame_support::traits::AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
@@ -618,7 +619,7 @@ impl pallet_nfts::Config for Runtime {
 	type Features = NftsPalletFeatures;
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = crate::weights::pallet_nfts::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
 }
@@ -646,7 +647,7 @@ impl pallet_marketplace::Config for Runtime {
 	type NonceStringLimit = ConstU32<50>;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = crate::weights::pallet_marketplace::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }
@@ -739,7 +740,7 @@ impl pallet_escrow::Config for Runtime {
 	type Balance = Balance;
 	type MinDeposit = ExistentialDeposit;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = crate::weights::pallet_escrow::WeightInfo<Runtime>;
 }
 
 parameter_types! {
