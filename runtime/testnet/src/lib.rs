@@ -591,16 +591,16 @@ parameter_types! {
 
 pub type CollectionId = IncrementableU256;
 
-//TODO: Change to EnsureRoot<AccountId> after migration
 pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type Currency = Balances;
-	type CreateOrigin =
-		frame_support::traits::AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
-	type ForceOrigin = EnsureRoot<AccountId>;
+	//TODO: Change to AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>> after migration
+	type CreateOrigin = MigratorOrigin;
+	//TODO: Change to EnsureRoot<AccountId> after migration
+	type ForceOrigin = MigratorOrigin
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
