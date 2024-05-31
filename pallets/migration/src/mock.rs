@@ -2,7 +2,8 @@ use frame_support::{
 	derive_impl,
 	pallet_prelude::DispatchResult,
 	parameter_types,
-	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64}, PalletId,
+	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64},
+	PalletId,
 };
 use frame_system as system;
 use sp_core::H256;

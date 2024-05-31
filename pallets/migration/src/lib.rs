@@ -10,6 +10,8 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
+use parity_scale_codec::Codec;
+
 pub use pallet::*;
 
 #[frame_support::pallet]
@@ -20,7 +22,8 @@ pub mod pallet {
 		traits::{
 			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Currency,
 			UnfilteredDispatchable,
-		}, PalletId,
+		},
+		PalletId,
 	};
 	use frame_support::{
 		pallet_prelude::*,
@@ -416,3 +419,13 @@ pub mod pallet {
 }
 
 sp_core::generate_feature_enabled_macro!(runtime_benchmarks_enabled, feature = "runtime-benchmarks", $);
+
+sp_api::decl_runtime_apis! {
+	/// This runtime api allows to query the migration pot address.
+	pub trait MigrationApi<AccountId>
+	where AccountId: Codec
+	{
+		/// Queries the pot account
+		fn pot_account_id() -> AccountId;
+	}
+}

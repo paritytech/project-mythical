@@ -653,14 +653,14 @@ impl pallet_marketplace::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PotId: PalletId = PalletId(*b"PotMigra");
+	pub const MigrationPotId: PalletId = PalletId(*b"PotMigra");
 }
 
 impl pallet_migration::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type PotId = PotId;
+	type PotId = MigrationPotId;
 	type WeightInfo = pallet_migration::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1054,6 +1054,12 @@ impl_runtime_apis! {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
+		}
+	}
+
+	impl pallet_migration::MigrationApi<Block, AccountId> for Runtime {
+		fn pot_account_id() -> AccountId {
+			Migration::pot_account_id()
 		}
 	}
 

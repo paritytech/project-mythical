@@ -29,10 +29,6 @@ fn get_migrator<T: Config>() -> T::AccountId {
 	migrator
 }
 
-fn pot<T: Config>() -> T::AccountId {
-	
-}
-
 fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 	// Give the account half of the maximum value of the `Balance` type.
@@ -107,7 +103,7 @@ pub mod benchmarks {
 	#[benchmark]
 	fn send_funds_from_pot() {
 		let migrator: T::AccountId = get_migrator::<T>();
-		let pot: 
+		let pot: T::AccountId = Migration::<T>::pot_account_id();
 		let receiver: T::AccountId = account("receiver", 0, SEED);
 		let ed = <T as Config>::Currency::minimum_balance();
 		let pot_multi = BalanceOf::<T>::from(1000u32);
