@@ -12,7 +12,9 @@ use frame_support::{
 };
 use pallet_marketplace::Ask;
 use pallet_marketplace::BenchmarkHelper;
-use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, MintSettings, Pallet as Nfts};
+use pallet_nfts::{
+	CollectionConfig, CollectionSettings, ItemConfig, ItemId, MintSettings, Pallet as Nfts,
+};
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -42,12 +44,12 @@ fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> 
 	caller
 }
 
-fn mint_nft<T: Config>(nft_id: T::ItemId) -> T::AccountId {
+fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
 	let caller: T::AccountId = funded_and_whitelisted_account::<T>("tokenOwner", 0);
 
 	let default_config = CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
-		max_supply: None,
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	};
 
@@ -86,7 +88,7 @@ pub mod benchmarks {
 		let migrator: T::AccountId = get_migrator::<T>();
 		// Nft Setup
 		let collection = T::BenchmarkHelper::collection(0);
-		let item = T::BenchmarkHelper::item(0);
+		let item = T::BenchmarkHelper::item(1);
 		let caller = mint_nft::<T>(item);
 		let ask = Ask {
 			seller: caller.clone(),
@@ -123,7 +125,7 @@ pub mod benchmarks {
 	fn set_item_owner() {
 		let migrator: T::AccountId = get_migrator::<T>();
 		let collection = T::BenchmarkHelper::collection(0);
-		let item = T::BenchmarkHelper::item(0);
+		let item = T::BenchmarkHelper::item(1);
 		let _ = mint_nft::<T>(item);
 		let receiver: T::AccountId = account("receiver", 0, SEED);
 

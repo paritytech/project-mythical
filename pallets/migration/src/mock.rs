@@ -76,7 +76,6 @@ pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Test
 impl pallet_nfts::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = u32;
-	type ItemId = u32;
 	type Currency = Balances;
 	type CreateOrigin = MigratorOrigin;
 	type ForceOrigin = MigratorOrigin;
