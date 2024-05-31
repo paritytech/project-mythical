@@ -8,7 +8,7 @@ settings:
       paraId: &ap_id 1000
     local_parachain:
       wsPort: 9920
-      paraId: &lp_id 2000
+      paraId: &lp_id 3369
   variables:
     common:
       amount: &amount 20000000000000
