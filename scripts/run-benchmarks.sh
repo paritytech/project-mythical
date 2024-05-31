@@ -40,7 +40,6 @@ for PALLET in "${BENCHMARKS[@]}"; do
         --wasm-execution compiled \
         --steps 50 \
         --repeat 20 \
-        --template ./.maintain/template.hbs \
         --output "$OUTPUT"
     echo "Benchmarks for $PALLET successfully generated in $OUTPUT"
 done
