@@ -17,8 +17,6 @@
 
 //! Nfts pallet benchmarking.
 
-#![cfg(feature = "runtime-benchmarks")]
-
 use enumflags2::{BitFlag, BitFlags};
 use frame_benchmarking::v1::{
 	account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller, BenchmarkError,
@@ -79,9 +77,7 @@ fn add_collection_metadata<T: Config<I>, I: 'static>() -> (T::AccountId, Account
 	(caller, caller_lookup)
 }
 
-fn mint_item<T: Config<I>, I: 'static>(
-	index: u16,
-) -> (T::ItemId, T::AccountId, AccountIdLookupOf<T>) {
+fn mint_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, AccountIdLookupOf<T>) {
 	let item = T::Helper::item(index);
 	let collection = T::Helper::collection(0);
 	let caller = Collection::<T, I>::get(collection).unwrap().owner;
@@ -89,15 +85,15 @@ fn mint_item<T: Config<I>, I: 'static>(
 		whitelist_account!(caller);
 	}
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
-	let item_exists = Item::<T, I>::contains_key(&collection, &item);
-	let item_config = ItemConfigOf::<T, I>::get(&collection, &item);
+	let item_exists = Item::<T, I>::contains_key(collection, item);
+	let item_config = ItemConfigOf::<T, I>::get(collection, item);
 	if item_exists {
 		return (item, caller, caller_lookup);
 	} else if let Some(item_config) = item_config {
 		assert_ok!(Nfts::<T, I>::force_mint(
 			SystemOrigin::Signed(caller.clone()).into(),
 			collection,
-			item,
+			Some(item),
 			caller_lookup.clone(),
 			item_config,
 		));
@@ -105,7 +101,7 @@ fn mint_item<T: Config<I>, I: 'static>(
 		assert_ok!(Nfts::<T, I>::mint(
 			SystemOrigin::Signed(caller.clone()).into(),
 			collection,
-			item,
+			Some(item),
 			caller_lookup.clone(),
 			None,
 		));
@@ -113,9 +109,7 @@ fn mint_item<T: Config<I>, I: 'static>(
 	(item, caller, caller_lookup)
 }
 
-fn lock_item<T: Config<I>, I: 'static>(
-	index: u16,
-) -> (T::ItemId, T::AccountId, AccountIdLookupOf<T>) {
+fn lock_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
 		whitelist_account!(caller);
@@ -130,9 +124,7 @@ fn lock_item<T: Config<I>, I: 'static>(
 	(item, caller, caller_lookup)
 }
 
-fn burn_item<T: Config<I>, I: 'static>(
-	index: u16,
-) -> (T::ItemId, T::AccountId, AccountIdLookupOf<T>) {
+fn burn_item<T: Config<I>, I: 'static>(index: u16) -> (ItemId, T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
 		whitelist_account!(caller);
@@ -148,7 +140,7 @@ fn burn_item<T: Config<I>, I: 'static>(
 }
 
 fn add_item_metadata<T: Config<I>, I: 'static>(
-	item: T::ItemId,
+	item: ItemId,
 ) -> (T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
@@ -165,7 +157,7 @@ fn add_item_metadata<T: Config<I>, I: 'static>(
 }
 
 fn add_item_attribute<T: Config<I>, I: 'static>(
-	item: T::ItemId,
+	item: ItemId,
 ) -> (BoundedVec<u8, T::KeyLimit>, T::AccountId, AccountIdLookupOf<T>) {
 	let caller = Collection::<T, I>::get(T::Helper::collection(0)).unwrap().owner;
 	if caller != whitelisted_caller() {
@@ -217,7 +209,7 @@ fn make_collection_config<T: Config<I>, I: 'static>(
 ) -> CollectionConfigFor<T, I> {
 	CollectionConfig {
 		settings: CollectionSettings::from_disabled(disable_settings),
-		max_supply: None,
+		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	}
 }
@@ -269,21 +261,16 @@ benchmarks_instance_pallet! {
 
 	destroy {
 		let m in 0 .. 1_000;
-		let c in 0 .. 1_000;
 		let a in 0 .. 1_000;
 
 		let (collection, caller, _) = create_collection::<T, I>();
 		add_collection_metadata::<T, I>();
 		for i in 0..m {
-			mint_item::<T, I>(i as u16);
-			add_item_metadata::<T, I>(T::Helper::item(i as u16));
-			lock_item::<T, I>(i as u16);
-			burn_item::<T, I>(i as u16);
-		}
-		for i in 0..c {
-			mint_item::<T, I>(i as u16);
-			lock_item::<T, I>(i as u16);
-			burn_item::<T, I>(i as u16);
+			let item = (i + 1) as u16;
+			mint_item::<T, I>(item);
+			add_item_metadata::<T, I>(T::Helper::item(item));
+			lock_item::<T, I>(item);
+			burn_item::<T, I>(item);
 		}
 		for i in 0..a {
 			add_collection_attribute::<T, I>(i as u16);
@@ -296,23 +283,23 @@ benchmarks_instance_pallet! {
 
 	mint {
 		let (collection, caller, caller_lookup) = create_collection::<T, I>();
-		let item = T::Helper::item(0);
-	}: _(SystemOrigin::Signed(caller.clone()), collection, item, caller_lookup, None)
+		let item = T::Helper::item(1);
+	}: _(SystemOrigin::Signed(caller.clone()), collection, Some(item), caller_lookup, None)
 	verify {
 		assert_last_event::<T, I>(Event::Issued { collection, item, owner: caller }.into());
 	}
 
 	force_mint {
 		let (collection, caller, caller_lookup) = create_collection::<T, I>();
-		let item = T::Helper::item(0);
-	}: _(SystemOrigin::Signed(caller.clone()), collection, item, caller_lookup, default_item_config())
+		let item = T::Helper::item(1);
+	}: _(SystemOrigin::Signed(caller.clone()), collection, Some(item), caller_lookup, default_item_config())
 	verify {
 		assert_last_event::<T, I>(Event::Issued { collection, item, owner: caller }.into());
 	}
 
 	burn {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 	}: _(SystemOrigin::Signed(caller.clone()), collection, item)
 	verify {
 		assert_last_event::<T, I>(Event::Burned { collection, item, owner: caller }.into());
@@ -320,7 +307,7 @@ benchmarks_instance_pallet! {
 
 	transfer {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 
 		let target: T::AccountId = account("target", 0, SEED);
 		let target_lookup = T::Lookup::unlookup(target.clone());
@@ -333,7 +320,7 @@ benchmarks_instance_pallet! {
 	redeposit {
 		let i in 0 .. 5_000;
 		let (collection, caller, _) = create_collection::<T, I>();
-		let items = (0..i).map(|x| mint_item::<T, I>(x as u16).0).collect::<Vec<_>>();
+		let items = (0..i).map(|x| mint_item::<T, I>((x+1) as u16).0).collect::<Vec<_>>();
 		Nfts::<T, I>::force_collection_config(
 			SystemOrigin::Root.into(),
 			collection,
@@ -346,15 +333,15 @@ benchmarks_instance_pallet! {
 
 	lock_item_transfer {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
-	}: _(SystemOrigin::Signed(caller.clone()), T::Helper::collection(0), T::Helper::item(0))
+		let (item, ..) = mint_item::<T, I>(1);
+	}: _(SystemOrigin::Signed(caller.clone()), T::Helper::collection(0), T::Helper::item(1))
 	verify {
-		assert_last_event::<T, I>(Event::ItemTransferLocked { collection: T::Helper::collection(0), item: T::Helper::item(0) }.into());
+		assert_last_event::<T, I>(Event::ItemTransferLocked { collection: T::Helper::collection(0), item: T::Helper::item(1) }.into());
 	}
 
 	unlock_item_transfer {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		Nfts::<T, I>::lock_item_transfer(
 			SystemOrigin::Signed(caller.clone()).into(),
 			collection,
@@ -436,7 +423,7 @@ benchmarks_instance_pallet! {
 
 	lock_item_properties {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let lock_metadata = true;
 		let lock_attributes = true;
 	}: _(SystemOrigin::Signed(caller), collection, item, lock_metadata, lock_attributes)
@@ -449,7 +436,7 @@ benchmarks_instance_pallet! {
 		let value: BoundedVec<_, _> = vec![0u8; T::ValueLimit::get() as usize].try_into().unwrap();
 
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 	}: _(SystemOrigin::Signed(caller), collection, Some(item), AttributeNamespace::CollectionOwner, key.clone(), value.clone())
 	verify {
 		assert_last_event::<T, I>(
@@ -469,7 +456,7 @@ benchmarks_instance_pallet! {
 		let value: BoundedVec<_, _> = vec![0u8; T::ValueLimit::get() as usize].try_into().unwrap();
 
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 	}: _(SystemOrigin::Root, Some(caller), collection, Some(item), AttributeNamespace::CollectionOwner, key.clone(), value.clone())
 	verify {
 		assert_last_event::<T, I>(
@@ -486,7 +473,7 @@ benchmarks_instance_pallet! {
 
 	clear_attribute {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		add_item_metadata::<T, I>(item);
 		let (key, ..) = add_item_attribute::<T, I>(item);
 	}: _(SystemOrigin::Signed(caller), collection, Some(item), AttributeNamespace::CollectionOwner, key.clone())
@@ -503,7 +490,7 @@ benchmarks_instance_pallet! {
 
 	approve_item_attributes {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let target: T::AccountId = account("target", 0, SEED);
 		let target_lookup = T::Lookup::unlookup(target.clone());
 	}: _(SystemOrigin::Signed(caller), collection, item, target_lookup)
@@ -522,7 +509,7 @@ benchmarks_instance_pallet! {
 		let n in 0 .. 1_000;
 
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let target: T::AccountId = account("target", 0, SEED);
 		let target_lookup = T::Lookup::unlookup(target.clone());
 		Nfts::<T, I>::approve_item_attributes(
@@ -561,7 +548,7 @@ benchmarks_instance_pallet! {
 		let data: BoundedVec<_, _> = vec![0u8; T::StringLimit::get() as usize].try_into().unwrap();
 
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 	}: _(SystemOrigin::Signed(caller), collection, item, data.clone())
 	verify {
 		assert_last_event::<T, I>(Event::ItemMetadataSet { collection, item, data }.into());
@@ -569,7 +556,7 @@ benchmarks_instance_pallet! {
 
 	clear_metadata {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		add_item_metadata::<T, I>(item);
 	}: _(SystemOrigin::Signed(caller), collection, item)
 	verify {
@@ -595,7 +582,7 @@ benchmarks_instance_pallet! {
 
 	approve_transfer {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let delegate: T::AccountId = account("delegate", 0, SEED);
 		let delegate_lookup = T::Lookup::unlookup(delegate.clone());
 		let deadline = BlockNumberFor::<T>::max_value();
@@ -606,7 +593,7 @@ benchmarks_instance_pallet! {
 
 	cancel_approval {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let delegate: T::AccountId = account("delegate", 0, SEED);
 		let delegate_lookup = T::Lookup::unlookup(delegate.clone());
 		let origin = SystemOrigin::Signed(caller.clone()).into();
@@ -619,7 +606,7 @@ benchmarks_instance_pallet! {
 
 	clear_all_transfer_approvals {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let delegate: T::AccountId = account("delegate", 0, SEED);
 		let delegate_lookup = T::Lookup::unlookup(delegate.clone());
 		let origin = SystemOrigin::Signed(caller.clone()).into();
@@ -644,11 +631,11 @@ benchmarks_instance_pallet! {
 
 	set_collection_max_supply {
 		let (collection, caller, _) = create_collection::<T, I>();
-	}: _(SystemOrigin::Signed(caller.clone()), collection, u32::MAX)
+	}: _(SystemOrigin::Signed(caller.clone()), collection, u128::MAX)
 	verify {
 		assert_last_event::<T, I>(Event::CollectionMaxSupplySet {
 			collection,
-			max_supply: u32::MAX,
+			max_supply: u128::MAX,
 		}.into());
 	}
 
@@ -660,6 +647,7 @@ benchmarks_instance_pallet! {
 			end_block: Some(One::one()),
 			price: Some(ItemPrice::<T, I>::from(1u32)),
 			default_item_settings: ItemSettings::all_enabled(),
+			serial_mint: false,
 		};
 	}: _(SystemOrigin::Signed(caller.clone()), collection, mint_settings)
 	verify {
@@ -668,7 +656,7 @@ benchmarks_instance_pallet! {
 
 	set_price {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let delegate: T::AccountId = account("delegate", 0, SEED);
 		let delegate_lookup = T::Lookup::unlookup(delegate.clone());
 		let price = ItemPrice::<T, I>::from(100u32);
@@ -684,7 +672,7 @@ benchmarks_instance_pallet! {
 
 	buy_item {
 		let (collection, seller, _) = create_collection::<T, I>();
-		let (item, ..) = mint_item::<T, I>(0);
+		let (item, ..) = mint_item::<T, I>(1);
 		let buyer: T::AccountId = account("buyer", 0, SEED);
 		let buyer_lookup = T::Lookup::unlookup(buyer.clone());
 		let price = ItemPrice::<T, I>::from(0u32);
@@ -703,11 +691,11 @@ benchmarks_instance_pallet! {
 	}
 
 	pay_tips {
-		let n in 0 .. T::MaxTips::get() as u32;
+		let n in 0 .. T::MaxTips::get();
 		let amount = BalanceOf::<T, I>::from(100u32);
 		let caller: T::AccountId = whitelisted_caller();
 		let collection = T::Helper::collection(0);
-		let item = T::Helper::item(0);
+		let item = T::Helper::item(1);
 		let tips: BoundedVec<_, _> = vec![
 			ItemTip
 				{ collection, item, receiver: caller.clone(), amount }; n as usize
@@ -727,7 +715,7 @@ benchmarks_instance_pallet! {
 
 	create_swap {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item1, ..) = mint_item::<T, I>(0);
+		let (item1, ..) = mint_item::<T, I>(1);
 		let (item2, ..) = mint_item::<T, I>(1);
 		let price = ItemPrice::<T, I>::from(100u32);
 		let price_direction = PriceDirection::Receive;
@@ -749,7 +737,7 @@ benchmarks_instance_pallet! {
 
 	cancel_swap {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item1, ..) = mint_item::<T, I>(0);
+		let (item1, ..) = mint_item::<T, I>(1);
 		let (item2, ..) = mint_item::<T, I>(1);
 		let price = ItemPrice::<T, I>::from(100u32);
 		let origin = SystemOrigin::Signed(caller.clone()).into();
@@ -772,8 +760,8 @@ benchmarks_instance_pallet! {
 
 	claim_swap {
 		let (collection, caller, _) = create_collection::<T, I>();
-		let (item1, ..) = mint_item::<T, I>(0);
-		let (item2, ..) = mint_item::<T, I>(1);
+		let (item1, ..) = mint_item::<T, I>(1);
+		let (item2, ..) = mint_item::<T, I>(2);
 		let price = ItemPrice::<T, I>::from(0u32);
 		let price_direction = PriceDirection::Receive;
 		let price_with_direction = PriceWithDirection { amount: price, direction: price_direction };
@@ -809,7 +797,7 @@ benchmarks_instance_pallet! {
 	}
 
 	mint_pre_signed {
-		let n in 0 .. T::MaxAttributesPerCall::get() as u32;
+		let n in 0 .. T::MaxAttributesPerCall::get();
 		let caller_public = ecdsa_generate(0.into(), None);
 		let ethereum_caller: EthereumSigner = caller_public.into();
 		let caller = ethereum_caller.into_account().into();
@@ -817,7 +805,7 @@ benchmarks_instance_pallet! {
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
 
 		let collection = T::Helper::collection(0);
-		let item = T::Helper::item(0);
+		let item = T::Helper::item(1);
 		assert_ok!(Nfts::<T, I>::force_create(
 			SystemOrigin::Root.into(),
 			caller_lookup.clone(),
@@ -833,7 +821,7 @@ benchmarks_instance_pallet! {
 		}
 		let mint_data = PreSignedMint {
 			collection,
-			item,
+			maybe_item: Some(item),
 			attributes,
 			metadata: metadata.clone(),
 			only_account: None,
@@ -853,7 +841,7 @@ benchmarks_instance_pallet! {
 	}
 
 	set_attributes_pre_signed {
-		let n in 0 .. T::MaxAttributesPerCall::get() as u32;
+		let n in 0 .. T::MaxAttributesPerCall::get();
 		let (collection, _, _) = create_collection::<T, I>();
 
 		let item_owner: T::AccountId = account("item_owner", 0, SEED);
@@ -865,11 +853,11 @@ benchmarks_instance_pallet! {
 
 		T::Currency::make_free_balance_be(&item_owner, DepositBalanceOf::<T, I>::max_value());
 
-		let item = T::Helper::item(0);
+		let item = T::Helper::item(1);
 		assert_ok!(Nfts::<T, I>::force_mint(
 			SystemOrigin::Root.into(),
 			collection,
-			item,
+			Some(item),
 			item_owner_lookup.clone(),
 			default_item_config(),
 		));

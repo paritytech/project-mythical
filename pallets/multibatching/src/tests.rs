@@ -23,8 +23,9 @@ mod multibatching_test {
 
 			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
 			let bias = [0u8; 32];
-			let expires_at =
-				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
+			let expires_at = Timestamp::get().saturating_add(
+				<Test as pallet_timestamp::Config>::Moment::from(1_000_000_000_u64),
+			);
 
 			let sender = account(0);
 
