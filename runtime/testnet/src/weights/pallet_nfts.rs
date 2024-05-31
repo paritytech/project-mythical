@@ -94,9 +94,8 @@ impl<T: frame_system::Config> pallet_nfts::WeightInfo for WeightInfo<T> {
 	/// Storage: `Nfts::CollectionAccount` (r:0 w:1)
 	/// Proof: `Nfts::CollectionAccount` (`max_values`: None, `max_size`: Some(84), added: 2559, mode: `MaxEncodedLen`)
 	/// The range of component `m` is `[0, 1000]`.
-	/// The range of component `c` is `[0, 1000]`.
 	/// The range of component `a` is `[0, 1000]`.
-	fn destroy(m: u32, _c: u32, a: u32, ) -> Weight {
+	fn destroy(m: u32, a: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `62048 + a * (366 ±0)`
 		//  Estimated: `2579990 + a * (2986 ±0)`
