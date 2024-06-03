@@ -280,8 +280,8 @@ mod send_funds_from_pot {
 			assert!(res.is_ok());
 			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert!(Balances::free_balance(&pot) == 90000);
-			assert!(Balances::free_balance(&account(2)) == 10000);
+			assert_eq!(Balances::free_balance(&pot), 90000);
+			assert_eq!(Balances::free_balance(&account(2)), 10000);
 		})
 	}
 }

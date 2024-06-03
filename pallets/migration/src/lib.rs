@@ -60,8 +60,6 @@ pub mod pallet {
 		type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
 
 		/// Account Identifier from which the internal pot is generated.
-		///
-		/// To initiate rewards, an ED needs to be transferred to the pot address.
 		#[pallet::constant]
 		type PotId: Get<PalletId>;
 
@@ -231,7 +229,7 @@ pub mod pallet {
 		/// Emits `Transfer` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::send_funds_from_pot` (defined in the `Config` trait).
-		#[pallet::call_index(5)]
+		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::send_funds_from_pot())]
 		pub fn send_funds_from_pot(
 			origin: OriginFor<T>,
@@ -258,7 +256,7 @@ pub mod pallet {
 		/// Emits `Transferred` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::set_item_owner` (defined in the `Config` trait).
-		#[pallet::call_index(6)]
+		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_item_owner())]
 		pub fn set_item_owner(
 			origin: OriginFor<T>,
@@ -294,7 +292,7 @@ pub mod pallet {
 		/// Emits `ForceCreated` event when successful.
 		///
 		/// Weight: `WeightInfo::force_create` (defined in the `Config` trait).
-		#[pallet::call_index(7)]
+		#[pallet::call_index(5)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_create())]
 		pub fn force_create(
 			origin: OriginFor<T>,
@@ -321,7 +319,7 @@ pub mod pallet {
 		/// Emits `TeamChanged`.
 		///
 		/// Weight: `WeightInfo::set_team` (defined in the `Config` trait).
-		#[pallet::call_index(8)]
+		#[pallet::call_index(6)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_team())]
 		pub fn set_team(
 			origin: OriginFor<T>,
@@ -348,7 +346,7 @@ pub mod pallet {
 		/// Emits `CollectionMetadataSet`.
 		///
 		/// Weight: `WeightInfo::set_collection_metadata` (defined in the `Config` trait).
-		#[pallet::call_index(9)]
+		#[pallet::call_index(7)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_collection_metadata())]
 		pub fn set_collection_metadata(
 			origin: OriginFor<T>,
@@ -375,7 +373,7 @@ pub mod pallet {
 		/// Emits `Issued` event when successful.
 		///
 		/// Weight: `WeightInfo::force_mint` (defined in the `Config` trait).
-		#[pallet::call_index(10)]
+		#[pallet::call_index(8)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
 		pub fn force_mint(
 			origin: OriginFor<T>,
@@ -425,7 +423,7 @@ sp_api::decl_runtime_apis! {
 	pub trait MigrationApi<AccountId>
 	where AccountId: Codec
 	{
-		/// Queries the pot account
+		/// Queries the pot account.
 		fn pot_account_id() -> AccountId;
 	}
 }
