@@ -412,7 +412,7 @@ pub mod pallet {
 		///
 		/// Weight: `enable_serial_mint::force_mint` (defined in the `Config` trait).
 		#[pallet::call_index(9)]
-		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::enable_serial_mint())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::enable_serial_mint())]
 		pub fn enable_serial_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
