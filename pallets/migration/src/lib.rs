@@ -401,8 +401,18 @@ pub mod pallet {
 			Ok(Pays::No.into())
 		}
 
+		/// Modifies a collection config to set serial_mint = true.
+		///
+		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
+		///
+		/// Parameters:
+		/// - `collection`: The collection of the item to be minted.
+		///
+		/// Emits `SerialMintEnabled` event when successful.
+		///
+		/// Weight: `enable_serial_mint::force_mint` (defined in the `Config` trait).
 		#[pallet::call_index(9)]
-		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::enable_serial_mint())]
 		pub fn enable_serial_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,

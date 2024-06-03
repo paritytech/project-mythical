@@ -35,4 +35,4 @@ impl pallet_nfts::Config for Runtime {
 -   `set_team`: Dispatches a call to pallet-nfts::set_team.
 -   `set_collection_metadata`: Dispatches a call to pallet-nfts::set_collection_metadata.
 -   `force_mint`: Dispatches a call to pallet-nfts::force_mint.
--   `enable_serial_mint`: Modifies a collection config to enable set serial_mint = true.
+-   `enable_serial_mint`: Modifies a collection config to set serial_mint = true.
