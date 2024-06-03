@@ -5932,7 +5932,6 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
  "cumulus-relay-chain-rpc-interface",
- "custom-pool",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures",
