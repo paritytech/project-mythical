@@ -101,30 +101,15 @@ pub mod benchmarks {
 	}
 
 	#[benchmark]
-	fn set_pot_account() {
-		let migrator: T::AccountId = get_migrator::<T>();
-		let pot: T::AccountId = account("pot", 0, SEED);
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), pot.clone());
-
-		assert_last_event::<T>(Event::PotUpdated(pot).into());
-	}
-
-	#[benchmark]
 	fn send_funds_from_pot() {
 		let migrator: T::AccountId = get_migrator::<T>();
-		let pot: T::AccountId = account("pot", 0, SEED);
+		let pot: T::AccountId = Migration::<T>::pot_account_id();
 		let receiver: T::AccountId = account("receiver", 0, SEED);
 		let ed = <T as Config>::Currency::minimum_balance();
 		let pot_multi = BalanceOf::<T>::from(1000u32);
 		let send_multi = BalanceOf::<T>::from(10u32);
 		let amount_to_send = ed * send_multi;
 		<T as Config>::Currency::set_balance(&pot, ed * pot_multi);
-		assert_ok!(Migration::<T>::set_pot_account(
-			RawOrigin::Signed(migrator.clone()).into(),
-			pot.clone()
-		));
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(migrator), receiver.clone(), amount_to_send);
@@ -144,6 +129,16 @@ pub mod benchmarks {
 		_(RawOrigin::Signed(migrator), collection.clone(), item.clone(), receiver.clone());
 
 		assert_eq!(Nfts::<T>::owner(collection, item), Some(receiver));
+	}
+
+	#[benchmark]
+	fn enable_serial_mint() {
+		let migrator: T::AccountId = get_migrator::<T>();
+		let collection = T::BenchmarkHelper::collection(0);
+		let _ = mint_nft::<T>(1);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), collection.clone());
 	}
 
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
