@@ -10,7 +10,7 @@ pub type BalanceOf<T> =
 
 pub type OrderOf<T> = Order<
 	<T as pallet_nfts::Config>::CollectionId,
-	<T as pallet_nfts::Config>::ItemId,
+	pallet_nfts::ItemId,
 	BalanceOf<T>,
 	<T as pallet_timestamp::Config>::Moment,
 	<T as Config>::Signature,
@@ -20,7 +20,7 @@ pub type OrderOf<T> = Order<
 
 pub type OrderMessageOf<T> = OrderMessage<
 	<T as pallet_nfts::Config>::CollectionId,
-	<T as pallet_nfts::Config>::ItemId,
+	pallet_nfts::ItemId,
 	BalanceOf<T>,
 	<T as pallet_timestamp::Config>::Moment,
 	<T as frame_system::Config>::AccountId,

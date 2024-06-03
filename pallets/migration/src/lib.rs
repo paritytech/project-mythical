@@ -32,6 +32,7 @@ pub mod pallet {
 
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
+	use pallet_nfts::ItemId;
 	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
 	use sp_runtime::traits::StaticLookup;
 	use sp_std::{vec, vec::Vec};
@@ -103,7 +104,7 @@ pub mod pallet {
 		/// An ask was created
 		AskCreated {
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		},
 		/// The pallet's Pot account was updated.
@@ -197,7 +198,7 @@ pub mod pallet {
 		pub fn create_ask(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
@@ -287,7 +288,7 @@ pub mod pallet {
 		pub fn set_item_owner(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			transfer_to: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin)?;
@@ -404,13 +405,19 @@ pub mod pallet {
 		pub fn force_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			mint_to: AccountIdLookupOf<T>,
 			item_config: ItemConfig,
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin.clone())?;
 
-			pallet_nfts::Pallet::<T>::force_mint(origin, collection, item, mint_to, item_config)?;
+			pallet_nfts::Pallet::<T>::force_mint(
+				origin,
+				collection,
+				Some(item),
+				mint_to,
+				item_config,
+			)?;
 
 			Ok(Pays::No.into())
 		}

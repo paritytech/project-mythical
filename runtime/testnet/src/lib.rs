@@ -13,7 +13,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
@@ -224,7 +224,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1008,
+	spec_version: 1009,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -332,7 +332,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<0>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -351,7 +351,7 @@ parameter_types! {
 impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	type DustRemoval = ();
@@ -396,8 +396,7 @@ impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-
-	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -446,7 +445,7 @@ parameter_types! {
 
 impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_message_queue::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type MessageProcessor = pallet_message_queue::mock_helpers::NoopMessageProcessor<
 		cumulus_primitives_core::AggregateMessageOrigin,
@@ -498,7 +497,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type PriceForSiblingDelivery = PriceForSiblingParachainDelivery;
-	type WeightInfo = ();
+	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -517,13 +516,13 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
 }
 
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -540,7 +539,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -574,7 +573,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_collator_selection::WeightInfo<Runtime>;
 }
 
 // Project specific pallets.
@@ -582,20 +581,19 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
+	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
+	pub const NftsCollectionDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
 }
 
 pub type CollectionId = IncrementableU256;
-pub type ItemId = U256;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
-	type ItemId = ItemId;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type ForceOrigin = EnsureRoot<AccountId>;
@@ -616,7 +614,7 @@ impl pallet_nfts::Config for Runtime {
 	type Features = NftsPalletFeatures;
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_nfts::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
 }
@@ -644,9 +642,16 @@ impl pallet_marketplace::Config for Runtime {
 	type NonceStringLimit = ConstU32<50>;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_marketplace::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+}
+
+impl pallet_migration::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -717,7 +722,7 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
-	type WeightInfo = pallet_proxy::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
@@ -730,7 +735,7 @@ impl pallet_escrow::Config for Runtime {
 	type Balance = Balance;
 	type MinDeposit = ExistentialDeposit;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type WeightInfo = pallet_escrow::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_escrow::WeightInfo<Runtime>;
 }
 
 impl pallet_myth_proxy::Config for Runtime {
@@ -754,7 +759,7 @@ impl pallet_vesting::Config for Runtime {
 	type Currency = Balances;
 	type BlockNumberToBalance = ConvertInto;
 	type MinVestedTransfer = MinVestedTransfer;
-	type WeightInfo = pallet_vesting::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 	type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
 	type BlockNumberProvider = System;
 	const MAX_VESTING_SCHEDULES: u32 = 28;
@@ -775,7 +780,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 	type SetMembersOrigin = RootOrCouncilTwoThirdsMajority;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 }
@@ -824,7 +829,7 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		//Migration: pallet_migration = 42,
+		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -886,20 +891,25 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
-		[pallet_balances, Balances]
-		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
-		[pallet_message_queue, MessageQueue]
-		[pallet_collator_selection, CollatorSelection]
-		[pallet_multisig, Multisig]
-		[pallet_marketplace, Marketplace]
+		[pallet_balances, Balances]
 		[pallet_multibatching, Multibatching]
-		[pallet_nfts, Nfts]
-		[pallet_proxy, Proxy]
-		[pallet_vesting, Vesting]
+		[pallet_utility, Utility]
+		[cumulus_pallet_parachain_system, ParachainSystem]
+		[pallet_message_queue, MessageQueue]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_session, SessionBench::<Runtime>]
+		[pallet_sudo, Sudo]
+		[pallet_multisig, Multisig]
+		[pallet_collator_selection, CollatorSelection]
+		[pallet_nfts, Nfts]
+		[pallet_marketplace, Marketplace]
+		[pallet_migration, Migration]
+		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_myth_proxy, MythProxy]
+		[pallet_vesting, Vesting]
+		[pallet_collective, Council]
 	);
 }
 

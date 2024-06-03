@@ -180,6 +180,7 @@ runtime-benchmarks = [
   "pallet-multibatching/runtime-benchmarks",
   "pallet-escrow/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
+  "pallet-sudo/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
