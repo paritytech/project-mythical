@@ -43,8 +43,8 @@ impl<T: frame_system::Config> pallet_migration::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `3`
 		//  Estimated: `1505`
-		// Minimum execution time: 10_190_000 picoseconds.
-		Weight::from_parts(10_880_000, 0)
+		// Minimum execution time: 10_120_000 picoseconds.
+		Weight::from_parts(10_340_000, 0)
 			.saturating_add(Weight::from_parts(0, 1505))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -57,8 +57,8 @@ impl<T: frame_system::Config> pallet_migration::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `47`
 		//  Estimated: `1505`
-		// Minimum execution time: 12_710_000 picoseconds.
-		Weight::from_parts(13_060_000, 0)
+		// Minimum execution time: 12_490_000 picoseconds.
+		Weight::from_parts(12_930_000, 0)
 			.saturating_add(Weight::from_parts(0, 1505))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -79,26 +79,24 @@ impl<T: frame_system::Config> pallet_migration::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `525`
 		//  Estimated: `4102`
-		// Minimum execution time: 65_291_000 picoseconds.
-		Weight::from_parts(66_430_000, 0)
+		// Minimum execution time: 67_341_000 picoseconds.
+		Weight::from_parts(68_070_000, 0)
 			.saturating_add(Weight::from_parts(0, 4102))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(3))
 	}
 	/// Storage: `Migration::Migrator` (r:1 w:0)
 	/// Proof: `Migration::Migrator` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	/// Storage: `Migration::Pot` (r:1 w:0)
-	/// Proof: `Migration::Pot` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
 	/// Storage: `System::Account` (r:2 w:2)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	fn send_funds_from_pot() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `215`
+		//  Measured:  `175`
 		//  Estimated: `6172`
-		// Minimum execution time: 68_270_000 picoseconds.
-		Weight::from_parts(69_010_000, 0)
+		// Minimum execution time: 67_281_000 picoseconds.
+		Weight::from_parts(68_670_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
-			.saturating_add(T::DbWeight::get().reads(4))
+			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
 	/// Storage: `Migration::Migrator` (r:1 w:0)
@@ -123,14 +121,24 @@ impl<T: frame_system::Config> pallet_migration::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `744`
 		//  Estimated: `4102`
-		// Minimum execution time: 72_260_000 picoseconds.
-		Weight::from_parts(73_111_000, 0)
+		// Minimum execution time: 73_590_000 picoseconds.
+		Weight::from_parts(74_740_000, 0)
 			.saturating_add(Weight::from_parts(0, 4102))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(5))
 	}
-
+	/// Storage: `Migration::Migrator` (r:1 w:0)
+	/// Proof: `Migration::Migrator` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
+	/// Storage: `Nfts::CollectionConfigOf` (r:1 w:1)
+	/// Proof: `Nfts::CollectionConfigOf` (`max_values`: None, `max_size`: Some(142), added: 2617, mode: `MaxEncodedLen`)
 	fn enable_serial_mint() -> Weight {
-		Weight::zero()
+		// Proof Size summary in bytes:
+		//  Measured:  `331`
+		//  Estimated: `3607`
+		// Minimum execution time: 24_730_000 picoseconds.
+		Weight::from_parts(25_840_000, 0)
+			.saturating_add(Weight::from_parts(0, 3607))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 }
