@@ -87,20 +87,6 @@ impl<T: frame_system::Config> pallet_migration::WeightInfo for WeightInfo<T> {
 	}
 	/// Storage: `Migration::Migrator` (r:1 w:0)
 	/// Proof: `Migration::Migrator` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	/// Storage: `Migration::Pot` (r:1 w:1)
-	/// Proof: `Migration::Pot` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	fn set_pot_account() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `47`
-		//  Estimated: `1505`
-		// Minimum execution time: 13_050_000 picoseconds.
-		Weight::from_parts(13_460_000, 0)
-			.saturating_add(Weight::from_parts(0, 1505))
-			.saturating_add(T::DbWeight::get().reads(2))
-			.saturating_add(T::DbWeight::get().writes(1))
-	}
-	/// Storage: `Migration::Migrator` (r:1 w:0)
-	/// Proof: `Migration::Migrator` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
 	/// Storage: `Migration::Pot` (r:1 w:0)
 	/// Proof: `Migration::Pot` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
 	/// Storage: `System::Account` (r:2 w:2)
@@ -142,5 +128,9 @@ impl<T: frame_system::Config> pallet_migration::WeightInfo for WeightInfo<T> {
 			.saturating_add(Weight::from_parts(0, 4102))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(5))
+	}
+
+	fn enable_serial_mint() -> Weight {
+		Weight::zero()
 	}
 }
