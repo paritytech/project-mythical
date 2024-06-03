@@ -35,8 +35,8 @@ pub mod pallet {
 
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
-	use pallet_nfts::ItemId;
 	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
+	use pallet_nfts::{CollectionConfigOf, ItemId};
 	use sp_runtime::traits::{AccountIdConversion, StaticLookup};
 	use sp_std::{vec, vec::Vec};
 
@@ -110,6 +110,8 @@ pub mod pallet {
 			item: ItemId,
 			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		},
+		/// Serial mint collection config was enabled for the given collection
+		SerialMintEnabled(T::CollectionId),
 	}
 
 	#[pallet::error]
@@ -126,8 +128,12 @@ pub mod pallet {
 		MigratorNotSet,
 		/// Seller of ask is not the owner of the given item.
 		SellerNotItemOwner,
-		///The account is already the owner of the item.
+		/// The account is already the owner of the item.
 		AlreadyOwner,
+		/// The collection with the provided Id was not found.
+		CollectionNotFound,
+		/// Serial Mint config is already enabled for the given collection.
+		SerialMintAlreadyEnabled,
 	}
 
 	#[pallet::call]
@@ -391,6 +397,26 @@ pub mod pallet {
 				mint_to,
 				item_config,
 			)?;
+
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(9)]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
+		pub fn enable_serial_mint(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+		) -> DispatchResultWithPostInfo {
+			Self::ensure_migrator(origin.clone())?;
+
+			let mut config =
+				CollectionConfigOf::<T>::get(collection).ok_or(Error::<T>::CollectionNotFound)?;
+			ensure!(!config.mint_settings.serial_mint, Error::<T>::SerialMintAlreadyEnabled);
+
+			config.mint_settings.serial_mint = true;
+			CollectionConfigOf::<T>::insert(collection, config);
+
+			Self::deposit_event(Event::SerialMintEnabled(collection));
 
 			Ok(Pays::No.into())
 		}

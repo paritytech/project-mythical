@@ -131,5 +131,15 @@ pub mod benchmarks {
 		assert_eq!(Nfts::<T>::owner(collection, item), Some(receiver));
 	}
 
+	#[benchmark]
+	fn enable_serial_mint() {
+		let migrator: T::AccountId = get_migrator::<T>();
+		let collection = T::BenchmarkHelper::collection(0);
+		let _ = mint_nft::<T>(1);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), collection.clone());
+	}
+
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
 }
