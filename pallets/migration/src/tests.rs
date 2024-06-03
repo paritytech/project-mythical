@@ -7,7 +7,10 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_marketplace::{Ask, Asks};
-use pallet_nfts::{CollectionConfig, CollectionSettings, ItemConfig, ItemSettings, MintSettings};
+use pallet_nfts::{
+	CollectionConfig, CollectionConfigOf, CollectionSettings, ItemConfig, ItemSettings,
+	MintSettings,
+};
 use sp_runtime::ArithmeticError;
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
@@ -232,37 +235,6 @@ mod create_ask {
 	}
 }
 
-mod set_pot_account {
-	use super::*;
-
-	#[test]
-	fn set_pot_account_works() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-
-			let res = Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1));
-			assert!(res.is_ok());
-			assert_eq!(res.unwrap().pays_fee, Pays::No);
-
-			assert_eq!(Migration::pot(), Some(account(1)));
-		})
-	}
-
-	#[test]
-	fn fails_no_migrator() {
-		new_test_ext().execute_with(|| {
-			assert_noop!(
-				Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)),
-				Error::<Test>::MigratorNotSet
-			);
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert_noop!(
-				Migration::set_pot_account(RuntimeOrigin::signed(account(2)), account(1)),
-				Error::<Test>::NotMigrator
-			);
-		})
-	}
-}
 mod send_funds_from_pot {
 	use super::*;
 
@@ -280,26 +252,11 @@ mod send_funds_from_pot {
 			);
 		})
 	}
-	#[test]
-	fn pot_not_set_fails() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert_noop!(
-				Migration::send_funds_from_pot(
-					RuntimeOrigin::signed(account(1)),
-					account(2),
-					10000
-				),
-				Error::<Test>::PotAccountNotSet
-			);
-		})
-	}
 
 	#[test]
 	fn pot_has_not_enough_funds_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(3)));
 			assert_noop!(
 				Migration::send_funds_from_pot(
 					RuntimeOrigin::signed(account(1)),
@@ -315,8 +272,8 @@ mod send_funds_from_pot {
 	fn send_funds_from_pot_passes() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
-			Balances::set_balance(&account(1), 100000);
-			assert_ok!(Migration::set_pot_account(RuntimeOrigin::signed(account(1)), account(1)));
+			let pot = Migration::pot_account_id();
+			Balances::set_balance(&pot, 100000);
 
 			let res = Migration::send_funds_from_pot(
 				RuntimeOrigin::signed(account(1)),
@@ -326,7 +283,7 @@ mod send_funds_from_pot {
 			assert!(res.is_ok());
 			assert_eq!(res.unwrap().pays_fee, Pays::No);
 
-			assert_eq!(Balances::free_balance(&account(1)), 90000);
+			assert_eq!(Balances::free_balance(&pot), 90000);
 			assert_eq!(Balances::free_balance(&account(2)), 10000);
 		})
 	}
@@ -544,6 +501,71 @@ mod force_mint {
 			);
 			assert!(res.is_ok());
 			assert_eq!(res.unwrap().pays_fee, Pays::No)
+		})
+	}
+}
+
+mod enable_serial_mint {
+	use super::*;
+
+	#[test]
+	fn sender_is_not_migrator_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
+			assert_noop!(
+				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,),
+				Error::<Test>::NotMigrator
+			);
+		})
+	}
+
+	#[test]
+	fn enable_serial_mint_works() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
+			assert_ok!(Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled()
+			));
+
+			assert!(!CollectionConfigOf::<Test>::get(0).unwrap().mint_settings.serial_mint);
+
+			let res = Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0);
+			assert!(res.is_ok());
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
+			assert!(CollectionConfigOf::<Test>::get(0).unwrap().mint_settings.serial_mint);
+		})
+	}
+
+	#[test]
+	fn serial_mint_already_enabled() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
+			assert_ok!(Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled()
+			));
+
+			assert_ok!(Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,));
+
+			assert_noop!(
+				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,),
+				Error::<Test>::SerialMintAlreadyEnabled
+			);
+		})
+	}
+
+	#[test]
+	fn collection_not_found() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
+
+			assert_noop!(
+				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,),
+				Error::<Test>::CollectionNotFound
+			);
 		})
 	}
 }

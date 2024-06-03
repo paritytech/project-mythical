@@ -24,6 +24,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 sp-std = { workspace = true }
 sp-runtime = { workspace = true, default-features = false }
+sp-api = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
