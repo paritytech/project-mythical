@@ -20,9 +20,9 @@ scale-info = { workspace = true, default-features = false, features = [
 	"derive",
 ] }
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
-frame-support = { workspace = true }
-frame-system = { workspace = true }
-sp-std = { workspace = true }
+frame-support = { workspace = true, default-features = false }
+frame-system = { workspace = true, default-features = false }
+sp-std = { workspace = true, default-features = false }
 sp-runtime = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
@@ -45,6 +45,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",
+	"sp-api/std",
 	"sp-std/std",
 	"pallet-balances/std",
 	"pallet-nfts/std",
