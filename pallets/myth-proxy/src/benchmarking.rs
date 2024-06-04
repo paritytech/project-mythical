@@ -1,15 +1,18 @@
-#![cfg(feature = "runtime-benchmarks")]
-
 use crate::*;
 
 use crate::Pallet as Proxy;
 use frame_benchmarking::v2::*;
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
+use sp_runtime::Saturating;
 use sp_std::vec;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+}
+
+fn initial_balance<T: pallet::Config>() -> BalanceOf<T> {
+	T::Currency::minimum_balance().saturating_mul(10u32.into())
 }
 
 #[benchmarks]
@@ -24,7 +27,7 @@ mod benchmarks {
 		let sponsor_agent: <T as frame_system::Config>::AccountId = account("sponsor_agent", 0, 0);
 		let proxy_type = T::ProxyType::default();
 
-		assert_ok!(T::Currency::mint_into(&sponsor, 10u32.into()));
+		assert_ok!(T::Currency::mint_into(&sponsor, initial_balance::<T>()));
 
 		assert_ok!(Proxy::<T>::register_sponsor_agent(
 			RawOrigin::Signed(sponsor.clone()).into(),
@@ -56,7 +59,7 @@ mod benchmarks {
 		let sponsor_agent: <T as frame_system::Config>::AccountId = account("sponsor_agent", 0, 0);
 		let proxy_type = T::ProxyType::default();
 
-		assert_ok!(T::Currency::mint_into(&sponsor, 10u32.into()));
+		assert_ok!(T::Currency::mint_into(&sponsor, initial_balance::<T>()));
 
 		assert_ok!(Proxy::<T>::register_sponsor_agent(
 			RawOrigin::Signed(sponsor.clone()).into(),
@@ -88,7 +91,7 @@ mod benchmarks {
 		let delegate: <T as frame_system::Config>::AccountId = account("delegate", 0, 0);
 		let proxy_type = T::ProxyType::default();
 
-		assert_ok!(T::Currency::mint_into(&delegator, 10u32.into()));
+		assert_ok!(T::Currency::mint_into(&delegator, initial_balance::<T>()));
 
 		assert_ok!(Proxy::<T>::add_proxy(
 			RawOrigin::Signed(delegator.clone()).into(),
@@ -158,7 +161,7 @@ mod benchmarks {
 		let sponsor_agent: <T as frame_system::Config>::AccountId = account("sponsor_agent", 0, 0);
 		let proxy_type = T::ProxyType::default();
 
-		assert_ok!(T::Currency::mint_into(&sponsor, 10u32.into()));
+		assert_ok!(T::Currency::mint_into(&sponsor, initial_balance::<T>()));
 
 		assert_ok!(Proxy::<T>::register_sponsor_agent(
 			RawOrigin::Signed(sponsor.clone()).into(),
