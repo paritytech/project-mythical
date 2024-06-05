@@ -12,7 +12,7 @@ fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 }
 
 fn initial_balance<T: pallet::Config>() -> BalanceOf<T> {
-	T::Currency::minimum_balance().saturating_mul(10u32.into())
+	T::ProxyDeposit::get().saturating_mul(10u32.into())
 }
 
 #[benchmarks]
