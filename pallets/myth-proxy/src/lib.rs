@@ -5,9 +5,9 @@
 //! - **Delegator**: The account that gives permission to another account to make calls on its behalf.
 //! - **Delegate**: The account that is given permission to make calls on behalf of the delegator.
 //! - **Sponsor**: An account that can pay the deposit for the proxy. Sponsor has permission to remove
-//! proxies that they have paid the deposit for. It should be secure cold wallet.
+//!   proxies that they have paid the deposit for. It should be secure cold wallet.
 //! - **Sponsor Agent**: An account authorized by the Sponsor to initiate the funding of proxies using the Sponsor’s resources.
-//! This role is designed to facilitate transactions while minimizing direct exposure of the Sponsor’s credentials.
+//!   This role is designed to facilitate transactions while minimizing direct exposure of the Sponsor’s credentials.
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use pallet::*;
