@@ -123,6 +123,7 @@ std = [
   "pallet-collective/std",
   "pallet-marketplace/std",
   "pallet-multisig/std",
+  "pallet-migration/std",
   "pallet-nfts/std",
   "pallet-session/std",
   "pallet-sudo/std",
