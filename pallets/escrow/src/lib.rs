@@ -13,6 +13,7 @@ mod mock;
 mod tests;
 
 pub mod weights;
+pub use weights::*;
 
 use frame_support::{
 	pallet_prelude::*,
@@ -24,7 +25,6 @@ use frame_support::{
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{EnsureAddAssign, EnsureSubAssign};
 use sp_std::prelude::*;
-use weights::WeightInfo;
 
 pub type BalanceOf<T> =
 	<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;

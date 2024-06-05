@@ -4,7 +4,7 @@ set -e
 
 ZOMBIENET_V=v1.3.103
 POLKADOT_V=v1.11.0
-RUNTIMES_V=v1.2.3
+RUNTIMES_V=v1.2.4
 BIN_DIR=bin
 
 case "$(uname -s)" in
@@ -15,7 +15,6 @@ esac
 
 if [ $MACHINE = "Linux" ]; then
   ZOMBIENET_FILE="zombienet-linux-x64"
-
   IS_LINUX=1
 elif [ $MACHINE = "Mac" ]; then
   ZOMBIENET_FILE="zombienet-macos"
@@ -29,7 +28,7 @@ build_polkadot() {
   echo "cloning polkadot repository..."
   CWD=$(pwd)
   pushd /tmp
-    git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git
+    git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git || echo -n
     pushd polkadot-sdk
       echo "building polkadot executable..."
       cargo build --release --features fast-runtime
@@ -46,7 +45,7 @@ build_chainspec_generator() {
   echo "cloning chain-spec-generator..."
   CWD=$(pwd)
   pushd /tmp
-    git clone https://github.com/polkadot-fellows/runtimes.git --branch "$RUNTIMES_V" || echo -n
+    git clone --depth 1 --branch "$RUNTIMES_V" https://github.com/polkadot-fellows/runtimes.git || echo -n
     pushd runtimes
       echo "building chain-spec-generator..."
       cargo build --release --features fast-runtime,try-runtime

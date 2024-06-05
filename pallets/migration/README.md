@@ -29,10 +29,10 @@ impl pallet_nfts::Config for Runtime {
 -   `force_set_migrator`: Sets the migrator role, granting rights to call this pallet's extrinsics.
 -   `set_next_collection_id`: Sets the NextCollectionId on pallet-nfts, to be used as the CollectionIdwhen the next collection is created.
 -   `create_ask`: Creates an Ask inside the Marketplace pallet's storage
--   `set_pot_account`: Sets the pot account which will be used as the origin to send funds from on the send_funds_from_pot() extrinsic.
 -   `send_funds_from_pot`: Transfer funds to a recipient account from the pot account.
 -   `set_item_owner`: Transfers a given Nft to an AccountId.
 -   `force_create`: Dispatches a call to pallet-nfts::force_create.
 -   `set_team`: Dispatches a call to pallet-nfts::set_team.
 -   `set_collection_metadata`: Dispatches a call to pallet-nfts::set_collection_metadata.
 -   `force_mint`: Dispatches a call to pallet-nfts::force_mint.
+-   `enable_serial_mint`: Modifies a collection config to set serial_mint = true.

@@ -13,7 +13,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160, U256};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Verify},
@@ -30,6 +30,7 @@ use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
+	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
@@ -222,7 +223,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("mythos"),
 	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
-	spec_version: 1002,
+	spec_version: 1003,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -323,6 +324,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	/// The maximum number of consumers allowed on a single account.
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -330,7 +332,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<0>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -349,7 +351,7 @@ parameter_types! {
 impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	type DustRemoval = ();
@@ -382,8 +384,7 @@ impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-
-	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_utility::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -412,7 +413,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type ConsensusHook = ConsensusHook;
-	type WeightInfo = ();
+	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 }
 
 type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
@@ -432,7 +433,7 @@ parameter_types! {
 
 impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_message_queue::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type MessageProcessor = pallet_message_queue::mock_helpers::NoopMessageProcessor<
 		cumulus_primitives_core::AggregateMessageOrigin,
@@ -484,7 +485,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type PriceForSiblingDelivery = PriceForSiblingParachainDelivery;
-	type WeightInfo = ();
+	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -503,13 +504,13 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
 }
 
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_sudo::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -526,7 +527,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -560,7 +561,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_collator_selection::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -578,7 +579,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = RootOrCouncilTwoThirdsMajority;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 }
@@ -586,25 +587,25 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
+	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
+	pub const NftsCollectionDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
 }
 
 pub type CollectionId = IncrementableU256;
-pub type ItemId = U256;
 
-//TODO: Change to EnsureRoot<AccountId> after migration
 pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
 
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
-	type ItemId = ItemId;
 	type Currency = Balances;
+	//TODO: Change to AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>> after migration
 	type CreateOrigin = MigratorOrigin;
+	//TODO: Change to EnsureRoot<AccountId> after migration
 	type ForceOrigin = MigratorOrigin;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
@@ -623,31 +624,59 @@ impl pallet_nfts::Config for Runtime {
 	type Features = NftsPalletFeatures;
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_nfts::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
 }
 
+pub struct EscrowImpl;
+
+impl pallet_marketplace::Escrow<AccountId, Balance, AccountId> for EscrowImpl {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: Balance,
+		escrow_agent: &AccountId,
+	) -> DispatchResult {
+		Escrow::make_deposit(depositor, destination, value, escrow_agent)
+	}
+}
 impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Escrow = EscrowImpl;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_marketplace::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_marketplace::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+}
+
+impl pallet_escrow::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = Balance;
+	type MinDeposit = ExistentialDeposit;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = weights::pallet_escrow::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+	pub const MigrationPotId: PalletId = PalletId(*b"PotMigra");
 }
 
 impl pallet_migration::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type WeightInfo = pallet_migration::weights::SubstrateWeight<Runtime>;
+	type PotId = MigrationPotId;
+	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
 }
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -688,6 +717,8 @@ construct_runtime!(
 
 		//Other
 		Migration: pallet_migration = 42,
+
+		Escrow: pallet_escrow = 50,
 	}
 );
 
@@ -746,15 +777,21 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
-		[pallet_balances, Balances]
-		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
+		[pallet_balances, Balances]
+		[pallet_utility, Utility]
+		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_message_queue, MessageQueue]
-		[pallet_collator_selection, CollatorSelection]
-		[pallet_multisig, Multisig]
-		[pallet_marketplace, Marketplace]
-		[pallet_nfts, Nfts]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_session, SessionBench::<Runtime>]
+		[pallet_sudo, Sudo]
+		[pallet_multisig, Multisig]
+		[pallet_collator_selection, CollatorSelection]
+		[pallet_nfts, Nfts]
+		[pallet_marketplace, Marketplace]
+		[pallet_migration, Migration]
+		[pallet_escrow, Escrow]
+		[pallet_collective, Council]
 	);
 }
 
@@ -910,6 +947,11 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl pallet_migration::MigrationApi<Block, AccountId> for Runtime {
+		fn pot_account_id() -> AccountId {
+			Migration::pot_account_id()
+		}
+	}
 
 	impl cumulus_primitives_aura::AuraUnincludedSegmentApi<Block> for Runtime {
 		fn can_build_upon(

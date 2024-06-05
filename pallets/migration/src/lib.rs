@@ -10,6 +10,8 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
+use parity_scale_codec::Codec;
+
 pub use pallet::*;
 
 #[frame_support::pallet]
@@ -21,6 +23,7 @@ pub mod pallet {
 			nonfungibles_v2::Transfer, tokens::Preservation::Preserve, Currency,
 			UnfilteredDispatchable,
 		},
+		PalletId,
 	};
 	use frame_support::{
 		pallet_prelude::*,
@@ -33,7 +36,8 @@ pub mod pallet {
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use pallet_marketplace::{Ask, BalanceOf as MarketplaceBalanceOf};
 	use pallet_nfts::{CollectionConfig, ItemConfig, NextCollectionId, WeightInfo as NftWeight};
-	use sp_runtime::traits::StaticLookup;
+	use pallet_nfts::{CollectionConfigOf, ItemId};
+	use sp_runtime::traits::{AccountIdConversion, StaticLookup};
 	use sp_std::{vec, vec::Vec};
 
 	#[pallet::pallet]
@@ -54,6 +58,10 @@ pub mod pallet {
 
 		/// The fungible trait use for balance holds and transfers.
 		type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
+
+		/// Account Identifier from which the internal pot is generated.
+		#[pallet::constant]
+		type PotId: Get<PalletId>;
 
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
@@ -89,10 +97,6 @@ pub mod pallet {
 		}
 	}
 
-	#[pallet::storage]
-	#[pallet::getter(fn pot)]
-	pub type Pot<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
-
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
@@ -103,11 +107,11 @@ pub mod pallet {
 		/// An ask was created
 		AskCreated {
 			collection: T::CollectionId,
-			item: T::ItemId,
-			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
+			item: ItemId,
+			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		},
-		/// The pallet's Pot account was updated.
-		PotUpdated(T::AccountId),
+		/// Serial mint collection config was enabled for the given collection
+		SerialMintEnabled(T::CollectionId),
 	}
 
 	#[pallet::error]
@@ -118,16 +122,18 @@ pub mod pallet {
 		ItemNotFound,
 		/// Expiration below current timestamp.
 		InvalidExpiration,
-		/// Pot account has not been set.
-		PotAccountNotSet,
 		/// Tried to store an account that is already set for this storage value.
 		AccountAlreadySet,
 		// Migrator is not set.
 		MigratorNotSet,
 		/// Seller of ask is not the owner of the given item.
 		SellerNotItemOwner,
-		///The account is already the owner of the item.
+		/// The account is already the owner of the item.
 		AlreadyOwner,
+		/// The collection with the provided Id was not found.
+		CollectionNotFound,
+		/// Serial Mint config is already enabled for the given collection.
+		SerialMintAlreadyEnabled,
 	}
 
 	#[pallet::call]
@@ -197,8 +203,8 @@ pub mod pallet {
 		pub fn create_ask(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
-			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment>,
+			item: ItemId,
+			ask: Ask<T::AccountId, MarketplaceBalanceOf<T>, T::Moment, T::AccountId>,
 		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 
@@ -218,32 +224,6 @@ pub mod pallet {
 			Ok(Pays::No.into())
 		}
 
-		/// Sets the pot account which will be used as the origin to send funds from on the send_funds_from_pot() extrinsic.
-		///
-		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
-		///
-		/// Parameters:
-		/// - `pot`: The account ID to be set as the pallet's pot.
-		///
-		/// Emits `PotUpdated` event upon successful execution.
-		///
-		/// Weight: `WeightInfo::set_pot_account` (defined in the `Config` trait).
-		#[pallet::call_index(4)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_pot_account())]
-		pub fn set_pot_account(
-			origin: OriginFor<T>,
-			pot: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			let _who = Self::ensure_migrator(origin)?;
-
-			ensure!(Pot::<T>::get().as_ref() != Some(&pot), Error::<T>::AccountAlreadySet);
-
-			Pot::<T>::put(pot.clone());
-
-			Self::deposit_event(Event::PotUpdated(pot));
-			Ok(Pays::No.into())
-		}
-
 		/// Transfer funds to a recipient account from the pot account.
 		///
 		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
@@ -255,7 +235,7 @@ pub mod pallet {
 		/// Emits `Transfer` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::send_funds_from_pot` (defined in the `Config` trait).
-		#[pallet::call_index(5)]
+		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::send_funds_from_pot())]
 		pub fn send_funds_from_pot(
 			origin: OriginFor<T>,
@@ -264,7 +244,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let _who = Self::ensure_migrator(origin)?;
 
-			let pot = Pot::<T>::get().ok_or(Error::<T>::PotAccountNotSet)?;
+			let pot = Self::pot_account_id();
 			<T as crate::Config>::Currency::transfer(&pot, &recipient, amount, Preserve)?;
 
 			Ok(Pays::No.into())
@@ -282,12 +262,12 @@ pub mod pallet {
 		/// Emits `Transferred` event upon successful execution.
 		///
 		/// Weight: `WeightInfo::set_item_owner` (defined in the `Config` trait).
-		#[pallet::call_index(6)]
+		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_item_owner())]
 		pub fn set_item_owner(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			transfer_to: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin)?;
@@ -318,7 +298,7 @@ pub mod pallet {
 		/// Emits `ForceCreated` event when successful.
 		///
 		/// Weight: `WeightInfo::force_create` (defined in the `Config` trait).
-		#[pallet::call_index(7)]
+		#[pallet::call_index(5)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_create())]
 		pub fn force_create(
 			origin: OriginFor<T>,
@@ -345,7 +325,7 @@ pub mod pallet {
 		/// Emits `TeamChanged`.
 		///
 		/// Weight: `WeightInfo::set_team` (defined in the `Config` trait).
-		#[pallet::call_index(8)]
+		#[pallet::call_index(6)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_team())]
 		pub fn set_team(
 			origin: OriginFor<T>,
@@ -372,7 +352,7 @@ pub mod pallet {
 		/// Emits `CollectionMetadataSet`.
 		///
 		/// Weight: `WeightInfo::set_collection_metadata` (defined in the `Config` trait).
-		#[pallet::call_index(9)]
+		#[pallet::call_index(7)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::set_collection_metadata())]
 		pub fn set_collection_metadata(
 			origin: OriginFor<T>,
@@ -399,18 +379,54 @@ pub mod pallet {
 		/// Emits `Issued` event when successful.
 		///
 		/// Weight: `WeightInfo::force_mint` (defined in the `Config` trait).
-		#[pallet::call_index(10)]
+		#[pallet::call_index(8)]
 		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
 		pub fn force_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
-			item: T::ItemId,
+			item: ItemId,
 			mint_to: AccountIdLookupOf<T>,
 			item_config: ItemConfig,
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin.clone())?;
 
-			pallet_nfts::Pallet::<T>::force_mint(origin, collection, item, mint_to, item_config)?;
+			pallet_nfts::Pallet::<T>::force_mint(
+				origin,
+				collection,
+				Some(item),
+				mint_to,
+				item_config,
+			)?;
+
+			Ok(Pays::No.into())
+		}
+
+		/// Modifies a collection config to set serial_mint = true.
+		///
+		/// Only the migrator origin can execute this function. Migrator will not be charged fees for executing the extrinsic
+		///
+		/// Parameters:
+		/// - `collection`: The collection of the item to be minted.
+		///
+		/// Emits `SerialMintEnabled` event when successful.
+		///
+		/// Weight: `enable_serial_mint::force_mint` (defined in the `Config` trait).
+		#[pallet::call_index(9)]
+		#[pallet::weight(<T as Config>::WeightInfo::enable_serial_mint())]
+		pub fn enable_serial_mint(
+			origin: OriginFor<T>,
+			collection: T::CollectionId,
+		) -> DispatchResultWithPostInfo {
+			Self::ensure_migrator(origin.clone())?;
+
+			let mut config =
+				CollectionConfigOf::<T>::get(collection).ok_or(Error::<T>::CollectionNotFound)?;
+			ensure!(!config.mint_settings.serial_mint, Error::<T>::SerialMintAlreadyEnabled);
+
+			config.mint_settings.serial_mint = true;
+			CollectionConfigOf::<T>::insert(collection, config);
+
+			Self::deposit_event(Event::SerialMintEnabled(collection));
 
 			Ok(Pays::No.into())
 		}
@@ -423,6 +439,11 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Get a unique, inaccessible account ID from the `PotId`.
+		pub fn pot_account_id() -> T::AccountId {
+			T::PotId::get().into_account_truncating()
+		}
+
 		pub fn get_next_id() -> T::CollectionId {
 			NextCollectionId::<T>::get()
 				.or(T::CollectionId::initial_value())
@@ -432,3 +453,13 @@ pub mod pallet {
 }
 
 sp_core::generate_feature_enabled_macro!(runtime_benchmarks_enabled, feature = "runtime-benchmarks", $);
+
+sp_api::decl_runtime_apis! {
+	/// This runtime api allows to query the migration pot address.
+	pub trait MigrationApi<AccountId>
+	where AccountId: Codec
+	{
+		/// Queries the pot account.
+		fn pot_account_id() -> AccountId;
+	}
+}

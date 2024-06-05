@@ -1,6 +1,11 @@
 use frame_support::{
-	derive_impl, parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64},
+	derive_impl,
+	pallet_prelude::DispatchResult,
+	parameter_types,
+	traits::{
+		fungible::Mutate, AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64,
+		NamedReservableCurrency,
+	},
 };
 use frame_system as system;
 use sp_core::H256;
@@ -18,6 +23,8 @@ use pallet_nfts::PalletFeatures;
 type Signature = EthereumSignature;
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 type Block = frame_system::mocking::MockBlock<Test>;
+
+pub const ESCROW_RESERVE_NAME: &[u8; 8] = b"escrow__";
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -70,7 +77,6 @@ parameter_types! {
 impl pallet_nfts::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = u32;
-	type ItemId = u32;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<Self::AccountId>>;
 	type ForceOrigin = frame_system::EnsureRoot<Self::AccountId>;
@@ -97,10 +103,35 @@ impl pallet_nfts::Config for Test {
 	}
 }
 
+pub struct EscrowMock {
+	pub deposit: u128,
+}
+
+impl pallet_marketplace::Escrow<AccountId, u128, AccountId> for EscrowMock {
+	fn make_deposit(
+		depositor: &AccountId,
+		destination: &AccountId,
+		value: u128,
+		_escrow_agent: &AccountId,
+	) -> DispatchResult {
+		Balances::transfer(
+			depositor,
+			destination,
+			value,
+			frame_support::traits::tokens::Preservation::Expendable,
+		)?;
+
+		Balances::reserve_named(ESCROW_RESERVE_NAME, destination, value)?;
+
+		Ok(())
+	}
+}
+
 impl pallet_marketplace::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
+	type Escrow = EscrowMock;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MinOrderDuration = ConstU64<10>;
 	type NonceStringLimit = ConstU32<50>;
@@ -114,7 +145,7 @@ impl pallet_marketplace::Config for Test {
 
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
-	type MaxReserves = ();
+	type MaxReserves = ConstU32<2>;
 	type ReserveIdentifier = [u8; 8];
 	type Balance = u128;
 	type DustRemoval = ();
