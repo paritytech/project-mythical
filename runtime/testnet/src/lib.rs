@@ -751,7 +751,7 @@ impl pallet_myth_proxy::Config for Runtime {
 	type ProxyDeposit = ProxyDepositBase;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type WeightInfo = pallet_myth_proxy::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_myth_proxy::WeightInfo<Runtime>;
 }
 
 parameter_types! {

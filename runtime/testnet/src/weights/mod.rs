@@ -39,6 +39,7 @@ pub mod pallet_message_queue;
 pub mod pallet_migration;
 pub mod pallet_multibatching;
 pub mod pallet_multisig;
+pub mod pallet_myth_proxy;
 pub mod pallet_nfts;
 pub mod pallet_proxy;
 pub mod pallet_session;
