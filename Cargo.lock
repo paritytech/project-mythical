@@ -6715,33 +6715,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-staking"
 version = "1.11.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-aura",
- "pallet-authorship",
- "pallet-balances",
- "pallet-session",
- "pallet-timestamp",
- "parity-scale-codec",
- "rand 0.8.5",
- "scale-info",
- "sp-api",
- "sp-consensus-aura",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-staking",
- "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0)",
- "sp-tracing 16.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.11.0)",
-]
-
-[[package]]
-name = "pallet-collator-staking"
-version = "1.11.0"
-source = "git+https://github.com/blockdeep/pallet-collator-staking.git#6bf98b4d973de7dac485d690f2e2d47843ccd2d7"
+source = "git+https://github.com/blockdeep/pallet-collator-staking.git?tag=v1.11.0#9c8b0cc40ae339af18565415f0f60e1bfedb1c47"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -13627,7 +13601,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
- "pallet-collator-staking 1.11.0 (git+https://github.com/blockdeep/pallet-collator-staking.git)",
+ "pallet-collator-staking",
  "pallet-collective",
  "pallet-escrow",
  "pallet-marketplace",
