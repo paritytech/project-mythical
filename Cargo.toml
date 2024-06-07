@@ -8,7 +8,6 @@ members = [
   "runtime/mainnet",
   "runtime/testnet",
   "primitives/custom-pool",
-  "pallets/pallet-collator-staking",
 ]
 
 resolver = "2"
