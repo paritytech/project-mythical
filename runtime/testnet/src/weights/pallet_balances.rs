@@ -37,6 +37,13 @@ use core::marker::PhantomData;
 /// Weight functions for `pallet_balances`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
+	fn burn_allow_death() -> Weight {
+		Weight::from_parts(30_968_000, 0)
+	}
+	
+	fn burn_keep_alive() -> Weight {
+		Weight::from_parts(20_711_000, 0)
+	}
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	fn transfer_allow_death() -> Weight {

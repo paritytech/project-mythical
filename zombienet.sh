@@ -2,9 +2,9 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.103
-POLKADOT_V=v1.11.0
-RUNTIMES_V=v1.2.4
+ZOMBIENET_V=v1.3.105
+POLKADOT_V=v1.12.0
+RUNTIMES_V=v1.2.5
 BIN_DIR=bin
 
 case "$(uname -s)" in
