@@ -7003,6 +7003,7 @@ dependencies = [
  "pallet-balances",
  "pallet-marketplace",
  "pallet-nfts",
+ "pallet-sudo",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",

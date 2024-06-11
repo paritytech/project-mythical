@@ -8,9 +8,17 @@ mod tests;
 mod benchmarking;
 
 pub mod weights;
+use core::marker::PhantomData;
+
+use frame_support::{
+	dispatch::DispatchInfo,
+	pallet_prelude::{InvalidTransaction, TransactionValidity, TransactionValidityError},
+};
+use scale_info::TypeInfo;
+use sp_runtime::traits::{Dispatchable, SignedExtension};
 pub use weights::*;
 
-use parity_scale_codec::Codec;
+use parity_scale_codec::{Codec, Decode, Encode};
 
 pub use pallet::*;
 
@@ -461,5 +469,64 @@ sp_api::decl_runtime_apis! {
 	{
 		/// Queries the pot account.
 		fn pot_account_id() -> AccountId;
+	}
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+pub struct CheckMigrationOrigin<T: Config + Send + Sync>(PhantomData<T>);
+
+impl<T: Config + Send + Sync> sp_std::fmt::Debug for CheckMigrationOrigin<T> {
+	#[cfg(feature = "std")]
+	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		write!(f, "CheckMigrationOrigin")
+	}
+
+	#[cfg(not(feature = "std"))]
+	fn fmt(&self, _: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		Ok(())
+	}
+}
+
+impl<T: Config + Send + Sync> SignedExtension for CheckMigrationOrigin<T>
+where
+	<T as frame_system::Config>::RuntimeCall: Dispatchable<Info = DispatchInfo>,
+{
+	type AccountId = T::AccountId;
+	type Call = <T as frame_system::Config>::RuntimeCall;
+	type AdditionalSigned = ();
+	type Pre = ();
+	const IDENTIFIER: &'static str = "CheckMigrationOrigin";
+
+	fn additional_signed(
+		&self,
+	) -> Result<Self::AdditionalSigned, frame_support::pallet_prelude::TransactionValidityError> {
+		Ok(())
+	}
+
+	fn pre_dispatch(
+		self,
+		who: &Self::AccountId,
+		call: &Self::Call,
+		info: &sp_runtime::traits::DispatchInfoOf<Self::Call>,
+		len: usize,
+	) -> Result<Self::Pre, frame_support::pallet_prelude::TransactionValidityError> {
+		let migrator = Migrator::<T>::get()
+			.ok_or(TransactionValidityError::Invalid(InvalidTransaction::BadSigner.into()))?;
+
+		if migrator != *who {
+			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner.into()));
+		} else {
+			let root = Key::<T>::get()
+				.ok_or(TransactionValidityError::Invalid(InvalidTransaction::BadSigner.into()))?;
+
+			if root != *who {
+				return Err(TransactionValidityError::Invalid(
+					InvalidTransaction::BadSigner.into(),
+				));
+			}
+		}
+
+		Ok(())
 	}
 }

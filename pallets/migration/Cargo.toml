@@ -30,6 +30,7 @@ pallet-marketplace = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-sudo = { workspace = true, default-features = false }
 
 # Primitives
 account = { workspace = true }
@@ -50,6 +51,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-nfts/std",
 	"pallet-marketplace/std",
+	"pallet-sudo/std",
 	"pallet-timestamp/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
