@@ -90,6 +90,7 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
+	pallet_migration::CheckMigrationOrRootAccounts<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );

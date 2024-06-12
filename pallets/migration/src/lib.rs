@@ -12,13 +12,14 @@ use core::marker::PhantomData;
 
 use frame_support::{
 	dispatch::DispatchInfo,
-	pallet_prelude::{InvalidTransaction, TransactionValidity, TransactionValidityError},
+	pallet_prelude::{InvalidTransaction, TransactionValidityError},
 };
 use scale_info::TypeInfo;
-use sp_runtime::traits::{Dispatchable, SignedExtension};
+use sp_runtime::traits::{DispatchInfoOf, Dispatchable, SignedExtension};
 pub use weights::*;
 
 use parity_scale_codec::{Codec, Decode, Encode};
+use sp_runtime::transaction_validity::TransactionValidity;
 
 pub use pallet::*;
 
@@ -474,12 +475,12 @@ sp_api::decl_runtime_apis! {
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
 #[scale_info(skip_type_params(T))]
-pub struct CheckMigrationOrigin<T: Config + Send + Sync>(PhantomData<T>);
+pub struct CheckMigrationOrRootAccounts<T: Config + Send + Sync>(PhantomData<T>);
 
-impl<T: Config + Send + Sync> sp_std::fmt::Debug for CheckMigrationOrigin<T> {
+impl<T: Config + Send + Sync> sp_std::fmt::Debug for CheckMigrationOrRootAccounts<T> {
 	#[cfg(feature = "std")]
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-		write!(f, "CheckMigrationOrigin")
+		write!(f, "CheckMigrationOrRootAccounts")
 	}
 
 	#[cfg(not(feature = "std"))]
@@ -488,20 +489,45 @@ impl<T: Config + Send + Sync> sp_std::fmt::Debug for CheckMigrationOrigin<T> {
 	}
 }
 
-impl<T: Config + Send + Sync> SignedExtension for CheckMigrationOrigin<T>
+impl<T: Config + pallet_sudo::Config + Send + Sync> SignedExtension
+	for CheckMigrationOrRootAccounts<T>
 where
 	<T as frame_system::Config>::RuntimeCall: Dispatchable<Info = DispatchInfo>,
+	<T as pallet_sudo::Config>::RuntimeCall: Dispatchable<Info = DispatchInfo>,
 {
+	const IDENTIFIER: &'static str = "CheckMigrationOrRootAccounts";
 	type AccountId = T::AccountId;
-	type Call = <T as frame_system::Config>::RuntimeCall;
+	type Call = <T as pallet_sudo::Config>::RuntimeCall;
 	type AdditionalSigned = ();
 	type Pre = ();
-	const IDENTIFIER: &'static str = "CheckMigrationOrigin";
 
 	fn additional_signed(
 		&self,
 	) -> Result<Self::AdditionalSigned, frame_support::pallet_prelude::TransactionValidityError> {
 		Ok(())
+	}
+
+	fn validate(
+		&self,
+		who: &Self::AccountId,
+		call: &Self::Call,
+		info: &DispatchInfoOf<Self::Call>,
+		len: usize,
+	) -> TransactionValidity {
+		pallet_sudo::CheckOnlySudoAccount::<T>::new()
+			.validate(who, call, info, len)
+			.or_else(|_| {
+				let migrator = Migrator::<T>::get().ok_or(TransactionValidityError::Invalid(
+					InvalidTransaction::BadSigner.into(),
+				))?;
+
+				if migrator != *who {
+					return Err(TransactionValidityError::Invalid(
+						InvalidTransaction::BadSigner.into(),
+					));
+				}
+				Ok(Default::default())
+			})
 	}
 
 	fn pre_dispatch(
@@ -510,23 +536,20 @@ where
 		call: &Self::Call,
 		info: &sp_runtime::traits::DispatchInfoOf<Self::Call>,
 		len: usize,
-	) -> Result<Self::Pre, frame_support::pallet_prelude::TransactionValidityError> {
-		let migrator = Migrator::<T>::get()
-			.ok_or(TransactionValidityError::Invalid(InvalidTransaction::BadSigner.into()))?;
-
-		if migrator != *who {
-			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner.into()));
-		} else {
-			let root = Key::<T>::get()
-				.ok_or(TransactionValidityError::Invalid(InvalidTransaction::BadSigner.into()))?;
-
-			if root != *who {
-				return Err(TransactionValidityError::Invalid(
+	) -> Result<Self::Pre, TransactionValidityError> {
+		pallet_sudo::CheckOnlySudoAccount::<T>::new()
+			.pre_dispatch(who, call, info, len)
+			.or_else(|_| {
+				let migrator = Migrator::<T>::get().ok_or(TransactionValidityError::Invalid(
 					InvalidTransaction::BadSigner.into(),
-				));
-			}
-		}
+				))?;
 
-		Ok(())
+				if migrator != *who {
+					return Err(TransactionValidityError::Invalid(
+						InvalidTransaction::BadSigner.into(),
+					));
+				}
+				Ok(())
+			})
 	}
 }
