@@ -12,13 +12,13 @@ pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
-use frame_support::traits::InstanceFilter;
+use frame_support::traits::{InstanceFilter, WithdrawReasons};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Verify},
+	traits::{BlakeTwo256, Block as BlockT, ConvertInto, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
@@ -690,6 +690,23 @@ impl pallet_myth_proxy::Config for Runtime {
 }
 
 parameter_types! {
+	pub const MinVestedTransfer: Balance = 100 * MILLI_MYTH;
+	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+		WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
+}
+
+impl pallet_vesting::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BlockNumberToBalance = ConvertInto;
+	type MinVestedTransfer = MinVestedTransfer;
+	type WeightInfo = weights::pallet_vesting::WeightInfo<Runtime>;
+	type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
+	type BlockNumberProvider = System;
+	const MAX_VESTING_SCHEDULES: u32 = 28;
+}
+
+parameter_types! {
 	pub const MigrationPotId: PalletId = PalletId(*b"PotMigra");
 }
 
@@ -817,6 +834,7 @@ construct_runtime!(
 
 		//Other
 		Proxy: pallet_proxy = 40,
+		Vesting: pallet_vesting = 41,
 		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
@@ -895,6 +913,7 @@ mod benches {
 		[pallet_migration, Migration]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
+		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
 		[pallet_myth_proxy, MythProxy]
 	);

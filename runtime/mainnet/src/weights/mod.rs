@@ -46,4 +46,5 @@ pub mod pallet_session;
 pub mod pallet_sudo;
 pub mod pallet_timestamp;
 pub mod pallet_utility;
+pub mod pallet_vesting;
 pub mod pallet_xcm;
