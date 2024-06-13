@@ -366,6 +366,17 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
+impl pallet_multibatching::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type MaxCalls = ConstU32<128>;
+	type WeightInfo = weights::pallet_multibatching::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
 parameter_types! {
 	pub const TransactionByteFee: Balance = 100 * MICRO_MYTH;
 }
@@ -697,6 +708,7 @@ construct_runtime!(
 		// NFTs
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
+		Multibatching: pallet_multibatching = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
@@ -779,6 +791,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
+		[pallet_multibatching, Multibatching]
 		[pallet_utility, Utility]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_message_queue, MessageQueue]

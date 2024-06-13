@@ -37,6 +37,7 @@ pub mod pallet_escrow;
 pub mod pallet_marketplace;
 pub mod pallet_message_queue;
 pub mod pallet_migration;
+pub mod pallet_multibatching;
 pub mod pallet_multisig;
 pub mod pallet_nfts;
 pub mod pallet_session;

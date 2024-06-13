@@ -5506,6 +5506,7 @@ dependencies = [
  "pallet-marketplace",
  "pallet-message-queue",
  "pallet-migration",
+ "pallet-multibatching",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-session",
