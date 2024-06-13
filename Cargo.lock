@@ -5508,6 +5508,7 @@ dependencies = [
  "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
+ "pallet-myth-proxy",
  "pallet-nfts",
  "pallet-proxy",
  "pallet-session",
