@@ -5509,6 +5509,7 @@ dependencies = [
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-nfts",
+ "pallet-proxy",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",

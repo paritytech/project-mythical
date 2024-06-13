@@ -12,6 +12,8 @@ pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
+use frame_support::traits::InstanceFilter;
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
@@ -688,6 +690,81 @@ impl pallet_migration::Config for Runtime {
 	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const ProxyDepositBase: Balance = deposit(1, 8);
+	pub const ProxyDepositFactor: Balance = deposit(0, 33);
+	pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+	pub const MaxProxies: u16 = 32;
+}
+
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	MaxEncodedLen,
+	scale_info::TypeInfo,
+	Debug,
+)]
+pub enum ProxyType {
+	/// All calls can be proxied. This is the trivial/most permissive filter.
+	Any,
+	/// Only extrinsics that do not transfer funds.
+	NonTransfer,
+	/// Allow to veto an announced proxy call.
+	CancelProxy,
+	/// Allow extrinsic related to Balances.
+	Balances,
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+impl InstanceFilter<RuntimeCall> for ProxyType {
+	fn filter(&self, call: &RuntimeCall) -> bool {
+		match self {
+			ProxyType::Any => true,
+			ProxyType::NonTransfer => !matches!(call, RuntimeCall::Balances(..)),
+			ProxyType::CancelProxy => {
+				matches!(call, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
+			},
+			ProxyType::Balances => matches!(call, RuntimeCall::Balances(..)),
+		}
+	}
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -728,6 +805,7 @@ construct_runtime!(
 		MessageQueue: pallet_message_queue = 33,
 
 		//Other
+		Proxy: pallet_proxy = 40,
 		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
@@ -803,6 +881,7 @@ mod benches {
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
 		[pallet_migration, Migration]
+		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_collective, Council]
 	);
