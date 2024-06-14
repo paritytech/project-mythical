@@ -41,9 +41,11 @@ cumulus_based = true
     name = "mythos-collator01"
     ws_port = 9920
     command = "./target/release/mythos-node"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+    args = [""]
+    args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000 -lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
     name = "mythos-collator02"
     command = "./target/release/mythos-node"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+    args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000 -lxcm=trace", "--state-cache-size=0"]
+
