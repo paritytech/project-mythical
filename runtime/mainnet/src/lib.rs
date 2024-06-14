@@ -12,11 +12,13 @@ pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
+use frame_support::traits::{InstanceFilter, WithdrawReasons};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Verify},
+	traits::{BlakeTwo256, Block as BlockT, ConvertInto, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
@@ -223,7 +225,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("mythos"),
 	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
-	spec_version: 1003,
+	spec_version: 1004,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -364,6 +366,22 @@ impl pallet_balances::Config for Runtime {
 	type MaxReserves = ConstU32<50>;
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+}
+
+parameter_types! {
+	pub const DOMAIN: [u8;8] = *b"MYTH_NET";
+}
+
+impl pallet_multibatching::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type MaxCalls = ConstU32<128>;
+	type Domain = DOMAIN;
+	type WeightInfo = weights::pallet_multibatching::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 parameter_types! {
@@ -667,6 +685,34 @@ impl pallet_escrow::Config for Runtime {
 	type WeightInfo = weights::pallet_escrow::WeightInfo<Runtime>;
 }
 
+impl pallet_myth_proxy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type ProxyType = ProxyType;
+	type MaxProxies = MaxProxies;
+	type ProxyDeposit = ProxyDepositBase;
+	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = weights::pallet_myth_proxy::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+	pub const MinVestedTransfer: Balance = 100 * MILLI_MYTH;
+	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+		WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
+}
+
+impl pallet_vesting::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BlockNumberToBalance = ConvertInto;
+	type MinVestedTransfer = MinVestedTransfer;
+	type WeightInfo = weights::pallet_vesting::WeightInfo<Runtime>;
+	type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
+	type BlockNumberProvider = System;
+	const MAX_VESTING_SCHEDULES: u32 = 28;
+}
+
 parameter_types! {
 	pub const MigrationPotId: PalletId = PalletId(*b"PotMigra");
 }
@@ -677,6 +723,81 @@ impl pallet_migration::Config for Runtime {
 	type Currency = Balances;
 	type PotId = MigrationPotId;
 	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+	pub const ProxyDepositBase: Balance = deposit(1, 8);
+	pub const ProxyDepositFactor: Balance = deposit(0, 33);
+	pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+	pub const MaxProxies: u16 = 32;
+}
+
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	MaxEncodedLen,
+	scale_info::TypeInfo,
+	Debug,
+)]
+pub enum ProxyType {
+	/// All calls can be proxied. This is the trivial/most permissive filter.
+	Any,
+	/// Only extrinsics that do not transfer funds.
+	NonTransfer,
+	/// Allow to veto an announced proxy call.
+	CancelProxy,
+	/// Allow extrinsic related to Balances.
+	Balances,
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+impl InstanceFilter<RuntimeCall> for ProxyType {
+	fn filter(&self, call: &RuntimeCall) -> bool {
+		match self {
+			ProxyType::Any => true,
+			ProxyType::NonTransfer => !matches!(call, RuntimeCall::Balances(..)),
+			ProxyType::CancelProxy => {
+				matches!(call, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
+			},
+			ProxyType::Balances => matches!(call, RuntimeCall::Balances(..)),
+		}
+	}
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -699,6 +820,7 @@ construct_runtime!(
 		// NFTs
 		Nfts: pallet_nfts = 12,
 		Marketplace: pallet_marketplace = 13,
+		Multibatching: pallet_multibatching = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 15,
@@ -718,9 +840,12 @@ construct_runtime!(
 		MessageQueue: pallet_message_queue = 33,
 
 		//Other
+		Proxy: pallet_proxy = 40,
+		Vesting: pallet_vesting = 41,
 		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
+		MythProxy: pallet_myth_proxy = 51,
 	}
 );
 
@@ -781,6 +906,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
+		[pallet_multibatching, Multibatching]
 		[pallet_utility, Utility]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_message_queue, MessageQueue]
@@ -792,8 +918,11 @@ mod benches {
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
 		[pallet_migration, Migration]
+		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
+		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
+		[pallet_myth_proxy, MythProxy]
 	);
 }
 
