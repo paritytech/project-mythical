@@ -61,6 +61,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type MaxCalls: Get<u32>;
 
+		#[pallet::constant]
+		type Domain: Get<[u8; 8]>;
+
 		type WeightInfo: WeightInfo;
 
 		#[cfg(feature = "runtime-benchmarks")]
@@ -74,16 +77,11 @@ pub mod pallet {
 		NoCalls,
 		NoApprovals,
 		InvalidDomain,
-		DomainNotSet,
-		DomainAlreadySet,
 		InvalidCallOrigin(u16),
 		InvalidSignature(u16),
 		Expired,
 		UnsortedApprovals,
 	}
-
-	#[pallet::storage]
-	pub type Domain<T: Config> = StorageValue<_, [u8; 32], OptionQuery>;
 
 	#[pallet::storage]
 	pub type Applied<T: Config> =
@@ -93,7 +91,6 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		BatchApplied { hash: T::Hash },
-		DomainSet { domain: [u8; 32] },
 	}
 
 	/// A call in a batch.
@@ -145,7 +142,7 @@ pub mod pallet {
 	struct Batch<T: Config> {
 		pub pallet_index: u8,
 		pub call_index: u8,
-		pub domain: [u8; 32],
+		pub domain: [u8; 8],
 		pub sender: T::AccountId,
 		pub bias: [u8; 32],
 		pub expires_at: <T as pallet_timestamp::Config>::Moment,
@@ -217,7 +214,7 @@ pub mod pallet {
         })]
 		pub fn batch(
 			origin: OriginFor<T>,
-			domain: [u8; 32],
+			domain: [u8; 8],
 			sender: <T as frame_system::Config>::AccountId,
 			bias: [u8; 32],
 			expires_at: <T as pallet_timestamp::Config>::Moment,
@@ -251,11 +248,7 @@ pub mod pallet {
 				return Err(Error::<T>::Expired.into());
 			}
 
-			match Domain::<T>::get() {
-				Some(stored_domain) if stored_domain == domain => (),
-				Some(_) => return Err(Error::<T>::InvalidDomain.into()),
-				None => return Err(Error::<T>::DomainNotSet.into()),
-			}
+			ensure!(domain == <T as Config>::Domain::get(), Error::<T>::InvalidDomain);
 
 			let bytes = Batch {
 				pallet_index: Self::index() as u8,
@@ -320,24 +313,6 @@ pub mod pallet {
 			let base_weight =
 				<T as Config>::WeightInfo::batch(calls_len as u32, approvals.len() as u32);
 			Ok(Some(base_weight.saturating_add(weight)).into())
-		}
-
-		/// Set the "domain" of this pallet instance.
-		///
-		/// Only callable by Root origin. The `domain` parameter in calls
-		/// to `batch` must match the domain set by this call.
-		#[pallet::call_index(1)]
-		#[pallet::weight(<T as Config>::WeightInfo::force_set_domain())]
-		pub fn force_set_domain(origin: OriginFor<T>, domain: [u8; 32]) -> DispatchResult {
-			ensure_root(origin)?;
-
-			if Domain::<T>::get() == Some(domain) {
-				return Err(Error::<T>::DomainAlreadySet.into());
-			}
-
-			Domain::<T>::put(domain);
-			Self::deposit_event(Event::DomainSet { domain });
-			Ok(())
 		}
 	}
 }

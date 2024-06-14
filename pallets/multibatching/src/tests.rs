@@ -21,7 +21,7 @@ mod multibatching_test {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at = Timestamp::get().saturating_add(
 				<Test as pallet_timestamp::Config>::Moment::from(1_000_000_000_u64),
@@ -78,7 +78,6 @@ mod multibatching_test {
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_ok!(Multibatching::batch(
 				RuntimeOrigin::signed(sender.clone()),
 				domain,
@@ -97,7 +96,7 @@ mod multibatching_test {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -153,7 +152,6 @@ mod multibatching_test {
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_noop!(
 				Multibatching::batch(
 					RuntimeOrigin::signed(sender.clone()),
@@ -175,7 +173,7 @@ mod multibatching_test {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -218,7 +216,6 @@ mod multibatching_test {
 
 			let approvals = BoundedVec::new();
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_noop!(
 				Multibatching::batch(
 					RuntimeOrigin::signed(sender.clone()),
@@ -240,7 +237,7 @@ mod multibatching_test {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -296,7 +293,6 @@ mod multibatching_test {
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_ok!(Multibatching::batch(
 				RuntimeOrigin::signed(sender.clone()),
 				domain,
@@ -327,7 +323,7 @@ mod multibatching_test {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -384,7 +380,6 @@ mod multibatching_test {
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_noop!(
 				Multibatching::batch(
 					RuntimeOrigin::signed(sender.clone()),
@@ -401,89 +396,12 @@ mod multibatching_test {
 	}
 
 	#[test]
-	fn multibatching_should_fail_if_domain_is_not_set() {
-		new_test_ext().execute_with(|| {
-			let call_count = 10;
-			let signer_count = 10;
-
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
-			let bias = [0u8; 32];
-			let expires_at =
-				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
-
-			let sender = account(0);
-
-			let mut signers =
-				Vec::<(EthereumPair, EthereumSigner, AccountId20)>::with_capacity(signer_count);
-			for _ in 0..signer_count {
-				let pair: EthereumPair = EthereumPair::generate().0;
-				let signer: EthereumSigner = pair.public().into();
-				let account = signer.clone().into_account();
-				signers.push((pair, signer, account));
-			}
-
-			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
-			for (_, (_, signer, _)) in iter {
-				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
-			}
-
-			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
-				domain,
-				sender: sender.into(),
-				bias,
-				expires_at,
-				calls: calls.clone(),
-				approvals: BoundedVec::new(),
-			}
-			.into();
-			let pseudo_call_bytes = pseudo_call.encode();
-			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
-			let mut approvals = BoundedVec::new();
-			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
-			}
-			approvals.sort_by_key(|a| a.from.clone());
-
-			assert_noop!(
-				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
-					domain,
-					sender.clone().into(),
-					bias,
-					expires_at,
-					calls,
-					approvals,
-				),
-				Error::<Test>::DomainNotSet
-			);
-		})
-	}
-
-	#[test]
 	fn multibatching_should_fail_if_domain_is_invalid() {
 		new_test_ext().execute_with(|| {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"wrongdom";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -539,8 +457,6 @@ mod multibatching_test {
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
-			let wrong_domain: [u8; 32] = *b".myth.pallet-multibatching.wrong";
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), wrong_domain));
 			assert_noop!(
 				Multibatching::batch(
 					RuntimeOrigin::signed(sender.clone()),
@@ -557,24 +473,12 @@ mod multibatching_test {
 	}
 
 	#[test]
-	fn set_domain_should_fail_if_domain_already_set() {
-		new_test_ext().execute_with(|| {
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
-			assert_noop!(
-				Multibatching::force_set_domain(RuntimeOrigin::root(), domain),
-				Error::<Test>::DomainAlreadySet,
-			);
-		})
-	}
-
-	#[test]
 	fn multibatching_should_fail_if_batch_not_signed_by_any_caller() {
 		new_test_ext().execute_with(|| {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -631,7 +535,6 @@ mod multibatching_test {
 			approvals.remove(0);
 			approvals.sort_by_key(|a| a.from.clone());
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_noop!(
 				Multibatching::batch(
 					RuntimeOrigin::signed(sender.clone()),
@@ -653,7 +556,7 @@ mod multibatching_test {
 			let call_count = 10;
 			let signer_count = 10;
 
-			let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
 			let expires_at =
 				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
@@ -711,7 +614,6 @@ mod multibatching_test {
 			approvals.sort_by_key(|a| a.from.clone());
 			approvals[0].signature = signers[1].0.sign_prehashed(&hash.into()).into();
 
-			assert_ok!(Multibatching::force_set_domain(RuntimeOrigin::root(), domain));
 			assert_noop!(
 				Multibatching::batch(
 					RuntimeOrigin::signed(sender.clone()),

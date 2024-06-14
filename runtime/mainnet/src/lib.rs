@@ -368,12 +368,17 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
+parameter_types! {
+	pub const DOMAIN: [u8;8] = *b"MYTH_NET";
+}
+
 impl pallet_multibatching::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type MaxCalls = ConstU32<128>;
+	type Domain = DOMAIN;
 	type WeightInfo = weights::pallet_multibatching::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();

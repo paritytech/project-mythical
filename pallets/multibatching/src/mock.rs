@@ -65,12 +65,17 @@ impl pallet_timestamp::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const DOMAIN: [u8;8] = *b"MYTH_NET";
+}
+
 impl pallet_multibatching::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type MaxCalls = ConstU32<10>;
+	type Domain = DOMAIN;
 	type WeightInfo = ();
 	pallet_multibatching::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = ();
