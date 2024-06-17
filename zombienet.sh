@@ -2,9 +2,9 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.103
-POLKADOT_V=v1.11.0
-RUNTIMES_V=v1.2.4
+ZOMBIENET_V=v1.3.105
+POLKADOT_V=v1.13.0
+RUNTIMES_V=v1.2.5
 BIN_DIR=bin
 
 case "$(uname -s)" in
@@ -28,7 +28,7 @@ build_polkadot() {
   echo "cloning polkadot repository..."
   CWD=$(pwd)
   pushd /tmp
-    git clone --depth 1 --branch "release-polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git || echo -n
+    git clone --depth 1 --branch "polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git || echo -n
     pushd polkadot-sdk
       echo "building polkadot executable..."
       cargo build --release --features fast-runtime
