@@ -138,7 +138,7 @@ pub mod benchmarks {
 		let _ = mint_nft::<T>(1);
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), collection.clone());
+		_(RawOrigin::Signed(migrator), collection.clone(), true);
 	}
 
 	impl_benchmark_test_suite!(Migration, crate::mock::new_test_ext(), crate::mock::Test);
