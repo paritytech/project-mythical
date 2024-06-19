@@ -416,6 +416,7 @@ pub mod pallet {
 		pub fn enable_serial_mint(
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
+			drop_max_supply: bool,
 		) -> DispatchResultWithPostInfo {
 			Self::ensure_migrator(origin.clone())?;
 
@@ -424,6 +425,9 @@ pub mod pallet {
 			ensure!(!config.mint_settings.serial_mint, Error::<T>::SerialMintAlreadyEnabled);
 
 			config.mint_settings.serial_mint = true;
+			if drop_max_supply {
+				config.max_supply = None
+			}
 			CollectionConfigOf::<T>::insert(collection, config);
 
 			Self::deposit_event(Event::SerialMintEnabled(collection));
