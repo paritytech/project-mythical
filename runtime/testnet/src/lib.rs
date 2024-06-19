@@ -26,7 +26,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::traits::{InstanceFilter, WithdrawReasons};
+use frame_support::traits::{AsEnsureOriginWithArg, InstanceFilter, WithdrawReasons};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -224,7 +224,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1005,
+	spec_version: 1007,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -589,9 +589,8 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
-	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
+	pub const NftsCollectionDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
 	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
 	pub const NftsDepositPerByte: Balance = deposit(0, 1);
@@ -599,16 +598,12 @@ parameter_types! {
 
 pub type CollectionId = IncrementableU256;
 
-pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
-
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type Currency = Balances;
-	//TODO: Change to AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>> after migration
-	type CreateOrigin = MigratorOrigin;
-	//TODO: Change to EnsureRoot<AccountId> after migration
-	type ForceOrigin = MigratorOrigin;
+	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
@@ -657,18 +652,6 @@ impl pallet_marketplace::Config for Runtime {
 	type WeightInfo = weights::pallet_marketplace::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
-}
-
-parameter_types! {
-	pub const MigrationPotId: PalletId = PalletId(*b"PotMigra");
-}
-
-impl pallet_migration::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type PotId = MigrationPotId;
-	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -847,7 +830,6 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -922,7 +904,6 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
-		[pallet_migration, Migration]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_vesting, Vesting]
@@ -1080,12 +1061,6 @@ impl_runtime_apis! {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
-		}
-	}
-
-	impl pallet_migration::MigrationApi<Block, AccountId> for Runtime {
-		fn pot_account_id() -> AccountId {
-			Migration::pot_account_id()
 		}
 	}
 
