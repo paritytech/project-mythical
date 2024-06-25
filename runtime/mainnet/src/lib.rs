@@ -12,6 +12,7 @@ pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
+use frame_support::traits::Contains;
 use frame_support::traits::{InstanceFilter, WithdrawReasons};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
@@ -295,6 +296,23 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 
+pub struct CallFilter;
+impl Contains<RuntimeCall> for CallFilter {
+	fn contains(call: &RuntimeCall) -> bool {
+		!matches!(
+			call,
+			RuntimeCall::Nfts(_)
+				| RuntimeCall::Marketplace(_)
+				| RuntimeCall::Multibatching(_)
+				| RuntimeCall::Proxy(_)
+				| RuntimeCall::Vesting(_)
+				| RuntimeCall::Migration(_)
+				| RuntimeCall::Escrow(_)
+				| RuntimeCall::MythProxy(_)
+		)
+	}
+}
+
 #[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
 	/// Block & extrinsics weights: base values and limits.
@@ -327,6 +345,7 @@ impl frame_system::Config for Runtime {
 	/// The maximum number of consumers allowed on a single account.
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
+	type BaseCallFilter = CallFilter;
 }
 
 impl pallet_timestamp::Config for Runtime {
