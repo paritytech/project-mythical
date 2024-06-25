@@ -15,6 +15,7 @@ use pallet_marketplace::BenchmarkHelper;
 use pallet_nfts::{
 	CollectionConfig, CollectionSettings, ItemConfig, ItemId, MintSettings, Pallet as Nfts,
 };
+use sp_runtime::traits::StaticLookup;
 const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
@@ -38,6 +39,25 @@ fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> 
 	<T as Config>::Currency::set_balance(&caller, ed * multiplier);
 	whitelist_account!(caller);
 	caller
+}
+
+fn create_collection<T: Config>(id: ItemId) -> (T::CollectionId, T::AccountId) {
+	let caller = funded_and_whitelisted_account::<T>("caller", 0);
+	let caller_lookup = T::Lookup::unlookup(caller.clone());
+	let collection = T::BenchmarkHelper::collection(0);
+
+	let default_config = CollectionConfig {
+		settings: CollectionSettings::all_enabled(),
+		max_supply: Some(u128::MAX),
+		mint_settings: MintSettings::default(),
+	};
+
+	assert_ok!(Nfts::<T>::force_create(
+		RawOrigin::Root.into(),
+		caller_lookup.clone(),
+		default_config
+	));
+	(collection, caller)
 }
 
 fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
@@ -77,6 +97,39 @@ pub mod benchmarks {
 		_(RawOrigin::Signed(migrator), next_collection_id.clone());
 
 		assert_last_event::<T>(Event::NextCollectionIdUpdated(next_collection_id).into());
+	}
+
+	#[benchmark]
+	fn force_create() {
+		let caller = funded_and_whitelisted_account("caller", 0);
+		let caller_lookup = T::Lookup::unlookup(caller.clone());
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), next_collection_id.clone());
+	}
+
+	#[benchmark]
+	fn set_collection_metadata() {
+		todo!();
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), next_collection_id.clone());
+	}
+
+	#[benchmark]
+	fn set_team() {
+		todo!();
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), next_collection_id.clone());
+	}
+
+	#[benchmark]
+	fn force_mint() {
+		todo!();
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(migrator), next_collection_id.clone());
 	}
 
 	#[benchmark]
