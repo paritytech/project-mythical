@@ -4,17 +4,18 @@ use crate::Pallet as Migration;
 use frame_benchmarking::v2::*;
 use frame_support::{
 	assert_ok,
-	dispatch::RawOrigin,
 	traits::{
 		fungible::{Inspect as InspectFungible, Mutate as MutateFungible},
 		tokens::nonfungibles_v2::{Create, Mutate},
 	},
 };
+use frame_system::RawOrigin;
 use pallet_marketplace::Ask;
 use pallet_marketplace::BenchmarkHelper;
 use pallet_nfts::{
 	CollectionConfig, CollectionSettings, ItemConfig, ItemId, MintSettings, Pallet as Nfts,
 };
+use sp_core::Get;
 use sp_runtime::traits::StaticLookup;
 const SEED: u32 = 0;
 
@@ -23,8 +24,7 @@ fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 }
 
 fn get_migrator<T: Config>() -> T::AccountId {
-	let migrator: T::AccountId = account("migrator", 10, SEED);
-	whitelist_account!(migrator);
+	let migrator: T::AccountId = funded_and_whitelisted_account::<T>("migrator", 10);
 	assert_ok!(Migration::<T>::force_set_migrator(RawOrigin::Root.into(), migrator.clone()));
 
 	migrator
@@ -41,23 +41,23 @@ fn funded_and_whitelisted_account<T: Config>(name: &'static str, index: u32) -> 
 	caller
 }
 
-fn create_collection<T: Config>(id: ItemId) -> (T::CollectionId, T::AccountId) {
-	let caller = funded_and_whitelisted_account::<T>("caller", 0);
-	let caller_lookup = T::Lookup::unlookup(caller.clone());
-	let collection = T::BenchmarkHelper::collection(0);
+fn create_collection<T: Config>() -> (T::CollectionId, T::AccountId) {
+	let migrator: T::AccountId = get_migrator::<T>();
+	let migrator_lookup = T::Lookup::unlookup(migrator.clone());
 
 	let default_config = CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
 		max_supply: Some(u128::MAX),
 		mint_settings: MintSettings::default(),
 	};
+	let collection = T::BenchmarkHelper::collection(0);
 
 	assert_ok!(Nfts::<T>::force_create(
-		RawOrigin::Root.into(),
-		caller_lookup.clone(),
+		RawOrigin::Signed(migrator).into(),
+		migrator_lookup.clone(),
 		default_config
 	));
-	(collection, caller)
+	(collection, migrator)
 }
 
 fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
@@ -76,6 +76,9 @@ fn mint_nft<T: Config>(nft_id: ItemId) -> T::AccountId {
 }
 #[benchmarks()]
 pub mod benchmarks {
+	use pallet_nfts::Collection;
+	use sp_runtime::BoundedVec;
+
 	use super::*;
 
 	#[benchmark]
@@ -101,27 +104,37 @@ pub mod benchmarks {
 
 	#[benchmark]
 	fn force_create() {
-		let caller = funded_and_whitelisted_account("caller", 0);
-		let caller_lookup = T::Lookup::unlookup(caller.clone());
+		let migrator: T::AccountId = get_migrator::<T>();
+		let migrator_lookup = T::Lookup::unlookup(migrator.clone());
+
+		let default_config = CollectionConfig {
+			settings: CollectionSettings::all_enabled(),
+			max_supply: Some(u128::MAX),
+			mint_settings: MintSettings::default(),
+		};
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), next_collection_id.clone());
+		_(RawOrigin::Signed(migrator), migrator_lookup, default_config);
+
+		assert!(Collection::<T>::get(T::BenchmarkHelper::collection(0)).is_some());
 	}
 
 	#[benchmark]
 	fn set_collection_metadata() {
-		todo!();
+		let (collection, migrator) = create_collection::<T>();
+		let data: BoundedVec<_, _> = vec![0u8; T::StringLimit::get() as usize].try_into().unwrap();
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), next_collection_id.clone());
+		_(RawOrigin::Signed(migrator), collection, data);
 	}
 
 	#[benchmark]
 	fn set_team() {
-		todo!();
+		let (collection, migrator) = create_collection::<T>();
+		let admin = account("admin", 0, SEED);
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), next_collection_id.clone());
+		_(RawOrigin::Signed(migrator), collection, admin, admin, admin);
 	}
 
 	#[benchmark]
