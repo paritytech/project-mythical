@@ -610,9 +610,9 @@ parameter_types! {
 	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
 	pub const NftsCollectionDeposit: Balance = 0;
 	pub const NftsItemDeposit: Balance = 0;
-	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
-	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
-	pub const NftsDepositPerByte: Balance = deposit(0, 1);
+	pub const NftsMetadataDepositBase: Balance = 0;
+	pub const NftsAttributeDepositBase: Balance = 0;
+	pub const NftsDepositPerByte: Balance = 0;
 }
 
 pub type CollectionId = IncrementableU256;
