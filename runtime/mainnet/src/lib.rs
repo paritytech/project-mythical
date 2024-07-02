@@ -607,12 +607,11 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
 	pub const NftsCollectionDeposit: Balance = 0;
 	pub const NftsItemDeposit: Balance = 0;
-	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
-	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
-	pub const NftsDepositPerByte: Balance = deposit(0, 1);
+	pub const NftsMetadataDepositBase: Balance = 0;
+	pub const NftsAttributeDepositBase: Balance = 0;
+	pub const NftsDepositPerByte: Balance = 0;
 }
 
 pub type CollectionId = IncrementableU256;
