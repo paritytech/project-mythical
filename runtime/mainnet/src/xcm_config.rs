@@ -36,6 +36,9 @@ use super::{
 /// https://github.com/polkadot-fellows/runtimes/blob/31ba26287ec752574244f0d690167f7ae8430c8b/relay/polkadot/constants/src/lib.rs#L127
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
+/// Parachain ID of Hydration on Polkadot, formerly known as HydraDX
+const HYDRATION_PARA_ID: u32 = 2034;
+
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
@@ -141,7 +144,7 @@ pub type Barrier = TrailingSetTopicAsId<
 				(
 					// If the message is one that immediately attempts to pay for execution, then
 					// allow it.
-					AllowTopLevelPaidExecutionFrom<OnlyAssetHubPrefix>,
+					AllowTopLevelPaidExecutionFrom<OnlyTrustedChains>,
 					// Parent, its pluralities (i.e. governance bodies), and the Fellows plurality
 					// get free execution.
 					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
@@ -167,12 +170,15 @@ parameter_types! {
 	pub RelayPerSecondAndByte: (AssetId, u128,u128) = (Location::new(1,Here).into(), default_fee_per_second() * 1, 1024);
 }
 
-pub struct OnlyAssetHubPrefix;
-impl Contains<Location> for OnlyAssetHubPrefix {
+pub struct OnlyTrustedChains;
+impl Contains<Location> for OnlyTrustedChains {
 	fn contains(location: &Location) -> bool {
 		matches!(
 			location.unpack(),
-			(1, [Parachain(ASSET_HUB_PARA_ID)]) | (1, [Parachain(ASSET_HUB_PARA_ID), _])
+			(1, [Parachain(ASSET_HUB_PARA_ID)])
+				| (1, [Parachain(ASSET_HUB_PARA_ID), _])
+				| (1, [Parachain(HYDRATION_PARA_ID)])
+				| (1, [Parachain(HYDRATION_PARA_ID), _])
 		)
 	}
 }
