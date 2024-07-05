@@ -22,7 +22,7 @@ use crate::{
 /// (it is based/calculated on ChainSpec's 'chain_spec' attribute)
 #[derive(Debug, PartialEq, Default)]
 enum Runtime {
-	/// This is the default runtime (actually based on rococo)
+	/// This is the default runtime
 	#[default]
 	Default,
 	Testnet,

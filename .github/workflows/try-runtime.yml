@@ -42,6 +42,6 @@ jobs:
           echo "---------- Running try-runtime for Trappist ----------"
           cargo build --locked --release --features try-runtime && \
           ./try-runtime --runtime ./target/release/wbuild/mythos-testnet/target/wasm32-unknown-unknown/release/testnet_runtime.wasm \
-              on-runtime-upgrade --checks pre-and-post --disable-idempotency-checks live --uri wss://rococo-muse-rpc.polkadot.io:443
+              on-runtime-upgrade --checks pre-and-post --disable-idempotency-checks live --uri wss://paseo-muse-rpc.polkadot.io:443
         env:
           RUST_LOG: remote-ext=debug,runtime=debug
