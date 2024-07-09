@@ -39,9 +39,18 @@ const ASSET_HUB_PARA_ID: u32 = 1000;
 /// Parachain ID of Hydration on Polkadot, formerly known as HydraDX
 const HYDRATION_PARA_ID: u32 = 2034;
 
+#[cfg(feature = "paseo")]
+parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(hex!("77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"));
+}
+
+#[cfg(not(feature = "paseo"))]
+parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
+}
+
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(hex!("77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"));
 	pub const SelfReserve: Location = Location::here();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =

@@ -1,8 +1,7 @@
 [relaychain]
 default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
-chain = "paseo-local"
-chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain = "rococo-local"
 
     [[relaychain.nodes]]
     name = "alice"
@@ -27,8 +26,7 @@ chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {
 
 [[parachains]]
 id = 1000
-chain = "asset-hub-paseo-local"
-chain_spec_command = "./bin/paseo-chain-spec-generator paseo-local"
+chain = "asset-hub-rococo-local"
 cumulus_based = true
 
     [[parachains.collators]]

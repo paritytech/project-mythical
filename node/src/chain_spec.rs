@@ -82,7 +82,10 @@ pub mod testnet {
 		GenericChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
-				relay_chain: "paseo-local".into(), // You MUST set this to the correct network!
+				#[cfg(feature = "paseo")]
+				relay_chain: "paseo-local".into(),
+				#[cfg(not(feature = "paseo"))]
+				relay_chain: "rococo-local".into(),
 				para_id: PARA_ID,
 			},
 		)
@@ -152,7 +155,10 @@ pub mod testnet {
 		GenericChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
-				relay_chain: "paseo".into(), // You MUST set this to the correct network!
+				#[cfg(feature = "paseo")]
+				relay_chain: "paseo".into(),
+				#[cfg(not(feature = "paseo"))]
+				relay_chain: "rococo".into(),
 				para_id: PARA_ID,
 			},
 		)

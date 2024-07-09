@@ -1,0 +1,31 @@
+[relaychain]
+chain = "rococo-local"
+default_command = "./bin/polkadot"
+
+	[[relaychain.nodes]]
+	name = "alice"
+	validator = true
+
+	[[relaychain.nodes]]
+	name = "bob"
+	validator = true
+
+[[parachains]]
+id = 3369
+addToGenesis = true
+cumulus_based = true
+chain = "local-v"
+
+	[[parachains.collators]]
+	name = "muse-collator01"
+	command = "./target/release/mythos-node"
+	ws_port = 9933
+	rpc_port = 8833
+	args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000"]
+
+	[[parachains.collators]]
+	name = "muse-collator02"
+	ws_port = 9822
+	rpc_port = 8822
+	command = "./target/release/mythos-node"
+	args = ["--rpc-max-connections 10000"]
