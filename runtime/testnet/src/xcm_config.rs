@@ -12,7 +12,6 @@ use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::ParentRelayOrSiblingParachains;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
 use sp_std::vec::Vec;
-use testnet_parachains_constants::rococo::snowbridge::EthereumNetwork;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
@@ -40,16 +39,25 @@ const ASSET_HUB_PARA_ID: u32 = 1000;
 /// Parachain ID of Hydration on Polkadot, formerly known as HydraDX
 const HYDRATION_PARA_ID: u32 = 2034;
 
+#[cfg(feature = "paseo")]
+parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(hex!("77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"));
+}
+
+#[cfg(not(feature = "paseo"))]
+parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
+}
+
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
 	pub const SelfReserve: Location = Location::here();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 	pub EthereumCurrencyLocation: Location = Location::new(2,
 		[
-			GlobalConsensus(EthereumNetwork::get()), // sepolia
+			GlobalConsensus(NetworkId::Ethereum { chain_id: 11155111 }), // sepolia
 			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
 		]);
 	pub StakingPot: AccountId = crate::CollatorSelection::account_id();

@@ -62,7 +62,7 @@ substrate-frame-rpc-system = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 
 # Polkadot
-polkadot-cli = { workspace = true, features = ["rococo-native"] }
+polkadot-cli = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-service = { workspace = true }
 xcm = { workspace = true, default-features = false }
@@ -87,6 +87,9 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = []
+paseo = [
+	"testnet-runtime/paseo"
+]
 runtime-benchmarks = [
   "mainnet-runtime/runtime-benchmarks",
   "testnet-runtime/runtime-benchmarks",
