@@ -103,7 +103,7 @@ pub fn new_partial<RuntimeApi, Executor, BIQ>(
 		ParachainBackend,
 		(),
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::TransactionPoolImpl<Block, ParachainClient<RuntimeApi, Executor>>,
 		(
 			ParachainBlockImport<RuntimeApi, Executor>,
 			Option<Telemetry>,
@@ -174,13 +174,14 @@ where
 		telemetry
 	});
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
-	);
+	let transaction_pool = sc_transaction_pool::Builder::new()
+		.with_options(config.transaction_pool.clone())
+		.build(
+			config.role.is_authority().into(),
+			config.prometheus_registry(),
+			task_manager.spawn_essential_handle(),
+			client.clone(),
+			);
 
 	let block_import =
 		ParachainBlockImport::<RuntimeApi, Executor>::new(client.clone(), backend.clone());
@@ -254,7 +255,7 @@ where
 		Option<TelemetryHandle>,
 		&TaskManager,
 		Arc<dyn RelayChainInterface>,
-		Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>>,
+		Arc<sc_transaction_pool::TransactionPoolImpl<Block, ParachainClient<RuntimeApi, Executor>>>,
 		Arc<SyncingService<Block>>,
 		KeystorePtr,
 		Duration,
@@ -484,7 +485,7 @@ fn start_consensus<RuntimeApi, Executor>(
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
 	transaction_pool: Arc<
-		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::TransactionPoolImpl<Block, ParachainClient<RuntimeApi, Executor>>,
 	>,
 	sync_oracle: Arc<SyncingService<Block>>,
 	keystore: KeystorePtr,
@@ -517,7 +518,7 @@ where
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
-		Arc::new(custom_pool::CustomPool::new(transaction_pool)),
+		transaction_pool.clone(),
 		prometheus_registry,
 		telemetry.clone(),
 	);
