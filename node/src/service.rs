@@ -181,7 +181,7 @@ where
 			config.prometheus_registry(),
 			task_manager.spawn_essential_handle(),
 			client.clone(),
-			);
+		);
 
 	let block_import =
 		ParachainBlockImport::<RuntimeApi, Executor>::new(client.clone(), backend.clone());
