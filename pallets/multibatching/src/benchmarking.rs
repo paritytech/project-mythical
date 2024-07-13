@@ -21,10 +21,6 @@ where
 	}
 }
 
-fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
-	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
-}
-
 #[benchmarks(
     where
         T::Signer: From<EthereumSigner>,
@@ -49,7 +45,7 @@ pub mod benchmarks {
 		let call_count = c as usize;
 		let signer_count = s as usize;
 
-		let domain: [u8; 32] = *b".myth.pallet-multibatching.bench";
+		let domain: [u8; 8] = T::Domain::get();
 		let bias = [0u8; 32];
 		let expires_at = Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100_000);
 
@@ -98,21 +94,8 @@ pub mod benchmarks {
 		}
 		approvals.sort_by_key(|a| a.from.clone());
 
-		Pallet::<T>::force_set_domain(RawOrigin::Root.into(), domain)
-			.expect("force_set_domain must succeed");
-
 		#[extrinsic_call]
 		_(RawOrigin::Signed(sender), domain, sender.into(), bias, expires_at, calls, approvals);
-	}
-
-	#[benchmark]
-	fn force_set_domain() {
-		let domain = [0; 32];
-
-		#[extrinsic_call]
-		_(RawOrigin::Root, domain);
-
-		assert_last_event::<T>(Event::DomainSet { domain }.into());
 	}
 
 	impl_benchmark_test_suite!(Multibatching, crate::mock::new_test_ext(), crate::mock::Test);

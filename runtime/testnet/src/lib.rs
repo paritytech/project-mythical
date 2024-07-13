@@ -224,7 +224,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1005,
+	spec_version: 1006,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -367,12 +367,17 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
+parameter_types! {
+	pub const DOMAIN: [u8;8] = *b"MUSE_NET";
+}
+
 impl pallet_multibatching::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type MaxCalls = ConstU32<128>;
+	type Domain = DOMAIN;
 	type WeightInfo = weights::pallet_multibatching::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
@@ -499,6 +504,8 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type PriceForSiblingDelivery = PriceForSiblingParachainDelivery;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
+	type MaxActiveOutboundChannels = ConstU32<128>;
+	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
 }
 
 parameter_types! {
@@ -582,12 +589,11 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	//TODO: Set NftCollectionDeposit and NftItemDeposit to EXISTENTIAL_DEPOSIT after migration
-	pub const NftsCollectionDeposit: Balance = EXISTENTIAL_DEPOSIT;
-	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
-	pub const NftsMetadataDepositBase: Balance = deposit(1, 129);
-	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
-	pub const NftsDepositPerByte: Balance = deposit(0, 1);
+	pub const NftsCollectionDeposit: Balance = 0;
+	pub const NftsItemDeposit: Balance = 0;
+	pub const NftsMetadataDepositBase: Balance = 0;
+	pub const NftsAttributeDepositBase: Balance = 0;
+	pub const NftsDepositPerByte: Balance = 0;
 }
 
 pub type CollectionId = IncrementableU256;
@@ -707,7 +713,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, call: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => !matches!(call, RuntimeCall::Balances(..)),
+			ProxyType::NonTransfer => {
+				!matches!(call, RuntimeCall::Balances(..) | RuntimeCall::Escrow(..))
+			},
 			ProxyType::CancelProxy => {
 				matches!(call, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
 			},

@@ -12,7 +12,6 @@ use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::ParentRelayOrSiblingParachains;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
 use sp_std::vec::Vec;
-use testnet_parachains_constants::rococo::snowbridge::EthereumNetwork;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountKey20Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
@@ -37,16 +36,28 @@ use super::{
 /// https://github.com/paritytech/polkadot-sdk/blob/eba3deca3e61855c237a33013e8a5e82c479e958/polkadot/runtime/rococo/constants/src/lib.rs#L110
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
+/// Parachain ID of Hydration on Polkadot, formerly known as HydraDX
+const HYDRATION_PARA_ID: u32 = 2034;
+
+#[cfg(feature = "paseo")]
+parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(hex!("77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"));
+}
+
+#[cfg(not(feature = "paseo"))]
+parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
+}
+
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
 	pub const SelfReserve: Location = Location::here();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 	pub EthereumCurrencyLocation: Location = Location::new(2,
 		[
-			GlobalConsensus(EthereumNetwork::get()), // sepolia
+			GlobalConsensus(NetworkId::Ethereum { chain_id: 11155111 }), // sepolia
 			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
 		]);
 	pub StakingPot: AccountId = crate::CollatorSelection::account_id();
@@ -145,7 +156,7 @@ pub type Barrier = TrailingSetTopicAsId<
 				(
 					// If the message is one that immediately attempts to pay for execution, then
 					// allow it.
-					AllowTopLevelPaidExecutionFrom<OnlyAssetHubPrefix>,
+					AllowTopLevelPaidExecutionFrom<OnlyTrustedChains>,
 					// Parent, its pluralities (i.e. governance bodies), and the Fellows plurality
 					// get free execution.
 					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
@@ -171,12 +182,15 @@ parameter_types! {
 	pub RelayPerSecondAndByte: (AssetId, u128,u128) = (Location::new(1,Here).into(), default_fee_per_second() * 1, 1024);
 }
 
-pub struct OnlyAssetHubPrefix;
-impl Contains<Location> for OnlyAssetHubPrefix {
+pub struct OnlyTrustedChains;
+impl Contains<Location> for OnlyTrustedChains {
 	fn contains(location: &Location) -> bool {
 		matches!(
 			location.unpack(),
-			(1, [Parachain(ASSET_HUB_PARA_ID)]) | (1, [Parachain(ASSET_HUB_PARA_ID), _])
+			(1, [Parachain(ASSET_HUB_PARA_ID)])
+				| (1, [Parachain(ASSET_HUB_PARA_ID), _])
+				| (1, [Parachain(HYDRATION_PARA_ID)])
+				| (1, [Parachain(HYDRATION_PARA_ID), _])
 		)
 	}
 }
@@ -251,6 +265,7 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = PolkadotXcm;
 }
 
 /// Local origin to location conversion.

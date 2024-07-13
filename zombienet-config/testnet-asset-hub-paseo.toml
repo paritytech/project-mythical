@@ -1,8 +1,8 @@
 [relaychain]
 default_command = "./bin/polkadot"
-default_args = [ "-lparachain=debug", "-lxcm=trace" ]
-chain = "polkadot-local"
-chain_spec_command = "./bin/polkadot-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+default_args = ["-lparachain=debug", "-lxcm=trace"]
+chain = "paseo-local"
+chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
     [[relaychain.nodes]]
     name = "alice"
@@ -27,15 +27,15 @@ chain_spec_command = "./bin/polkadot-chain-spec-generator {% raw %} {{chainName}
 
 [[parachains]]
 id = 1000
-chain = "asset-hub-polkadot-local"
-chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain = "asset-hub-paseo-local"
+chain_spec_command = "./bin/paseo-chain-spec-generator paseo-local"
 cumulus_based = true
 
     [[parachains.collators]]
     name = "assethub-collator01"
     ws_port = 9910
     command = "./bin/polkadot-parachain"
-    args = ["-lxcm=trace", "--state-cache-size=0" ]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
     name = "assethub-collator02"
@@ -44,16 +44,16 @@ cumulus_based = true
 
 [[parachains]]
 id = 3369
-chain = "mainnet-local-v"
+chain = "local-v"
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "mythos-collator01"
+    name = "muse-collator01"
     ws_port = 9920
     command = "./target/release/mythos-node"
     args = ["-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
-    name = "mythos-collator02"
+    name = "muse-collator02"
     command = "./target/release/mythos-node"
     args = ["-lxcm=trace", "--state-cache-size=0"]

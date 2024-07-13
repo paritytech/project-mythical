@@ -50,10 +50,10 @@ ensure_polkadot_js_api
 open_hrmp_channels \
     "ws://127.0.0.1:9900" \
     "//Alice" \
-    3369 1000 4 524288
+    3369 1000 8 1048576
 
 # HRMP: Asset Hub - Myth
 open_hrmp_channels \
     "ws://127.0.0.1:9900" \
     "//Alice" \
-    1000 3369 4 524288
+    1000 3369 8 1048576

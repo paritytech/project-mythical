@@ -102,9 +102,9 @@ pub struct CollectionDetails<AccountId, DepositBalance> {
 	/// The highers Item ID.
 	pub(super) highest_item_id: Option<u128>,
 	/// The total number of outstanding item metadata of this collection.
-	pub(super) item_metadatas: u32,
+	pub(super) item_metadatas: u128,
 	/// The total number of outstanding item configs of this collection.
-	pub(super) item_configs: u32,
+	pub(super) item_configs: u128,
 	/// The total number of attributes for this collection.
 	pub(super) attributes: u32,
 }
@@ -114,10 +114,10 @@ pub struct CollectionDetails<AccountId, DepositBalance> {
 pub struct DestroyWitness {
 	/// The total number of items in this collection that have outstanding item metadata.
 	#[codec(compact)]
-	pub item_metadatas: u32,
+	pub item_metadatas: u128,
 	/// The total number of outstanding item configs of this collection.
 	#[codec(compact)]
-	pub item_configs: u32,
+	pub item_configs: u128,
 	/// The total number of attributes for this collection.
 	#[codec(compact)]
 	pub attributes: u32,

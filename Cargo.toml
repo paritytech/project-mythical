@@ -7,7 +7,6 @@ members = [
 	"primitives/xcm",
 	"runtime/mainnet",
 	"runtime/testnet",
-	"primitives/custom-pool",
 ]
 
 resolver = "2"
@@ -26,16 +25,16 @@ clap = { version = "4.5.3", features = ["derive"] }
 color-print = "0.3.5"
 futures = "0.3.30"
 hex-literal = "0.4.1"
-jsonrpsee = { version = "0.22.2", features = ["server"] }
+jsonrpsee = { version = "0.22.5", features = ["server"] }
 log = { version = "0.4.21", default-features = false }
-parity-scale-codec = { version = "3.6.9", default-features = false, features = [
+parity-scale-codec = { version = "3.6.12", default-features = false, features = [
 	"derive",
 ] }
-scale-info = { version = "2.11.1", default-features = false }
+scale-info = { version = "2.11.3", default-features = false }
 serde = { version = "1.0.197", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.114", features = ["arbitrary_precision"] }
 impl-serde = { version = "0.4.0", default-features = false }
-smallvec = "1.13.1"
+smallvec = "1.13.2"
 libsecp256k1 = { version = "0.7.1", default-features = false }
 sha3 = { version = "0.10.8", default-features = false }
 hex = { version = "0.4.3", default-features = false }
@@ -53,111 +52,108 @@ pallet-nfts = { path = "pallets/nfts", default-features = false }
 pallet-myth-proxy = { path = "pallets/myth-proxy", default-features = false }
 
 # Substrate
-frame-benchmarking = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-frame-benchmarking-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-frame-executive = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-frame-support = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-frame-system = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-frame-system-benchmarking = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-frame-system-rpc-runtime-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-frame-try-runtime = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-authorship = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-balances = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-collective = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-membership = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-message-queue = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }                       #TODO check if was deleted from EPT
-pallet-multisig = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-preimage = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-session = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-scheduler = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-sudo = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-timestamp = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-transaction-payment = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-transaction-payment-rpc = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-utility = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-safe-mode = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-tx-pause = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-proxy = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-pallet-vesting = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sc-basic-authorship = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-chain-spec = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-client-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-consensus = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-executor = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-network = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-network-sync = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-rpc = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-service = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-sysinfo = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-telemetry = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-tracing = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-transaction-pool = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-transaction-pool-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sc-offchain = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sp-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-block-builder = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-blockchain = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sp-consensus-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-core = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-genesis-builder = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-inherents = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-io = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-keystore = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-offchain = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-runtime = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-runtime-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-session = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-std = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-timestamp = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-sp-transaction-pool = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-sp-version = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-substrate-build-script-utils = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-substrate-frame-rpc-system = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-substrate-prometheus-endpoint = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-substrate-wasm-builder = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-testnet-parachains-constants = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
+frame-benchmarking = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+frame-benchmarking-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+frame-executive = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+frame-support = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+frame-system = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+frame-system-rpc-runtime-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+frame-try-runtime = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-authorship = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-balances = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-collective = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-membership = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-message-queue = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }                       #TODO check if was deleted from EPT
+pallet-multisig = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-preimage = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-session = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-scheduler = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-sudo = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-timestamp = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-transaction-payment-rpc = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-utility = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-safe-mode = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-tx-pause = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-proxy = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+pallet-vesting = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sc-basic-authorship = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-chain-spec = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-client-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-consensus = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-executor = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-network = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-network-sync = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-rpc = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-service = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-sysinfo = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-telemetry = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-tracing = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-transaction-pool = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-transaction-pool-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sc-offchain = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sp-api = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-block-builder = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-blockchain = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sp-consensus-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-core = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-genesis-builder = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-inherents = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-io = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-keystore = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-offchain = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-runtime = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-runtime-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-session = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-std = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-timestamp = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+sp-transaction-pool = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+sp-version = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+substrate-build-script-utils = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+substrate-frame-rpc-system = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+substrate-prometheus-endpoint = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+substrate-wasm-builder = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
 
 # Cumulus
-cumulus-primitives-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-client-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-client-consensus-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-client-consensus-common = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-client-collator = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-client-service = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-client-consensus-proposer = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-pallet-aura-ext = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-pallet-parachain-system = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-pallet-session-benchmarking = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-pallet-xcm = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-pallet-xcmp-queue = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-primitives-utility = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-cumulus-relay-chain-inprocess-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-relay-chain-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-relay-chain-minimal-node = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-cumulus-relay-chain-rpc-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-pallet-collator-selection = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-parachain-info = { package = "staging-parachain-info", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-parachains-common = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
+cumulus-primitives-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-client-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-client-consensus-aura = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-client-consensus-common = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-client-collator = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-client-service = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-client-consensus-proposer = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-pallet-aura-ext = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-pallet-parachain-system = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-pallet-session-benchmarking = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-pallet-xcm = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-primitives-utility = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+cumulus-relay-chain-inprocess-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-relay-chain-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-relay-chain-minimal-node = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+cumulus-relay-chain-rpc-interface = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+pallet-collator-selection = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+parachain-info = { package = "staging-parachain-info", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+parachains-common = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
 
 
 # Polkadot
-pallet-xcm = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-polkadot-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", features = [
-	"rococo-native",
-] }
-polkadot-parachain-primitives = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-polkadot-primitives = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-polkadot-runtime-common = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-polkadot-service = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool" }
-xcm = { package = "staging-xcm", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
-xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.11.0-with-fork-aware-txpool", default-features = false }
+pallet-xcm = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+polkadot-cli = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+polkadot-parachain-primitives = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+polkadot-primitives = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+polkadot-runtime-common = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+polkadot-service = { git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool" }
+xcm = { package = "staging-xcm", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
+xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/michalkucharczyk/polkadot-sdk", branch = "mku-polkadot-v1.13.0-with-fork-aware-txpool", default-features = false }
 
 # Primitives
 account = { path = "./primitives/account", default-features = false }

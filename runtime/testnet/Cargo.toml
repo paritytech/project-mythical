@@ -77,9 +77,7 @@ xcm-executor = { workspace = true, default-features = false }
 # Cumulus
 cumulus-primitives-aura = { workspace = true, default-features = false }
 cumulus-pallet-aura-ext = { workspace = true, default-features = false }
-cumulus-pallet-parachain-system = { workspace = true, default-features = false, features = [
-  "parameterized-consensus-hook",
-]}
+cumulus-pallet-parachain-system = { workspace = true, default-features = false }
 cumulus-pallet-session-benchmarking = { workspace = true, default-features = false }
 cumulus-pallet-xcm = { workspace = true, default-features = false }
 cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
@@ -89,7 +87,6 @@ cumulus-primitives-utility = { workspace = true, default-features = false }
 pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
-testnet-parachains-constants = { workspace = true, default-features = false, features = ["rococo"] }
 polkadot-primitives = { workspace = true, default-features = false }
 
 
@@ -100,6 +97,7 @@ fp-self-contained = { workspace = true, default-features = false, features = [
 
 [features]
 default = ["std"]
+paseo = []
 std = [
   "parity-scale-codec/std",
   "log/std",

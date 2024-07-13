@@ -513,14 +513,14 @@ mod enable_serial_mint {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(1)));
 			assert_noop!(
-				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,),
+				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0, false),
 				Error::<Test>::NotMigrator
 			);
 		})
 	}
 
 	#[test]
-	fn enable_serial_mint_works() {
+	fn enable_serial_mint_constant_max_supply() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
 			assert_ok!(Migration::force_create(
@@ -529,12 +529,39 @@ mod enable_serial_mint {
 				collection_config_with_all_settings_enabled()
 			));
 
-			assert!(!CollectionConfigOf::<Test>::get(0).unwrap().mint_settings.serial_mint);
+			let collection_config = CollectionConfigOf::<Test>::get(0).unwrap();
+			assert!(!collection_config.mint_settings.serial_mint);
+			let max_supply = collection_config.max_supply;
 
-			let res = Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0);
+			let res = Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0, false);
 			assert!(res.is_ok());
 			assert_eq!(res.unwrap().pays_fee, Pays::No);
-			assert!(CollectionConfigOf::<Test>::get(0).unwrap().mint_settings.serial_mint);
+			let updated_collection_config = CollectionConfigOf::<Test>::get(0).unwrap();
+			assert!(updated_collection_config.mint_settings.serial_mint);
+			assert!(updated_collection_config.max_supply == max_supply);
+		})
+	}
+
+	#[test]
+	fn enable_serial_mint_drop_max_supply() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
+			assert_ok!(Migration::force_create(
+				RuntimeOrigin::signed(account(2)),
+				account(3),
+				collection_config_with_all_settings_enabled()
+			));
+
+			let collection_config = CollectionConfigOf::<Test>::get(0).unwrap();
+			assert!(!collection_config.mint_settings.serial_mint);
+			assert!(collection_config.max_supply != None);
+
+			let res = Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0, true);
+			assert!(res.is_ok());
+			assert_eq!(res.unwrap().pays_fee, Pays::No);
+			let updated_collection_config = CollectionConfigOf::<Test>::get(0).unwrap();
+			assert!(updated_collection_config.mint_settings.serial_mint);
+			assert_eq!(updated_collection_config.max_supply, None);
 		})
 	}
 
@@ -548,10 +575,10 @@ mod enable_serial_mint {
 				collection_config_with_all_settings_enabled()
 			));
 
-			assert_ok!(Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,));
+			assert_ok!(Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0, false));
 
 			assert_noop!(
-				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,),
+				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0, false),
 				Error::<Test>::SerialMintAlreadyEnabled
 			);
 		})
@@ -563,7 +590,7 @@ mod enable_serial_mint {
 			assert_ok!(Migration::force_set_migrator(RuntimeOrigin::root(), account(2)));
 
 			assert_noop!(
-				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0,),
+				Migration::enable_serial_mint(RuntimeOrigin::signed(account(2)), 0, false),
 				Error::<Test>::CollectionNotFound
 			);
 		})

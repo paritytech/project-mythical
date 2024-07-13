@@ -150,7 +150,17 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			CollectionAccount::<T, I>::remove(&collection_details.owner, collection);
 			T::Currency::unreserve(&collection_details.owner, collection_details.owner_deposit);
 			CollectionConfigOf::<T, I>::remove(collection);
-			let _ = ItemConfigOf::<T, I>::clear_prefix(collection, witness.item_configs, None);
+			loop {
+				let cursor = ItemConfigOf::<T, I>::clear_prefix(
+					collection,
+					witness.item_configs.try_into().unwrap_or(u32::MAX),
+					None,
+				)
+				.maybe_cursor;
+				if cursor.is_none() {
+					break;
+				}
+			}
 
 			Self::deposit_event(Event::Destroyed { collection });
 
