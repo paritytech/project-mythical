@@ -13617,7 +13617,6 @@ dependencies = [
  "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
- "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-myth-proxy",
