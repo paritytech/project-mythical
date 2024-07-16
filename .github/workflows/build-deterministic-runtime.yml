@@ -148,7 +148,7 @@ jobs:
         with:
           name: ${{ matrix.runtime }}-paseo-runtime-${{ github.sha }}
           path: |
-            ${{ matrix.chain }}-paseo*.wasm
+            ${{ matrix.chain }}*.wasm
             ${{ matrix.runtime }}-paseo-srtool-digest.json
 
       # We now get extra information thanks to subwasm,
