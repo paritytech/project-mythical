@@ -699,6 +699,8 @@ pub enum ProxyType {
 	NonTransfer,
 	/// Allow to veto an announced proxy call.
 	CancelProxy,
+	/// Does not allow to create or remove proxies.
+	RestrictProxyManagement,
 	/// Allow extrinsic related to Balances.
 	Balances,
 }
@@ -720,6 +722,14 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(call, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
 			},
 			ProxyType::Balances => matches!(call, RuntimeCall::Balances(..)),
+			ProxyType::RestrictProxyManagement => !matches!(
+				call,
+				RuntimeCall::Proxy(pallet_proxy::Call::add_proxy { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::create_pure { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::kill_pure { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::remove_proxies { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::remove_proxy { .. })
+			),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
