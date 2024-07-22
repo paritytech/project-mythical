@@ -46,7 +46,7 @@ build_chainspec_generators() {
   echo "cloning chain-spec-generators..."
   CWD=$(pwd)
   pushd /tmp
-  if [ ! -f $BIN_DIR/polkadot-chain-spec-generator ]; then
+  if [ ! -f "$CWD/$BIN_DIR/polkadot-chain-spec-generator" ]; then
     git clone --depth 1 --branch "$POLKADOT_RUNTIMES_V" https://github.com/polkadot-fellows/runtimes.git polkadot-runtimes || echo -n
     pushd polkadot-runtimes
     echo "building polkadot chain-spec-generator..."
@@ -54,7 +54,7 @@ build_chainspec_generators() {
     cp target/release/chain-spec-generator "$CWD/$BIN_DIR/polkadot-chain-spec-generator"
     popd
   fi
-  if [ ! -f $BIN_DIR/paseo-chain-spec-generator ]; then
+  if [ ! -f "$CWD/$BIN_DIR/paseo-chain-spec-generator" ]; then
     git clone --depth 1 --branch "$PASEO_RUNTIMES_V" https://github.com/paseo-network/runtimes.git paseo-runtimes || echo -n
     pushd paseo-runtimes
     echo "building paseo chain-spec-generator..."
