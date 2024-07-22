@@ -699,10 +699,10 @@ pub enum ProxyType {
 	NonTransfer,
 	/// Allow to veto an announced proxy call.
 	CancelProxy,
-	/// Does not allow to create or remove proxies.
-	RestrictProxyManagement,
 	/// Allow extrinsic related to Balances.
 	Balances,
+	/// Does not allow to create or remove proxies.
+	RestrictProxyManagement,
 }
 
 impl Default for ProxyType {
