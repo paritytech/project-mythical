@@ -701,6 +701,8 @@ pub enum ProxyType {
 	CancelProxy,
 	/// Allow extrinsic related to Balances.
 	Balances,
+	/// Does not allow to create or remove proxies.
+	RestrictProxyManagement,
 }
 
 impl Default for ProxyType {
@@ -720,6 +722,22 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(call, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
 			},
 			ProxyType::Balances => matches!(call, RuntimeCall::Balances(..)),
+			ProxyType::RestrictProxyManagement => !matches!(
+				call,
+				RuntimeCall::Proxy(pallet_proxy::Call::add_proxy { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::create_pure { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::kill_pure { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::remove_proxies { .. })
+					| RuntimeCall::Proxy(pallet_proxy::Call::remove_proxy { .. })
+					| RuntimeCall::MythProxy(pallet_myth_proxy::Call::add_proxy { .. })
+					| RuntimeCall::MythProxy(
+						pallet_myth_proxy::Call::remove_sponsored_proxy { .. }
+					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::remove_proxy { .. })
+					| RuntimeCall::MythProxy(pallet_myth_proxy::Call::approve_proxy_funding { .. })
+					| RuntimeCall::MythProxy(
+						pallet_myth_proxy::Call::register_sponsor_agent { .. }
+					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::revoke_sponsor_agent { .. })
+			),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
