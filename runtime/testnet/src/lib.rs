@@ -39,7 +39,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSignedBy,
+	EnsureRoot,
 };
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -603,7 +603,7 @@ impl pallet_nfts::Config for Runtime {
 	type CollectionId = CollectionId;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
-	type ForceOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = RootOrCouncilTwoThirdsMajority;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
