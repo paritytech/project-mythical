@@ -306,6 +306,30 @@ mod proxy {
 				);
 			})
 		}
+
+		#[test]
+		fn editing_can_be_restricted_with_proxy_type() {
+			new_test_ext().execute_with(|| {
+				let delegator = 1;
+				let delegate = 2;
+
+				make_free_balance_be(&delegator, 10);
+
+				assert_ok!(Proxy::add_proxy(
+					RuntimeOrigin::signed(delegator),
+					delegate,
+					ProxyType::NoModifyProxy,
+					None,
+				));
+
+				let call = Box::new(RuntimeCall::Proxy(crate::Call::remove_proxy { delegate }));
+
+				assert_proxy_error!(
+					(RuntimeOrigin::signed(delegate), delegator, call),
+					frame_system::Error::<Test>::CallFiltered
+				);
+			})
+		}
 	}
 
 	mod sponsorship {
