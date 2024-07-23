@@ -5448,7 +5448,6 @@ dependencies = [
  "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
- "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-myth-proxy",
@@ -6983,28 +6982,6 @@ dependencies = [
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-v1.13.0)",
  "sp-weights",
-]
-
-[[package]]
-name = "pallet-migration"
-version = "0.0.1"
-dependencies = [
- "account",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "pallet-marketplace",
- "pallet-nfts",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-api",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-v1.13.0)",
 ]
 
 [[package]]
@@ -13617,7 +13594,6 @@ dependencies = [
  "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
- "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-myth-proxy",
