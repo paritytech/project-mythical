@@ -295,7 +295,12 @@ pub mod pallet {
 					frame_system::RawOrigin::Signed(payload.from.into_account()),
 				);
 				let result = payload.call.dispatch(origin);
-				weight = weight.saturating_add(extract_actual_weight(&result, &info));
+				let call_weight = match result {
+					Ok(call_post_info) => call_post_info.actual_weight,
+					Err(call_err) => call_err.post_info.actual_weight,
+				}
+				.unwrap_or(extract_actual_weight(&result, &info));
+				weight = weight.saturating_add(call_weight);
 				result.map_err(|mut err| {
 					// Take the weight of this function itself into account.
 					let base_weight = <T as Config>::WeightInfo::batch(
