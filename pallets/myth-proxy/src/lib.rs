@@ -325,14 +325,19 @@ pub mod pallet {
 				partial && proxy_def.proxy_type.filter(c)
 			});
 
-			let result = call.clone().dispatch(new_origin);
-
+			// Execute the call.
+			let info = call.get_dispatch_info();
+			let result = call.dispatch(new_origin);
 			Self::deposit_event(Event::ProxyExecuted { delegator: address, delegate });
+
+			// Compute the consumed weight.
 			let base_weight = <T as Config>::WeightInfo::proxy();
-			let call_weight = extract_actual_weight(&result, &call.get_dispatch_info());
-
+			let call_weight = match result {
+				Ok(call_post_info) => call_post_info.actual_weight,
+				Err(call_err) => call_err.post_info.actual_weight,
+			}
+			.unwrap_or(extract_actual_weight(&result, &info));
 			let weight = base_weight.saturating_add(call_weight);
-
 			result.map_err(|mut err| {
 				err.post_info = Some(weight).into();
 				err
