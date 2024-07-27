@@ -59,16 +59,4 @@ impl<T: frame_system::Config> pallet_multibatching::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
-	/// Storage: `Multibatching::Domain` (r:1 w:1)
-	/// Proof: `Multibatching::Domain` (`max_values`: Some(1), `max_size`: Some(32), added: 527, mode: `MaxEncodedLen`)
-	fn force_set_domain() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1517`
-		// Minimum execution time: 10_060_000 picoseconds.
-		Weight::from_parts(10_490_000, 0)
-			.saturating_add(Weight::from_parts(0, 1517))
-			.saturating_add(T::DbWeight::get().reads(1))
-			.saturating_add(T::DbWeight::get().writes(1))
-	}
 }
