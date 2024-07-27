@@ -145,7 +145,7 @@ jobs:
       - name: Rename paseo wasm
         if: github.event_name == 'release'
         run: |
-          mv `dirname ${{ steps.srtool_build.outputs.wasm }}`/${{ matrix.runtime }}_runtime.compact.compressed.wasm `dirname ${{ steps.srtool_build.outputs.wasm }}`/${{ matrix.runtime }}-paseo_runtime.compact.compressed.wasm
+          cp `dirname ${{ steps.srtool_build.outputs.wasm }}`/${{ matrix.runtime }}_runtime.compact.compressed.wasm ${{ matrix.runtime }}-paseo_runtime.compact.compressed.wasm
       - name: Archive Runtime
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v3

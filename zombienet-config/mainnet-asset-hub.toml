@@ -2,7 +2,7 @@
 default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "polkadot-local"
-chain_spec_command = "./bin/polkadot-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
     [[relaychain.nodes]]
     name = "alice"
