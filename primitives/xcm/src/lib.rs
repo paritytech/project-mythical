@@ -10,7 +10,8 @@ pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
 impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
-	sp_runtime::traits::TryConvert<Origin, Location> for SignedToAccountId20<Origin, AccountId, Network>
+	sp_runtime::traits::TryConvert<Origin, Location>
+	for SignedToAccountId20<Origin, AccountId, Network>
 where
 	Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
 		+ TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
