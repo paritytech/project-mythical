@@ -44,7 +44,6 @@ enumflags2 = { version = "0.7.7" }
 testnet-runtime = { path = "runtime/testnet" }
 mainnet-runtime = { path = "runtime/mainnet" }
 pallet-marketplace = { path = "pallets/marketplace", default-features = false }
-pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }

@@ -26,7 +26,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::traits::{InstanceFilter, WithdrawReasons};
+use frame_support::traits::{AsEnsureOriginWithArg, InstanceFilter, WithdrawReasons};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -39,7 +39,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSignedBy,
+	EnsureRoot,
 };
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -224,7 +224,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1009,
+	spec_version: 1011,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -598,16 +598,12 @@ parameter_types! {
 
 pub type CollectionId = IncrementableU256;
 
-pub type MigratorOrigin = EnsureSignedBy<pallet_migration::MigratorProvider<Runtime>, AccountId>;
-
 impl pallet_nfts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type Currency = Balances;
-	//TODO: Change to AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>> after migration
-	type CreateOrigin = MigratorOrigin;
-	//TODO: Change to EnsureRoot<AccountId> after migration
-	type ForceOrigin = MigratorOrigin;
+	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
+	type ForceOrigin = RootOrCouncilTwoThirdsMajority;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
@@ -656,18 +652,6 @@ impl pallet_marketplace::Config for Runtime {
 	type WeightInfo = weights::pallet_marketplace::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
-}
-
-parameter_types! {
-	pub const MigrationPotId: PalletId = PalletId(*b"PotMigra");
-}
-
-impl pallet_migration::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type PotId = MigrationPotId;
-	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -864,7 +848,6 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -939,7 +922,6 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
-		[pallet_migration, Migration]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_vesting, Vesting]
@@ -1097,12 +1079,6 @@ impl_runtime_apis! {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
-		}
-	}
-
-	impl pallet_migration::MigrationApi<Block, AccountId> for Runtime {
-		fn pot_account_id() -> AccountId {
-			Migration::pot_account_id()
 		}
 	}
 
