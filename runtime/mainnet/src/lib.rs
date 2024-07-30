@@ -225,7 +225,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("mythos"),
 	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
-	spec_version: 1007,
+	spec_version: 1008,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -771,7 +771,6 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					| RuntimeCall::MythProxy(
 						pallet_myth_proxy::Call::remove_sponsored_proxy { .. }
 					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::remove_proxy { .. })
-					| RuntimeCall::MythProxy(pallet_myth_proxy::Call::approve_proxy_funding { .. })
 					| RuntimeCall::MythProxy(
 						pallet_myth_proxy::Call::register_sponsor_agent { .. }
 					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::revoke_sponsor_agent { .. })
