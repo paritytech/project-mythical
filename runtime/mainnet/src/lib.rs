@@ -771,7 +771,6 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					| RuntimeCall::MythProxy(
 						pallet_myth_proxy::Call::remove_sponsored_proxy { .. }
 					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::remove_proxy { .. })
-					| RuntimeCall::MythProxy(pallet_myth_proxy::Call::approve_proxy_funding { .. })
 					| RuntimeCall::MythProxy(
 						pallet_myth_proxy::Call::register_sponsor_agent { .. }
 					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::revoke_sponsor_agent { .. })
