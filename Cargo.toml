@@ -43,6 +43,7 @@ enumflags2 = { version = "0.7.7" }
 # Local dependencies
 testnet-runtime = { path = "runtime/testnet" }
 mainnet-runtime = { path = "runtime/mainnet" }
+pallet-dmarket = { path = "pallets/dmarket", default-features = false }
 pallet-marketplace = { path = "pallets/marketplace", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
