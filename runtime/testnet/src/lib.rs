@@ -26,6 +26,10 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_support::traits::{
+	fungible::HoldConsideration, AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice,
+	WithdrawReasons,
+};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -35,13 +39,6 @@ use frame_support::{
 	traits::{ConstU32, ConstU64, ConstU8, EitherOfDiverse},
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
-};
-use frame_support::{
-	ord_parameter_types,
-	traits::{
-		fungible::HoldConsideration, AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice,
-		WithdrawReasons,
-	},
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
@@ -1012,6 +1009,7 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_collective, Council]
 		[pallet_escrow, Escrow]
+		[pallet_democracy, Democracy]
 		[pallet_marketplace, Marketplace]
 		[pallet_message_queue, MessageQueue]
 		[pallet_multibatching, Multibatching]
