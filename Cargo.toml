@@ -63,6 +63,7 @@ pallet-aura = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polka
 pallet-authorship = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }
+pallet-democracy = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }
 pallet-membership = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }
 pallet-message-queue = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }                       #TODO check if was deleted from EPT
 pallet-multisig = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-v1.13.0", default-features = false }

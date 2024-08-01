@@ -26,7 +26,6 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use frame_support::traits::{AsEnsureOriginWithArg, InstanceFilter, WithdrawReasons};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -37,9 +36,16 @@ use frame_support::{
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
+use frame_support::{
+	ord_parameter_types,
+	traits::{
+		fungible::HoldConsideration, AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice,
+		WithdrawReasons,
+	},
+};
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
+	EnsureRoot, EnsureSigned,
 };
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -805,6 +811,95 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 }
 
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) *
+	RuntimeBlockWeights::get().max_block;
+	pub const NoPreimagePostponement: Option<u32> = Some(10);
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeCall = RuntimeCall;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = frame_system::EnsureRoot<AccountId>;
+	type OriginPrivilegeCmp = frame_support::traits::EqualPrivilegeOnly;
+	type MaxScheduledPerBlock = ConstU32<512>;
+	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type Preimages = Preimage;
+}
+
+parameter_types! {
+	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub const PreimageByteDeposit: Balance = deposit(0, 1);
+	pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+}
+
+impl pallet_preimage::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
+}
+
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = 28 * 24 * 60 * MINUTES;
+	pub const VotingPeriod: BlockNumber = 28 * 24 * 60 * MINUTES;
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * 24 * 60 * MINUTES;
+	pub const MinimumDeposit: Balance = 10 * MILLI_MUSE;
+	pub const EnactmentPeriod: BlockNumber = 30 * 24 * 60 * MINUTES;
+	pub const CooloffPeriod: BlockNumber = 28 * 24 * 60 * MINUTES;
+	pub const MaxProposals: u32 = 100;
+}
+
+impl pallet_democracy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = EnactmentPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type ExternalMajorityOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>;
+	type ExternalDefaultOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>;
+	type SubmitOrigin = EnsureSigned<AccountId>;
+	type FastTrackOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>;
+	type InstantOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>;
+	type InstantAllowed = ConstBool<true>;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type CancellationOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>;
+	type CancelProposalOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
+	>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
+	type CooloffPeriod = CooloffPeriod;
+	type Slash = ();
+	type Scheduler = Scheduler;
+	type PalletsOrigin = OriginCaller;
+	type MaxVotes = ConstU32<100>;
+	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
+	type MaxProposals = MaxProposals;
+	type Preimages = Preimage;
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -817,6 +912,8 @@ construct_runtime!(
 		// Utility
 		Utility: pallet_utility = 4,
 		Multisig: pallet_multisig = 5,
+		Preimage: pallet_preimage = 6,
+		Scheduler: pallet_scheduler = 7,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -830,6 +927,7 @@ construct_runtime!(
 		// Governance
 		Sudo: pallet_sudo = 15,
 		Council: pallet_collective::<Instance1> = 16,
+		Democracy: pallet_democracy = 17,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
@@ -907,25 +1005,27 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_benchmarking::define_benchmarks!(
-		[frame_system, SystemBench::<Runtime>]
-		[pallet_timestamp, Timestamp]
-		[pallet_balances, Balances]
-		[pallet_multibatching, Multibatching]
-		[pallet_utility, Utility]
 		[cumulus_pallet_parachain_system, ParachainSystem]
-		[pallet_message_queue, MessageQueue]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_session, SessionBench::<Runtime>]
-		[pallet_sudo, Sudo]
-		[pallet_multisig, Multisig]
+		[frame_system, SystemBench::<Runtime>]
+		[pallet_balances, Balances]
 		[pallet_collator_selection, CollatorSelection]
-		[pallet_nfts, Nfts]
-		[pallet_marketplace, Marketplace]
-		[pallet_proxy, Proxy]
-		[pallet_escrow, Escrow]
-		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
+		[pallet_escrow, Escrow]
+		[pallet_marketplace, Marketplace]
+		[pallet_message_queue, MessageQueue]
+		[pallet_multibatching, Multibatching]
+		[pallet_multisig, Multisig]
 		[pallet_myth_proxy, MythProxy]
+		[pallet_nfts, Nfts]
+		[pallet_preimage, Preimage]
+		[pallet_proxy, Proxy]
+		[pallet_session, SessionBench::<Runtime>]
+		[pallet_scheduler, Scheduler]
+		[pallet_sudo, Sudo]
+		[pallet_timestamp, Timestamp]
+		[pallet_vesting, Vesting]
+		[pallet_utility, Utility]
 	);
 }
 
