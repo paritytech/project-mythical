@@ -23,6 +23,7 @@ smallvec = { workspace = true }
 
 # Local
 runtime-common = { workspace = true, default-features = false }
+pallet-dmarket = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
@@ -120,6 +121,7 @@ std = [
   "pallet-balances/std",
   "pallet-collator-selection/std",
   "pallet-collective/std",
+  "pallet-dmarket/std",
   "pallet-multibatching/std",
   "pallet-marketplace/std",
   "pallet-multisig/std",
@@ -170,6 +172,7 @@ runtime-benchmarks = [
   "pallet-collator-selection/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
+  "pallet-dmarket/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-multibatching/runtime-benchmarks",
@@ -204,6 +207,7 @@ try-runtime = [
   "pallet-balances/try-runtime",
   "pallet-collator-selection/try-runtime",
   "pallet-collective/try-runtime",
+  "pallet-dmarket/try-runtime",
   "pallet-multibatching/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-multisig/try-runtime",
