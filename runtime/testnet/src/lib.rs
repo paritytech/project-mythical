@@ -666,7 +666,7 @@ impl pallet_dmarket::Config for Runtime {
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type Domain = DOMAIN;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_dmarket::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }
