@@ -130,6 +130,7 @@ impl crate::Config for Test {
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type Domain = DOMAIN;
+	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }

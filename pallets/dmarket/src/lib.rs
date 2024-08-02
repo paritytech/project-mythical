@@ -81,6 +81,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type Domain: Get<Domain>;
 
+		/// Type representing the weight of this pallet
+		type WeightInfo: WeightInfo;
+
 		#[cfg(feature = "runtime-benchmarks")]
 		/// A set of helper functions for benchmarking.
 		type BenchmarkHelper: BenchmarkHelper<Self::CollectionId, Self::Moment>;
@@ -145,7 +148,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::force_set_collection())]
 		pub fn force_set_collection(
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
@@ -166,7 +169,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(1)]
-		#[pallet::weight({0})]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_trade())]
 		pub fn execute_trade(
 			origin: OriginFor<T>,
 			seller: T::AccountId,
