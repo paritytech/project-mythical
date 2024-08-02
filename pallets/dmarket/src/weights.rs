@@ -38,26 +38,13 @@ use core::marker::PhantomData;
 
 /// Weight functions needed for `pallet_dmarket`.
 pub trait WeightInfo {
-	fn force_set_balance_manager() -> Weight;
 	fn force_set_collection() -> Weight;
-	fn set_fee_address() -> Weight;
 	fn execute_trade() -> Weight;
 }
 
 /// Weights for `pallet_dmarket` using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 	impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	/// Storage: `Dmarket::BalanceManager` (r:1 w:1)
-	/// Proof: `Dmarket::BalanceManager` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	fn force_set_balance_manager() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `76`
-		//  Estimated: `1505`
-		// Minimum execution time: 4_650_000 picoseconds.
-		Weight::from_parts(4_920_000, 1505)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
 	/// Storage: `Nfts::Collection` (r:1 w:0)
 	/// Proof: `Nfts::Collection` (`max_values`: None, `max_size`: Some(145), added: 2620, mode: `MaxEncodedLen`)
 	/// Storage: `Dmarket::DmarketCollection` (r:1 w:1)
@@ -68,19 +55,6 @@ pub struct SubstrateWeight<T>(PhantomData<T>);
 		//  Estimated: `3610`
 		// Minimum execution time: 10_150_000 picoseconds.
 		Weight::from_parts(10_390_000, 3610)
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Dmarket::BalanceManager` (r:1 w:0)
-	/// Proof: `Dmarket::BalanceManager` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	/// Storage: `Dmarket::FeeAddress` (r:1 w:1)
-	/// Proof: `Dmarket::FeeAddress` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	fn set_fee_address() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `120`
-		//  Estimated: `1505`
-		// Minimum execution time: 6_770_000 picoseconds.
-		Weight::from_parts(7_020_000, 1505)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -125,17 +99,6 @@ pub struct SubstrateWeight<T>(PhantomData<T>);
 
 // For backwards compatibility and tests.
 impl WeightInfo for () {
-	/// Storage: `Dmarket::BalanceManager` (r:1 w:1)
-	/// Proof: `Dmarket::BalanceManager` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	fn force_set_balance_manager() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `76`
-		//  Estimated: `1505`
-		// Minimum execution time: 4_650_000 picoseconds.
-		Weight::from_parts(4_920_000, 1505)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
 	/// Storage: `Nfts::Collection` (r:1 w:0)
 	/// Proof: `Nfts::Collection` (`max_values`: None, `max_size`: Some(145), added: 2620, mode: `MaxEncodedLen`)
 	/// Storage: `Dmarket::DmarketCollection` (r:1 w:1)
@@ -146,19 +109,6 @@ impl WeightInfo for () {
 		//  Estimated: `3610`
 		// Minimum execution time: 10_150_000 picoseconds.
 		Weight::from_parts(10_390_000, 3610)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Dmarket::BalanceManager` (r:1 w:0)
-	/// Proof: `Dmarket::BalanceManager` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	/// Storage: `Dmarket::FeeAddress` (r:1 w:1)
-	/// Proof: `Dmarket::FeeAddress` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
-	fn set_fee_address() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `120`
-		//  Estimated: `1505`
-		// Minimum execution time: 6_770_000 picoseconds.
-		Weight::from_parts(7_020_000, 1505)
 			.saturating_add(RocksDbWeight::get().reads(2_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
