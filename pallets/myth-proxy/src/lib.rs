@@ -300,7 +300,7 @@ pub mod pallet {
 			new_origin.add_filter(move |c: &<T as frame_system::Config>::RuntimeCall| {
 				let c = <T as Config>::RuntimeCall::from_ref(c);
 
-				match c.is_sub_type() {
+				let partial = match c.is_sub_type() {
 					// Proxy call cannot add a proxy with more permissions than it already has.
 					Some(Call::add_proxy { ref proxy_type, .. })
 						if !proxy_def.proxy_type.is_superset(proxy_type) =>
@@ -319,8 +319,10 @@ pub mod pallet {
 							None => true,
 						}
 					},
-					_ => proxy_def.proxy_type.filter(c),
-				}
+					_ => true,
+				};
+
+				partial && proxy_def.proxy_type.filter(c)
 			});
 
 			let result = call.clone().dispatch(new_origin);

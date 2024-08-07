@@ -22,7 +22,7 @@ use crate::{
 /// (it is based/calculated on ChainSpec's 'chain_spec' attribute)
 #[derive(Debug, PartialEq, Default)]
 enum Runtime {
-	/// This is the default runtime (actually based on rococo)
+	/// This is the default runtime
 	#[default]
 	Default,
 	Testnet,
@@ -85,9 +85,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 			let path: PathBuf = path.into();
 			match path.runtime() {
 				Runtime::Testnet | Runtime::Default => {
-					Box::new(chain_spec::TestnetChainSpec::from_json_file(path)?)
+					Box::new(GenericChainSpec::from_json_file(path)?)
 				},
-				Runtime::Mainnet => Box::new(chain_spec::MainChainSpec::from_json_file(path)?),
+				Runtime::Mainnet => Box::new(GenericChainSpec::from_json_file(path)?),
 			}
 		},
 	})

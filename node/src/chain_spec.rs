@@ -8,19 +8,7 @@ use sp_core::{crypto::UncheckedInto, ecdsa, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use sp_runtime::Percent;
 
-use mainnet_runtime;
-use testnet_runtime;
-
-/// Specialized `ChainSpec` for the normal parachain runtime.
-pub type MainChainSpec =
-	sc_service::GenericChainSpec<mainnet_runtime::RuntimeGenesisConfig, Extensions>;
-
-/// Specialized `ChainSpec` for the development parachain runtime.
-pub type TestnetChainSpec =
-	sc_service::GenericChainSpec<testnet_runtime::RuntimeGenesisConfig, Extensions>;
-
-/// Generic chain spec for parachain runtimes.
-pub type GenericChainSpec = sc_service::GenericChainSpec<(), Extensions>;
+pub type GenericChainSpec = sc_service::GenericChainSpec<Extensions>;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
@@ -82,7 +70,7 @@ pub mod testnet {
 	use testnet_runtime::MUSE;
 
 	use super::*;
-	pub fn development_config() -> TestnetChainSpec {
+	pub fn development_config() -> GenericChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
@@ -92,10 +80,13 @@ pub mod testnet {
 
 		let balance_per_account = (1_000_000_000 * MUSE).saturating_div(6);
 
-		TestnetChainSpec::builder(
+		GenericChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
-				relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
+				#[cfg(feature = "paseo")]
+				relay_chain: "paseo-local".into(),
+				#[cfg(not(feature = "paseo"))]
+				relay_chain: "rococo-local".into(),
 				para_id: PARA_ID,
 			},
 		)
@@ -154,7 +145,7 @@ pub mod testnet {
 		.build()
 	}
 
-	pub fn testnet_config() -> TestnetChainSpec {
+	pub fn testnet_config() -> GenericChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MUSE".into());
@@ -162,10 +153,13 @@ pub mod testnet {
 		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
-		TestnetChainSpec::builder(
+		GenericChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			Extensions {
-				relay_chain: "rococo".into(), // You MUST set this to the correct network!
+				#[cfg(feature = "paseo")]
+				relay_chain: "paseo".into(),
+				#[cfg(not(feature = "paseo"))]
+				relay_chain: "rococo".into(),
 				para_id: PARA_ID,
 			},
 		)
@@ -253,7 +247,7 @@ pub mod mainnet {
 	use mainnet_runtime::MYTH;
 
 	use super::*;
-	pub fn development_config() -> MainChainSpec {
+	pub fn development_config() -> GenericChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());
@@ -263,7 +257,7 @@ pub mod mainnet {
 
 		let balance_per_account = (1_000_000_000 * MYTH).saturating_div(6);
 
-		MainChainSpec::builder(
+		GenericChainSpec::builder(
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
 				relay_chain: "polkadot-local".into(), // You MUST set this to the correct network!
@@ -320,7 +314,7 @@ pub mod mainnet {
 		.build()
 	}
 
-	pub fn _mainnet_config() -> MainChainSpec {
+	pub fn _mainnet_config() -> GenericChainSpec {
 		// Give your base currency a unit name and decimal places
 		let mut properties = sc_chain_spec::Properties::new();
 		properties.insert("tokenSymbol".into(), "MYTH".into());
@@ -328,7 +322,7 @@ pub mod mainnet {
 		properties.insert("ss58Format".into(), 29972.into());
 		properties.insert("isEthereum".into(), true.into());
 
-		MainChainSpec::builder(
+		GenericChainSpec::builder(
 			mainnet_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 			Extensions {
 				relay_chain: "polkadot".into(), // You MUST set this to the correct network!

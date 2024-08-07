@@ -5,14 +5,14 @@
 //! DATE: 2024-07-27, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `bdl-ref-hw`, CPU: `AMD EPYC 7232P 8-Core Processor`
-//! WASM-EXECUTION: `Compiled`, CHAIN: `Some("local-v")`, DB CACHE: 1024
+//! WASM-EXECUTION: `Compiled`, CHAIN: `Some("mainnet-local-v")`, DB CACHE: 1024
 
 // Executed Command:
 // ./target/release/mythos-node
 // benchmark
 // pallet
 // --chain
-// local-v
+// mainnet-local-v
 // --pallet
 // pallet_myth_proxy
 // --extrinsic
@@ -24,7 +24,7 @@
 // --repeat
 // 20
 // --output
-// ./runtime/testnet/src/weights/pallet_myth_proxy.rs
+// ./runtime/mainnet/src/weights/pallet_myth_proxy.rs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -53,8 +53,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `454`
 		//  Estimated: `3581`
-		// Minimum execution time: 92_281_000 picoseconds.
-		Weight::from_parts(93_551_000, 0)
+		// Minimum execution time: 91_951_000 picoseconds.
+		Weight::from_parts(93_691_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().writes(5))
@@ -69,8 +69,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `413`
 		//  Estimated: `3581`
-		// Minimum execution time: 67_171_000 picoseconds.
-		Weight::from_parts(68_061_000, 0)
+		// Minimum execution time: 68_410_000 picoseconds.
+		Weight::from_parts(69_100_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -81,8 +81,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `247`
 		//  Estimated: `3559`
-		// Minimum execution time: 23_530_000 picoseconds.
-		Weight::from_parts(24_190_000, 0)
+		// Minimum execution time: 23_550_000 picoseconds.
+		Weight::from_parts(24_550_000, 0)
 			.saturating_add(Weight::from_parts(0, 3559))
 			.saturating_add(T::DbWeight::get().reads(1))
 	}
@@ -96,8 +96,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `227`
 		//  Estimated: `3521`
-		// Minimum execution time: 22_710_000 picoseconds.
-		Weight::from_parts(23_680_000, 0)
+		// Minimum execution time: 22_761_000 picoseconds.
+		Weight::from_parts(23_150_000, 0)
 			.saturating_add(Weight::from_parts(0, 3521))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -108,8 +108,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `147`
 		//  Estimated: `3521`
-		// Minimum execution time: 16_850_000 picoseconds.
-		Weight::from_parts(17_690_000, 0)
+		// Minimum execution time: 17_180_000 picoseconds.
+		Weight::from_parts(17_590_000, 0)
 			.saturating_add(Weight::from_parts(0, 3521))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -122,8 +122,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `227`
 		//  Estimated: `3521`
-		// Minimum execution time: 21_240_000 picoseconds.
-		Weight::from_parts(21_740_000, 0)
+		// Minimum execution time: 21_070_000 picoseconds.
+		Weight::from_parts(21_561_000, 0)
 			.saturating_add(Weight::from_parts(0, 3521))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -138,8 +138,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `413`
 		//  Estimated: `3581`
-		// Minimum execution time: 66_631_000 picoseconds.
-		Weight::from_parts(67_820_000, 0)
+		// Minimum execution time: 67_261_000 picoseconds.
+		Weight::from_parts(68_351_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -154,8 +154,8 @@ impl<T: frame_system::Config> pallet_myth_proxy::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `423`
 		//  Estimated: `6124`
-		// Minimum execution time: 34_220_000 picoseconds.
-		Weight::from_parts(35_021_000, 0)
+		// Minimum execution time: 33_760_000 picoseconds.
+		Weight::from_parts(34_790_000, 0)
 			.saturating_add(Weight::from_parts(0, 6124))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(2))

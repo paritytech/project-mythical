@@ -1,0 +1,38 @@
+# Action checks that the docker image can be built
+# It doesn't push the image to the registry
+name: Build Docker image
+
+on:
+  push:
+    branches:
+      - release-**
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Disable previous runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: arc-runners-project-mythical
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        with:
+          images: "paritypr/project-mythical"
+
+      - name: Build docker image
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #v5.0.0
+        with:
+          file: docker/Dockerfile
+          build-args: environment="testnet"
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

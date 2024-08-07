@@ -39,7 +39,6 @@ use core::marker::PhantomData;
 /// Weight functions needed for `pallet_multibatching`.
 pub trait WeightInfo {
 	fn batch(c: u32, s: u32, ) -> Weight;
-	fn force_set_domain() -> Weight;
 }
 
 /// Weights for `pallet_multibatching` using the Substrate node and recommended hardware.
@@ -66,17 +65,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `Multibatching::Domain` (r:1 w:1)
-	/// Proof: `Multibatching::Domain` (`max_values`: Some(1), `max_size`: Some(32), added: 527, mode: `MaxEncodedLen`)
-	fn force_set_domain() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1517`
-		// Minimum execution time: 5_000_000 picoseconds.
-		Weight::from_parts(5_000_000, 1517)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
 }
 
 // For backwards compatibility and tests.
@@ -100,17 +88,6 @@ impl WeightInfo for () {
 			// Standard Error: 160_912
 			.saturating_add(Weight::from_parts(27_710_194, 0).saturating_mul(s.into()))
 			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Multibatching::Domain` (r:1 w:1)
-	/// Proof: `Multibatching::Domain` (`max_values`: Some(1), `max_size`: Some(32), added: 527, mode: `MaxEncodedLen`)
-	fn force_set_domain() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1517`
-		// Minimum execution time: 5_000_000 picoseconds.
-		Weight::from_parts(5_000_000, 1517)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
 }
