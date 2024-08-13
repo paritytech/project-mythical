@@ -663,6 +663,15 @@ impl pallet_dmarket::Config for Runtime {
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type Domain = DOMAIN;
+	type WeightInfo = weights::pallet_dmarket::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+impl pallet_migration::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
@@ -861,6 +870,7 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -936,6 +946,7 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
+		[pallet_migration, Migration]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_vesting, Vesting]

@@ -45,6 +45,7 @@ testnet-runtime = { path = "runtime/testnet" }
 mainnet-runtime = { path = "runtime/mainnet" }
 pallet-dmarket = { path = "pallets/dmarket", default-features = false }
 pallet-marketplace = { path = "pallets/marketplace", default-features = false }
+pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
