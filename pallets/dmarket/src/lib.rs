@@ -119,34 +119,48 @@ pub mod pallet {
 		ItemNotFound,
 		/// Item can only be operated by the Item owner.
 		SellerNotItemOwner,
-		///
+		/// The bid with the provided parameters has already been executed
 		BidAlreadyExecuted,
-		///
+		/// The ask with the provided parameters has already been executed
 		AskAlreadyExecuted,
-		///
+		/// Buyer balance is not enough to pay for trade costs
 		BuyerBalanceTooLow,
-		///
+		/// Bid expiration timestamp must be in the future
 		BidExpired,
-		///
+		/// Ask expiration timestamp must be in the future
 		AskExpired,
-		///
+		/// The signature provided by the buyer is invalid
 		InvalidBuyerSignature,
-		///
+		/// The signature provided by the seller is invalid
 		InvalidSellerSignature,
 		/// Same buyer and seller not allowed.
 		BuyerIsSeller,
-		///
+		/// Invalid Signed message
 		BadSignedMessage,
-		///
+		/// Dmarket collection already set to the provided value.
 		CollectionAlreadyInUse,
-		///
+		/// Dmarket collection has not been set
 		CollectionNotSet,
-		///
+		/// The provided Dmarket collect was not found
 		CollectionNotFound,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Sets the Dmarket collection.
+		///
+		/// Only the root origin can execute this function.
+		///
+		/// Precondition:
+		/// - The collection must already exist, otherwise the extrinsic will fail.
+		///
+		/// Parameters:
+		/// - `collection_id`: The collectionID of the NFT collection to be set as the Dmarket Collection.
+		///
+		///
+		/// Emits CollectionUpdated when successful.
+		///
+		/// Weight: `WeightInfo::force_set_collection` (defined in the `Config` trait).
 		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_collection())]
 		pub fn force_set_collection(
@@ -168,6 +182,30 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Execute a trade between a seller and a buyer for a specific NFT (item) in the configured DmarketCollection.
+		///
+		/// Preconditions:
+		/// - The seller and buyer must be different accounts.
+		/// - The seller must be the current owner of the NFT item.
+		/// - The trade must not be expired, and signatures provided must be valid.
+		///
+		/// Parameters:
+		/// - `origin`: The origin of the call, which must be part of the signed message of both seller and buyer.
+		/// - `seller`: The account ID of the seller who owns the NFT item.
+		/// - `buyer`: The account ID of the buyer who will purchase the NFT item.
+		/// - `trade`: The parameters of the trade, including item details, prices, and expiration times.
+		/// - `signatures`: The signatures from both the seller and buyer authorizing the trade.
+		/// - `fee_address`: The account ID where the transaction fee will be transferred.
+		///
+		/// Signed message schema:
+		/// - Ask: (domain, sender, fee_address, item, price, expiration).
+		/// - Bid: (domain, sender, fee_address, item, price, fee, expiration).
+		///
+		/// Only callable if origin matches `sender` in both Ask and Bid signed messages.
+		///
+		/// Emits `Trade` event upon successful execution.
+		///
+		/// Weight: `WeightInfo::execute_trade` (defined in the `Config` trait).
 		#[pallet::call_index(1)]
 		#[pallet::weight(<T as Config>::WeightInfo::execute_trade())]
 		pub fn execute_trade(
