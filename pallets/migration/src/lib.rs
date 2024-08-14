@@ -10,8 +10,6 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
-use parity_scale_codec::Codec;
-
 pub use pallet::*;
 
 #[frame_support::pallet]

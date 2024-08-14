@@ -1,8 +1,6 @@
 use frame_support::{
-	derive_impl,
-	pallet_prelude::DispatchResult,
-	parameter_types,
-	traits::{tokens::fungible::Mutate, ConstU128, ConstU32, ConstU64},
+	derive_impl, parameter_types,
+	traits::{ConstU128, ConstU32, ConstU64},
 	PalletId,
 };
 use frame_system as system;
@@ -114,6 +112,7 @@ impl pallet_dmarket::Config for Test {
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type Domain = DOMAIN;
+	type WeightInfo = ();
 	pallet_dmarket::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = ();
 	}
