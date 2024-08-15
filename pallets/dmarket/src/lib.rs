@@ -249,6 +249,13 @@ pub mod pallet {
 			)
 			.map_err(|_| Error::<T>::InvalidBuyerSignature)?;
 
+			let order_data: OrderDataOf<T> =
+				OrderData { caller: who, fee_address: fee_address.clone() };
+
+			//Store closed trades
+			ClosedAsks::<T>::insert(ask_hash, order_data.clone());
+			ClosedBids::<T>::insert(bid_hash, order_data);
+
 			<pallet_nfts::Pallet<T> as Transfer<T::AccountId>>::transfer(
 				&collection,
 				&trade.item,
@@ -257,12 +264,6 @@ pub mod pallet {
 			<T as crate::Config>::Currency::transfer(&buyer, &seller, trade.price, Preserve)
 				.map_err(|_| Error::<T>::BuyerBalanceTooLow)?;
 			<T as crate::Config>::Currency::transfer(&seller, &fee_address, trade.fee, Preserve)?;
-
-			let order_data: OrderDataOf<T> = OrderData { caller: who, fee_address };
-
-			//Store closed trades
-			ClosedAsks::<T>::insert(ask_hash, order_data.clone());
-			ClosedBids::<T>::insert(bid_hash, order_data);
 
 			Self::deposit_event(Event::Trade {
 				seller,
