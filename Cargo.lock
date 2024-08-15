@@ -2466,6 +2466,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "custom-pool"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "sc-client-api",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+ "substrate-prometheus-endpoint",
+]
+
+[[package]]
 name = "cxx"
 version = "1.0.121"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5888,7 +5903,7 @@ dependencies = [
 
 [[package]]
 name = "mythos-node"
-version = "1.13.0"
+version = "1.13.8"
 dependencies = [
  "clap",
  "color-print",
@@ -5905,6 +5920,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
  "cumulus-relay-chain-rpc-interface",
+ "custom-pool",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures",
