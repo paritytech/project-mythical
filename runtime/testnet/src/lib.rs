@@ -114,7 +114,6 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
@@ -672,7 +671,7 @@ impl pallet_migration::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }
