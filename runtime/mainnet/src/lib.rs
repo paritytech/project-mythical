@@ -949,6 +949,7 @@ mod benches {
 		[pallet_collective, Council]
 		[pallet_myth_proxy, MythProxy]
 		[pallet_dmarket, Dmarket]
+		[pallet_migration, Migration]
 	);
 }
 
