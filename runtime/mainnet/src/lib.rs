@@ -14,6 +14,7 @@ use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use frame_support::traits::{AsEnsureOriginWithArg, InstanceFilter, WithdrawReasons};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_primitives::Moment;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
@@ -42,6 +43,7 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
+use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
@@ -680,6 +682,27 @@ impl pallet_escrow::Config for Runtime {
 	type WeightInfo = weights::pallet_escrow::WeightInfo<Runtime>;
 }
 
+impl pallet_dmarket::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type Domain = DOMAIN;
+	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+impl pallet_migration::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
 impl pallet_myth_proxy::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
@@ -844,9 +867,11 @@ construct_runtime!(
 		//Other
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
+		Dmarket: pallet_dmarket = 52,
 	}
 );
 
@@ -923,6 +948,7 @@ mod benches {
 		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
 		[pallet_myth_proxy, MythProxy]
+		[pallet_dmarket, Dmarket]
 	);
 }
 
@@ -1075,6 +1101,18 @@ impl_runtime_apis! {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
+		}
+	}
+
+	impl pallet_dmarket::DmarketApi<Block, AccountId, Balance, Moment, Hash> for Runtime {
+		fn hash_ask_bid_data(trade: TradeParams<Balance, Item, u64>)-> (Hash, Hash) {
+			Dmarket::hash_ask_bid_data(&trade)
+		}
+		fn get_ask_message(caller: AccountId, fee_address: AccountId, trade: TradeParams<Balance, Item, Moment>) -> Vec<u8> {
+			Dmarket::get_ask_message(&caller, &fee_address, &trade)
+		}
+		fn get_bid_message(caller: AccountId, fee_address: AccountId, trade: TradeParams<Balance, Item, Moment>) -> Vec<u8> {
+			Dmarket::get_bid_message(&caller, &fee_address, &trade)
 		}
 	}
 
