@@ -548,7 +548,7 @@ where
 		relay_chain_slot_duration,
 		proposer,
 		collator_service,
-		authoring_duration: Duration::from_millis(1500),
+		authoring_duration: Duration::from_millis(2000),
 		reinitialize: false,
 	};
 
