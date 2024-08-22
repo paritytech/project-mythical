@@ -227,7 +227,7 @@ pub mod pallet {
 		///
 		/// Weight: `WeightInfo::force_mint` (defined in the `Config` trait).
 		#[pallet::call_index(3)]
-		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint())]
+		#[pallet::weight(<T as pallet_nfts::Config>::WeightInfo::force_mint().saturating_add(T::DbWeight::get().reads(2_u64)))]
 		pub fn force_mint(
 			origin: OriginFor<T>,
 			item: ItemId,
