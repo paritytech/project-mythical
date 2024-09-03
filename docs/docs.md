@@ -107,7 +107,8 @@ The Mythos parachain includes the following standard FRAME pallets:
     - **Purpose**: Manages the vesting of tokens over time.
 
 16. **[pallet-utility](https://crates.io/crates/pallet-utility)**
-- **Purpose**: Helpers for dispatch management such as transaction batching.
+    - **Purpose**: Helpers for dispatch management such as transaction batching.
+
 
 ### Custom pallets
 
