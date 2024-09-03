@@ -44,12 +44,12 @@ To bootstrap a local instance of the blockchain, use the script [./zombienet.sh]
 ./zombienet.sh testnet
 
 ### Mainnet - Mythos local network.
-./zombienet.sh testnet
+./zombienet.sh mainnet
 ```
 
 ## Integrations
 
-Mythos is integrated with the following HRMP (Horizontal Relay-Chain Messaging Protocol) channels:
+Mythos is currently integrated with the following HRMP (Horizontal Relay-Chain Messaging Protocol) channels:
 
 - **[AssetHub](https://parachains.info/details/assethub_polkadot)**: For asset management and transfers.
 - **[HydraDX](https://parachains.info/details/hydration)**: For decentralized liquidity provision and swaps.
@@ -106,13 +106,16 @@ The Mythos parachain includes the following standard FRAME pallets:
 15. **[pallet-vesting](https://crates.io/crates/pallet-vesting)**
     - **Purpose**: Manages the vesting of tokens over time.
 
+16. **[pallet-utility](https://crates.io/crates/pallet-utility)**
+- **Purpose**: Helpers for dispatch management such as transaction batching.
+
 ### Custom pallets
 
 The Mythos parachain includes several custom pallets that enhance its functionality:
 
 1. **[pallet-dmarket](../pallets/dmarket/src/lib.rs)**
 	- **Description**: Provides a marketplace for buying and selling NFTs.
-	- **Functionality**: Manages NFTs through the pallet-nfts.
+	- **Functionality**: Manages trading NFTs through the pallet-nfts.
 
 2. **[pallet-escrow](../pallets/escrow/src/lib.rs)**
 	- **Description**: Implements a framework for managing funds held in escrow.
