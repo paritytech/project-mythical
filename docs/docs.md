@@ -47,7 +47,7 @@ To bootstrap a local instance of the blockchain, use the script [./zombienet.sh]
 ./zombienet.sh mainnet
 ```
 
-## Integrations
+## XCM Channels
 
 Mythos is currently integrated with the following HRMP (Horizontal Relay-Chain Messaging Protocol) channels:
 
@@ -137,10 +137,3 @@ The Mythos parachain includes several custom pallets that enhance its functional
 6. **[pallet-myth-proxy](../pallets/myth-proxy/src/lib.rs)**
 	- **Description**: A proxy module that allows account delegation.
 	- **Functionality**: Enhances security and resource management by enabling accounts to delegate tasks to other accounts.
-
-
-## Conclusion
-
-The Mythos parachain is dedicated to democratizing the gaming world by enabling players and creators to actively participate in and benefit from the value chain.
-Through its support for multi-chain ecosystems, unified marketplaces, decentralized financial systems, and governance mechanisms, Mythos aims to provide a comprehensive platform that empowers stakeholders within the Web3 gaming space.
-With a focus on reducing barriers to entry for game developers and expanding the reach of interactive experiences, Mythos strives to drive innovation and inclusivity in the gaming industry.
