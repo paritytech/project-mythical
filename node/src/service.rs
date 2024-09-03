@@ -486,7 +486,7 @@ fn start_consensus<RuntimeApi, Executor>(
 	transaction_pool: Arc<
 		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>,
 	>,
-	sync_oracle: Arc<SyncingService<Block>>,
+	_sync_oracle: Arc<SyncingService<Block>>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
