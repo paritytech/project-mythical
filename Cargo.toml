@@ -124,7 +124,7 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk", t
 cumulus-primitives-aura = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 cumulus-client-cli = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
-cumulus-client-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
+cumulus-client-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", features = ["full-pov-size"] }
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
 cumulus-client-collator = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
 cumulus-client-service = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
