@@ -143,12 +143,12 @@ The Mythos parachain includes several custom pallets that enhance its functional
 
 ### AccountId20 and EthereumSignature Support
 
-The Mythos parachain uses **AccountId20** and **EthereumSignature** to support interoperability and integration with Ethereum-based assets and identities.
+The Mythos parachain uses **AccountId20** and **EthereumSignature** to maintain compatibility with Ethereum-based systems.
 20-byte `AccountId20` allows for compatibility with Ethereum-style addresses, while `EthereumSignature` enables the verification of transactions and signatures originating from Ethereum accounts by checking the keccak256-hashed payload with ECDSA signature schemas.
 
 ### XCM Configuration
 
-Mythos is integrated with **AssetHub** and **Snowbridge**, allowing it to receive the original [MYTH ERC20 token](https://etherscan.io/address/0xba41ddf06b7ffd89d1267b5a93bfef2424eb2003) from Ethereum and interact with other parachains in the Polkadot ecosystem.
+Mythos is integrated with **AssetHub** and **Snowbridge**, allowing it to receive the original [MYTH ERC20 token](https://etherscan.io/address/0xba41ddf06b7ffd89d1267b5a93bfef2424eb2003) from Ethereum mainnet and interact with other parachains in the Polkadot ecosystem.
 The XCM configuration facilitates seamless asset transfers and cross-chain communication, which is crucial for supporting multi-chain interactions and decentralized financial activities.
 
 ### Benchmarking Hardware
@@ -165,7 +165,7 @@ This configuration ensures optimal performance and reliability for validating an
 ### Consensus Details
 
 **Collator Selection**:
-- Mythos uses the **Collator Selection** pallet to manage the selection and management of collators who produce blocks and validate transactions.This pallet ensures that the selection process is fair and transparent, providing incentives for collators to act honestly.
+- Mythos uses the **Collator Selection** pallet to manage the selection and management of collators who produce blocks and validate transactions. This pallet ensures that the selection process is fair and transparent, providing incentives for collators to act honestly.
 
 **Aura**:
 - **Aura** (Authority Round) is the consensus mechanism employed by Mythos for block production. Aura facilitates the production of blocks in a round-robin fashion, ensuring that blocks are produced in a timely manner and that the network remains secure.
