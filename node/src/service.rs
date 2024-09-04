@@ -255,7 +255,6 @@ where
 		&TaskManager,
 		Arc<dyn RelayChainInterface>,
 		Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>>,
-		Arc<SyncingService<Block>>,
 		KeystorePtr,
 		Duration,
 		ParaId,
@@ -418,7 +417,6 @@ where
 			&task_manager,
 			relay_chain_interface.clone(),
 			transaction_pool,
-			sync_service.clone(),
 			params.keystore_container.keystore(),
 			relay_chain_slot_duration,
 			para_id,
@@ -486,7 +484,6 @@ fn start_consensus<RuntimeApi, Executor>(
 	transaction_pool: Arc<
 		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>,
 	>,
-	_sync_oracle: Arc<SyncingService<Block>>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
