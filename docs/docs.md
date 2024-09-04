@@ -143,17 +143,32 @@ The Mythos parachain includes several custom pallets that enhance its functional
 
 ### AccountId20 and EthereumSignature Support
 
-The Mythos parachain uses **AccountId20** and **EthereumSignature** to maintain compatibility with Ethereum-based systems.
-20-byte `AccountId20` allows for compatibility with Ethereum-style addresses, while `EthereumSignature` enables the verification of transactions and signatures originating from Ethereum accounts by checking the keccak256-hashed payload with ECDSA signature schemas.
+The Mythos parachain uses [**AccountId20** and **EthereumSignature**](../primitives/account/src/lib.rs) to maintain compatibility with Ethereum-based systems.
+
+- **AccountId20**: This is a 20-byte (160-bit) address format, similar to Ethereum addresses.
+  This compatibility allows Mythos to integrate with Ethereum wallets and services, providing a familiar experience for users migrating from or interacting with Ethereum-based platforms.
+
+- **EthereumSignature**: Mythos utilizes Ethereum's signature scheme to verify the authenticity of transactions signed by Ethereum accounts.
+  This is particularly important for cross-chain asset transfers and interactions where Ethereum accounts are involved.
+  By supporting Ethereum signatures, Mythos enhances its ability to interact with Ethereum-based decentralized applications (dApps) and services.
 
 ### XCM Configuration
 
-Mythos is integrated with **AssetHub** and **Snowbridge**, allowing it to receive the original [MYTH ERC20 token](https://etherscan.io/address/0xba41ddf06b7ffd89d1267b5a93bfef2424eb2003) from Ethereum mainnet and interact with other parachains in the Polkadot ecosystem.
-The XCM configuration facilitates seamless asset transfers and cross-chain communication, which is crucial for supporting multi-chain interactions and decentralized financial activities.
+The Mythos parachain leverages the **[XCM (Cross-Consensus Messaging)](https://wiki.polkadot.network/docs/learn/xcm)** framework to facilitate cross-chain communication and asset transfers within the Polkadot ecosystem and beyond.
+
+- **Integration with [AssetHub](https://parachains.info/details/assethub)**: AssetHub acts as a centralized point for managing and transferring assets across parachains.
+  Mythos’ integration with AssetHub ensures that users can easily transfer assets between Mythos and other parachains in the Polkadot ecosystem.
+
+- **[Snowbridge](https://wiki.polkadot.network/docs/general/dune-analytics/snowbridge-dashboards) and Ethereum Integration**:
+  Snowbridge provides a trustless bridge between Polkadot and Ethereum, allowing assets and data to flow seamlessly between the two networks.
+  Mythos’ integration with Snowbridge means it can receive and manage the [original $MYTH](https://etherscan.io/address/0xba41ddf06b7ffd89d1267b5a93bfef2424eb2003) token originally minted on Ethereum, facilitating interoperability with the broader Ethereum ecosystem.
+
+The XCM configuration on Mythos ensures secure, efficient, and scalable cross-chain operations, allowing for robust interactions across various chains and networks.
+
 
 ### Benchmarking Hardware
 
-The standard hardware setup for Polkadot validators is used for benchmarking Mythos. This typically includes:
+The standard [hardware setup](https://wiki.polkadot.network/docs/maintain-guides-how-to-validate-polkadot#reference-hardware) for Polkadot validators is used for benchmarking Mythos. This typically includes:
 
 - **CPU**: 8 cores, 16 threads.
 - **RAM**: 32 GB.
@@ -164,14 +179,20 @@ This configuration ensures optimal performance and reliability for validating an
 
 ### Consensus Details
 
-**Collator Selection**:
-- Mythos uses the **Collator Selection** pallet to manage the selection and management of collators who produce blocks and validate transactions. This pallet ensures that the selection process is fair and transparent, providing incentives for collators to act honestly.
+#### Collator Selection
+- Mythos uses the **[Collator Selection](https://crates.io/crates/pallet-collator-selection)** pallet to manage the selection and management of collators who produce blocks and validate transactions.
+  This pallet ensures that the selection process is fair and transparent, providing incentives for collators to act honestly.
+- **Collators**: These are nodes that gather transactions, create blocks, and submit them to the relay chain for finalization. The selection process is designed to be transparent and fair, incentivizing collators to act in the best interest of the network. Collators are rewarded for their participation, encouraging them to maintain high availability and performance.
 
-**Aura**:
-- **Aura** (Authority Round) is the consensus mechanism employed by Mythos for block production. Aura facilitates the production of blocks in a round-robin fashion, ensuring that blocks are produced in a timely manner and that the network remains secure.
+#### Aura
+- **[Aura](https://crates.io/crates/pallet-aura)** is a Proof-of-Authority (PoA) consensus algorithm where a set of pre-approved authorities (collators) are responsible for producing blocks in a round-robin fashion.
+  This ensures that blocks are produced regularly and efficiently, with minimal delays between them.
+- **Security and Efficiency**: Aura is known for its low-latency block production, which is critical for applications requiring quick transaction confirmations, such as gaming platforms.
+  Aura’s deterministic nature helps prevent forks and ensures that the blockchain progresses smoothly.
+
 
 ### Finality and Average Time to Finality
 
-- **Finality**: The Mythos parachain achieves finality through the Polkadot network's shared security model, which provides robust and reliable finality guarantees.
+- **Finality**: The Mythos parachain achieves finality through the Polkadot network's [shared security model](https://wiki.polkadot.network/docs/learn-parachains#parachain-benefits), which provides robust and reliable finality guarantees.
 
 - **Average Time to Finality**: The Mythos blockchain uses [asynchronous backing](https://wiki.polkadot.network/docs/learn-async-backing), which implies that the average time to finality on Mythos is approximately **6 seconds**, which is consistent with the Polkadot network's performance metrics and ensures rapid confirmation of transactions, usually within **18 seconds**.
