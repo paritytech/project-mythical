@@ -472,9 +472,7 @@ fn start_consensus<RuntimeApi, Executor>(
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
-	transaction_pool: Arc<
-		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>,
-	>,
+	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>>,
 	sync_oracle: Arc<SyncingService<Block>>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
