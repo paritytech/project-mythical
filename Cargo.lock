@@ -5822,7 +5822,7 @@ dependencies = [
 
 [[package]]
 name = "mythos-node"
-version = "1.13.8"
+version = "1.15.2"
 dependencies = [
  "clap",
  "color-print",
