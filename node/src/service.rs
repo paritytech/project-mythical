@@ -243,7 +243,7 @@ where
 		Option<TelemetryHandle>,
 		&TaskManager,
 		Arc<dyn RelayChainInterface>,
-		Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi, Executor>>>,
+		Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>>,
 		KeystorePtr,
 		Duration,
 		ParaId,
