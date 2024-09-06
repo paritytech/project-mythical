@@ -7,7 +7,7 @@ homepage = { workspace = true }
 license = { workspace = true }
 name = "mythos-node"
 repository = { workspace = true }
-version = "1.13.8"
+version = "1.15.2"
 
 [dependencies]
 clap = { workspace = true }
