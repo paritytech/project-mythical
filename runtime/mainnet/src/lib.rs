@@ -609,10 +609,20 @@ parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
 	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
 	pub const NftsMetadataDepositBase: Balance = 0;
 	pub const NftsAttributeDepositBase: Balance = 0;
 	pub const NftsDepositPerByte: Balance = 0;
+
+}
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+parameter_types! {
+	pub const NftsItemDeposit: Balance = 0;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 }
 
 pub type CollectionId = IncrementableU256;
