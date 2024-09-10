@@ -881,12 +881,12 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 28 * 24 * 60 * MINUTES;
-	pub const VotingPeriod: BlockNumber = 28 * 24 * 60 * MINUTES;
-	pub const FastTrackVotingPeriod: BlockNumber = 3 * 24 * 60 * MINUTES;
+	pub const LaunchPeriod: BlockNumber = HOURS;
+	pub const VotingPeriod: BlockNumber = 2 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = DAYS;
 	pub const MinimumDeposit: Balance = 10 * MILLI_MUSE;
-	pub const EnactmentPeriod: BlockNumber = 30 * 24 * 60 * MINUTES;
-	pub const CooloffPeriod: BlockNumber = 28 * 24 * 60 * MINUTES;
+	pub const EnactmentPeriod: BlockNumber = 3 * DAYS;
+	pub const CooloffPeriod: BlockNumber = 2 * DAYS;
 	pub const MaxProposals: u32 = 100;
 }
 
