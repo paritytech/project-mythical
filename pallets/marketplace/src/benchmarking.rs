@@ -96,6 +96,7 @@ pub mod benchmarks {
 		caller: T::AccountId,
 		price: BalanceOf<T>,
 		fee_signer: Public,
+		escrow_agent: Option<T::AccountId>,
 	) where
 		T::Signature: From<EthereumSignature>,
 	{
@@ -106,7 +107,7 @@ pub mod benchmarks {
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
 			fee: BalanceOf::<T>::from(0u8),
-			escrow_agent: None,
+			escrow_agent,
 			signature_data: SignatureData {
 				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![0],
@@ -204,20 +205,28 @@ pub mod benchmarks {
 		// Create ask order
 		let (_, fee_signer) = admin_accounts_setup::<T>();
 
-		let price = BalanceOf::<T>::from(10000u16);
-		create_valid_order::<T>(OrderType::Ask, seller.clone(), price, fee_signer);
+		let ed = <T as Config>::Currency::minimum_balance();
+		let price = ed * BalanceOf::<T>::from(100u16);
+		let escrow: T::AccountId = funded_and_whitelisted_account::<T>("escrow", 0);
+
+		create_valid_order::<T>(
+			OrderType::Ask,
+			seller.clone(),
+			price,
+			fee_signer,
+			Some(escrow.clone()),
+		);
 
 		// Setup buyer
 		let buyer: T::AccountId = funded_and_whitelisted_account::<T>("buyer", 0);
-
 		let mut order = Order {
 			order_type: OrderType::Bid,
 			collection: T::BenchmarkHelper::collection(0),
 			item,
 			expires_at: Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100000),
 			price,
-			fee: BalanceOf::<T>::from(1u8),
-			escrow_agent: None,
+			fee: ed,
+			escrow_agent: Some(escrow),
 			signature_data: SignatureData {
 				signature: EthereumSignature::from(Signature::from_raw([0; 65])).into(),
 				nonce: vec![1],
@@ -236,7 +245,7 @@ pub mod benchmarks {
 				buyer,
 				price: order.price,
 				seller_fee: BalanceOf::<T>::from(0u8),
-				buyer_fee: BalanceOf::<T>::from(1u8),
+				buyer_fee: order.fee,
 			}
 			.into(),
 		);
@@ -257,7 +266,7 @@ pub mod benchmarks {
 		let bidder: T::AccountId = funded_and_whitelisted_account::<T>("bidder", 0);
 
 		let (_, fee_signer_public) = admin_accounts_setup::<T>();
-		create_valid_order::<T>(OrderType::Bid, bidder.clone(), price, fee_signer_public);
+		create_valid_order::<T>(OrderType::Bid, bidder.clone(), price, fee_signer_public, None);
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(bidder.clone()), OrderType::Bid, collection, item, price);

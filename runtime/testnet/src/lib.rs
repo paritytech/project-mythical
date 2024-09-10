@@ -44,9 +44,11 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
+use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_primitives::Moment;
 pub use runtime_common::{
 	AccountId, Balance, BlockNumber, DealWithFees, Hash, IncrementableU256, Nonce, Signature,
 	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
@@ -115,7 +117,6 @@ pub type Executive = frame_executive::Executive<
 >;
 
 pub mod fee {
-
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
 	use frame_support::weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, FeePolynomial, Weight, WeightToFeeCoefficient,
@@ -227,7 +228,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1012,
+	spec_version: 1015,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -593,10 +594,19 @@ parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
 	pub const NftsCollectionDeposit: Balance = 0;
-	pub const NftsItemDeposit: Balance = 0;
 	pub const NftsMetadataDepositBase: Balance = 0;
 	pub const NftsAttributeDepositBase: Balance = 0;
 	pub const NftsDepositPerByte: Balance = 0;
+}
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+parameter_types! {
+	pub const NftsItemDeposit: Balance = 0;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub const NftsItemDeposit: Balance = EXISTENTIAL_DEPOSIT;
 }
 
 pub type CollectionId = IncrementableU256;
@@ -653,6 +663,27 @@ impl pallet_marketplace::Config for Runtime {
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
 	type WeightInfo = weights::pallet_marketplace::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+impl pallet_dmarket::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type Signature = Signature;
+	type Signer = <Signature as Verify>::Signer;
+	type Domain = DOMAIN;
+	type WeightInfo = weights::pallet_dmarket::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+impl pallet_migration::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }
@@ -945,9 +976,11 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
+		Dmarket: pallet_dmarket = 52,
 	}
 );
 
@@ -1010,9 +1043,16 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_collator_selection, CollatorSelection]
-		[pallet_collective, Council]
+		[pallet_nfts, Nfts]
+		[pallet_marketplace, Marketplace]
+		[pallet_migration, Migration]
+		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
+		[pallet_vesting, Vesting]
+		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
+		[pallet_dmarket, Dmarket]
+		[pallet_escrow, Escrow]
 		[pallet_marketplace, Marketplace]
 		[pallet_message_queue, MessageQueue]
 		[pallet_multibatching, Multibatching]
@@ -1181,6 +1221,19 @@ impl_runtime_apis! {
 			TransactionPayment::length_to_fee(length)
 		}
 	}
+
+	impl pallet_dmarket::DmarketApi<Block, AccountId, Balance, Moment, Hash> for Runtime {
+		fn hash_ask_bid_data(trade: TradeParams<Balance, Item, u64>)-> (Hash, Hash) {
+			Dmarket::hash_ask_bid_data(&trade)
+		}
+		fn get_ask_message(caller: AccountId, fee_address: AccountId, trade: TradeParams<Balance, Item, Moment>) -> Vec<u8> {
+			Dmarket::get_ask_message(&caller, &fee_address, &trade)
+		}
+		fn get_bid_message(caller: AccountId, fee_address: AccountId, trade: TradeParams<Balance, Item, Moment>) -> Vec<u8> {
+			Dmarket::get_bid_message(&caller, &fee_address, &trade)
+		}
+	}
+
 
 	impl cumulus_primitives_aura::AuraUnincludedSegmentApi<Block> for Runtime {
 		fn can_build_upon(

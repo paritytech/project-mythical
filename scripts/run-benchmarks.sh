@@ -2,12 +2,14 @@
 
 set -e
 
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 [testnet|mainnet]"
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    echo "Usage: $0 [testnet|mainnet] [optional: pallet1,pallet2,...]"
     exit 1
 fi
 
 RUNTIME=$1
+PALLETS_ARG=$2
+
 case $RUNTIME in
     testnet)
         CHAIN=local-v
@@ -25,8 +27,14 @@ echo "Building the binary. This can take a while..."
 cargo build --release --features runtime-benchmarks
 
 BIN="./target/release/mythos-node"
-BENCHMARKS=($($BIN benchmark pallet --list=pallets --no-csv-header --chain="$CHAIN"))
 WEIGHT_FOLDER="./runtime/$RUNTIME/src/weights"
+
+# Determine which pallets to benchmark
+if [ -n "$PALLETS_ARG" ]; then
+    IFS=',' read -r -a BENCHMARKS <<< "$PALLETS_ARG"
+else
+    BENCHMARKS=($($BIN benchmark pallet --list=pallets --no-csv-header --chain="$CHAIN"))
+fi
 
 # Benchmark the pallets
 for PALLET in "${BENCHMARKS[@]}"; do
