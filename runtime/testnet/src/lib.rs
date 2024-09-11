@@ -24,6 +24,7 @@ use sp_runtime::{
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 
+use pallet_treasury::TreasuryAccountId;
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -125,12 +126,11 @@ pub type Executive = frame_executive::Executive<
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
-/// the result on to `ToStakingPot`.
-
+/// the result on to `ToStakingPot` and `Treasury`.
 pub struct DealWithFees<R>(PhantomData<R>);
 impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_collator_staking::Config,
+	R: pallet_balances::Config + pallet_collator_staking::Config + pallet_treasury::Config,
 	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
@@ -143,7 +143,14 @@ where
 			if let Some(tips) = fees_then_tips.next() {
 				tips.merge_into(&mut fees);
 			}
-			ResolveTo::<StakingPotAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(fees)
+			// Half goes to the staking pot, and half to treasury.
+			let (staking_pot_fees, treasury_fees) = fees.ration(50, 50);
+			ResolveTo::<StakingPotAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
+				staking_pot_fees,
+			);
+			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
+				treasury_fees,
+			);
 		}
 	}
 }
