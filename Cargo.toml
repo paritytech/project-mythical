@@ -50,6 +50,7 @@ pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
+pallet-collator-staking = { path = "../pallet-collator-staking", default-features = false }
 pallet-nfts = { path = "pallets/nfts", default-features = false }
 pallet-myth-proxy = { path = "pallets/myth-proxy", default-features = false }
 

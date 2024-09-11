@@ -6,6 +6,7 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{crypto::UncheckedInto, ecdsa, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use sp_runtime::Percent;
 
 pub type GenericChainSpec = sc_service::GenericChainSpec<Extensions>;
 
@@ -212,6 +213,10 @@ pub mod testnet {
 				"collatorSelection": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 					"candidacyBond": 100 * MUSE,
+					"minStake": 10 * MUSE,
+					"desiredCandidates": 5,
+					"collatorRewardPercentage": Percent::from_parts(20),
+					"extraReward": 0,
 				},
 				"council": {
 					"members": council,
