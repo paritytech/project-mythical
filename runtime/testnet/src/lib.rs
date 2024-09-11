@@ -111,7 +111,16 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
+	(
+		pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
+		cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
+	),
 >;
+
+// TODO remove this when the migration is completed
+impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
+	type ChannelList = ParachainSystem;
+}
 
 pub mod fee {
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_MUSE, MILLI_ROC};
