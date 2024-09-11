@@ -20,7 +20,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode, Percent,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 
 use sp_std::prelude::*;
@@ -938,11 +938,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
-	pub const SpendPeriod: BlockNumber = DAYS;
-	pub const TipCountdown: BlockNumber = DAYS;
-	pub const TipFindersFee: Percent = Percent::from_percent(20);
-	pub const TipReportDepositBase: Balance = MYTH;
-	pub const DataDepositPerByte: Balance = 100 * MILLI_MYTH;
+	pub const SpendPeriod: BlockNumber = 7 * DAYS;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
 	pub const MaximumReasonLength: u32 = 300;
 	pub const MaxApprovals: u32 = 100;
