@@ -16,9 +16,9 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode, Percent,
 };
 
 use sp_std::prelude::*;
@@ -27,8 +27,9 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use frame_support::traits::{
-	fungible::HoldConsideration, AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice,
-	WithdrawReasons,
+	fungible::HoldConsideration,
+	tokens::{PayFromAccount, UnityAssetBalanceConversion},
+	AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice, WithdrawReasons,
 };
 use frame_support::{
 	construct_runtime, derive_impl,
@@ -42,7 +43,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
+	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
@@ -891,13 +892,23 @@ parameter_types! {
 }
 
 impl pallet_democracy::Config for Runtime {
+	type WeightInfo = ();
 	type RuntimeEvent = RuntimeEvent;
+	type Scheduler = Scheduler;
+	type Preimages = Preimage;
 	type Currency = Balances;
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
 	type VotingPeriod = VotingPeriod;
 	type VoteLockingPeriod = EnactmentPeriod;
 	type MinimumDeposit = MinimumDeposit;
+	type InstantAllowed = ConstBool<true>;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type CooloffPeriod = CooloffPeriod;
+	type MaxVotes = ConstU32<100>;
+	type MaxProposals = MaxProposals;
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
 	type ExternalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>,
@@ -911,36 +922,66 @@ impl pallet_democracy::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	>;
 	type SubmitOrigin = EnsureSigned<AccountId>;
-	type FastTrackOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
-	>;
+	type FastTrackOrigin = RootOrCouncilTwoThirdsMajority;
 	type InstantOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	>;
-	type InstantAllowed = ConstBool<true>;
-	type FastTrackVotingPeriod = FastTrackVotingPeriod;
-	type CancellationOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
-	>;
+	type CancellationOrigin = RootOrCouncilTwoThirdsMajority;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
 	type CancelProposalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	>;
-	type BlacklistOrigin = EnsureRoot<AccountId>;
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
-	type CooloffPeriod = CooloffPeriod;
-	type Slash = ();
-	type Scheduler = Scheduler;
 	type PalletsOrigin = OriginCaller;
-	type MaxVotes = ConstU32<100>;
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
-	type MaxProposals = MaxProposals;
-	type Preimages = Preimage;
-	type MaxDeposits = ConstU32<100>;
-	type MaxBlacklisted = ConstU32<100>;
+	type Slash = Treasury;
+}
+
+parameter_types! {
+	pub TreasuryAccount: AccountId = Treasury::account_id();
+	pub const SpendPeriod: BlockNumber = DAYS;
+	pub const TipCountdown: BlockNumber = DAYS;
+	pub const TipFindersFee: Percent = Percent::from_percent(20);
+	pub const TipReportDepositBase: Balance = MUSE;
+	pub const DataDepositPerByte: Balance = 100 * MILLI_MUSE;
+	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const MaximumReasonLength: u32 = 300;
+	pub const MaxApprovals: u32 = 100;
+	pub const MaxBalance: Balance = Balance::MAX;
+	pub const SpendPayoutPeriod: BlockNumber = 30 * DAYS;
+}
+
+impl pallet_treasury::Config for Runtime {
+	type Currency = Balances;
+	type RejectOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
+	>;
+	type RuntimeEvent = RuntimeEvent;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type PalletId = TreasuryPalletId;
+	type BurnDestination = ();
+	type WeightInfo = ();
+	type SpendFunds = ();
+	type MaxApprovals = MaxApprovals;
+	type SpendOrigin = EnsureWithSuccess<
+		EitherOfDiverse<
+			EnsureRoot<AccountId>,
+			pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
+		>,
+		AccountId,
+		MaxBalance,
+	>;
+	type AssetKind = ();
+	type Beneficiary = AccountId;
+	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type BalanceConverter = UnityAssetBalanceConversion;
+	type PayoutPeriod = SpendPayoutPeriod;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -971,6 +1012,7 @@ construct_runtime!(
 		Sudo: pallet_sudo = 15,
 		Council: pallet_collective::<Instance1> = 16,
 		Democracy: pallet_democracy = 17,
+		Treasury: pallet_treasury = 18,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
@@ -1077,6 +1119,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_sudo, Sudo]
 		[pallet_timestamp, Timestamp]
+		[pallet_treasury, Treasury]
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
 	);

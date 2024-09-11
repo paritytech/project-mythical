@@ -20,13 +20,14 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, Encode, Error, Input, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160};
 
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sp_core::crypto::AccountId32;
+use sp_core::crypto::FromEntropy;
 use sp_io::hashing::keccak_256;
 use sp_runtime::MultiSignature;
 
@@ -123,6 +124,14 @@ impl std::str::FromStr for AccountId20 {
 	type Err = &'static str;
 	fn from_str(input: &str) -> Result<Self, Self::Err> {
 		H160::from_str(input).map(Into::into).map_err(|_| "invalid hex address.")
+	}
+}
+
+/// Creates an [`AccountId20`] from the input, which should contain at least 20 bytes.
+impl FromEntropy for AccountId20 {
+	fn from_entropy(input: &mut impl Input) -> Result<Self, Error> {
+		let entropy: [u8; 20] = FromEntropy::from_entropy(input)?;
+		Ok(AccountId20::from(entropy))
 	}
 }
 

@@ -78,6 +78,7 @@ pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk", tag = "
 pallet-transaction-payment = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
+pallet-treasury = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 pallet-utility = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 pallet-safe-mode = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 pallet-tx-pause = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
