@@ -29,9 +29,10 @@ impl OnRuntimeUpgrade for CollatorSelectionSetupMigration {
 		}
 
 		// Candidacy bond
-		if let Ok(_) = CollatorSelection::set_candidacy_bond(RuntimeOrigin::root(), 100 * MUSE) {
+		if let Ok(_) = CollatorSelection::set_min_candidacy_bond(RuntimeOrigin::root(), 100 * MUSE)
+		{
 			total_weight.saturating_accrue(
-				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_candidacy_bond(),
+				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_min_candidacy_bond(),
 			);
 		}
 
