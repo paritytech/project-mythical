@@ -57,6 +57,10 @@ pallet-multisig = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
 pallet-proxy = { workspace = true, default-features = false }
 pallet-myth-proxy = { workspace = true, default-features = false }
+pallet-preimage = { workspace = true, default-features = false }
+pallet-scheduler = { workspace = true, default-features = false }
+pallet-treasury = { workspace = true, default-features = false }
+pallet-democracy = { workspace = true, default-features = false }
 pallet-vesting = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
@@ -125,6 +129,7 @@ std = [
   "pallet-collator-selection/std",
   "pallet-collective/std",
   "pallet-dmarket/std",
+  "pallet-democracy/std",
   "pallet-marketplace/std",
   "pallet-multibatching/std",
   "pallet-migration/std",
@@ -139,6 +144,9 @@ std = [
   "pallet-xcm/std",
   "pallet-proxy/std",
   "pallet-myth-proxy/std",
+  "pallet-preimage/std",
+  "pallet-scheduler/std",
+  "pallet-treasury/std",
   "pallet-vesting/std",
   "parachain-info/std",
   "parachains-common/std",
@@ -176,6 +184,7 @@ runtime-benchmarks = [
   "pallet-collator-selection/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
   "pallet-dmarket/runtime-benchmarks",
+  "pallet-democracy/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-migration/runtime-benchmarks",
@@ -188,6 +197,9 @@ runtime-benchmarks = [
   "pallet-xcm/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
   "pallet-myth-proxy/runtime-benchmarks",
+  "pallet-preimage/runtime-benchmarks",
+  "pallet-scheduler/runtime-benchmarks",
+  "pallet-treasury/runtime-benchmarks",
   "pallet-vesting/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
@@ -214,6 +226,9 @@ try-runtime = [
   "pallet-collator-selection/try-runtime",
   "pallet-collective/try-runtime",
   "pallet-dmarket/try-runtime",
+  "pallet-preimage/try-runtime",
+  "pallet-scheduler/try-runtime",
+  "pallet-democracy/try-runtime",
   "pallet-migration/try-runtime",
   "pallet-multibatching/try-runtime",
   "pallet-multisig/try-runtime",
@@ -226,6 +241,7 @@ try-runtime = [
   "pallet-xcm/try-runtime",
   "pallet-proxy/try-runtime",
   "pallet-myth-proxy/try-runtime",
+  "pallet-treasury/try-runtime",
   "pallet-vesting/try-runtime",
   "parachain-info/try-runtime",
   "pallet-escrow/try-runtime",
