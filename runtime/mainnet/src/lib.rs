@@ -606,6 +606,8 @@ parameter_types! {
 	pub const MaxInvulnerables: u32 = 20;
 	pub const MaxStakers: u32 = 200;
 	pub const KickThreshold: u32 = 5 * Period::get();
+	pub const BondUnlockDelay: BlockNumber = 28 * DAYS;
+	pub const StakeUnlockDelay: BlockNumber = 28 * DAYS;
 }
 
 impl pallet_collator_staking::Config for Runtime {
@@ -626,8 +628,8 @@ impl pallet_collator_staking::Config for Runtime {
 	type CollatorRegistration = Session;
 	type MaxStakedCandidates = ConstU32<16>;
 	type MaxStakers = MaxStakers;
-	type BondUnlockDelay = ConstU32<20>;
-	type StakeUnlockDelay = ConstU32<10>;
+	type BondUnlockDelay = BondUnlockDelay;
+	type StakeUnlockDelay = StakeUnlockDelay;
 	type MaxSessionRewards = ConstU32<500>;
 	type WeightInfo = ();
 }
