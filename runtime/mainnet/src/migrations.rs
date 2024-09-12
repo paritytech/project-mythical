@@ -5,7 +5,7 @@ use pallet_collator_staking::WeightInfo;
 use sp_runtime::Percent;
 use sp_std::vec;
 
-use crate::{CollatorStaking, Runtime, RuntimeOrigin, MUSE};
+use crate::{CollatorStaking, Runtime, RuntimeOrigin, MYTH};
 
 pub struct CollatorStakingSetupMigration;
 impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
@@ -15,8 +15,10 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 
 		// Add invulnerables
 		let invulnerables = vec![
-			hex!("25451A4de12dcCc2D166922fA938E900fCc4ED24"),
-			hex!("E04CC55ebEE1cBCE552f250e85c57B70B2E2625b"),
+			hex!("65c39EB8DDC9EA6F2135A28Ea670E97bc3CCc012"),
+			hex!("B9717024eB621a7AE331F92C3dC63a0aB60031c5"),
+			hex!("E4f607AB7fA6b5Fd4f8127E051f151DaBb7279c6"),
+			hex!("F4d1C38f3Be73d7cD2123968141Aec3AbB393153"),
 		];
 		for invulnerable in invulnerables {
 			if let Ok(result) =
@@ -29,14 +31,14 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 		}
 
 		// Candidacy bond
-		if let Ok(_) = CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 100 * MUSE) {
+		if let Ok(_) = CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 100 * MYTH) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_min_candidacy_bond(),
 			);
 		}
 
 		// MinStake
-		if let Ok(_) = CollatorStaking::set_minimum_stake(RuntimeOrigin::root(), 10 * MUSE) {
+		if let Ok(_) = CollatorStaking::set_minimum_stake(RuntimeOrigin::root(), 10 * MYTH) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_minimum_stake(),
 			);

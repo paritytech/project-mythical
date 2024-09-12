@@ -144,7 +144,6 @@ cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2" }
-pallet-collator-selection = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 parachain-info = { package = "staging-parachain-info", git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 parachains-common = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }
 

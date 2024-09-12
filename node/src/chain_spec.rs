@@ -210,7 +210,7 @@ pub mod testnet {
 				"parachainInfo": {
 					"parachainId": id,
 				},
-				"collatorSelection": {
+				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 					"candidacyBond": 100 * MUSE,
 					"minStake": 10 * MUSE,
@@ -401,9 +401,13 @@ pub mod mainnet {
 				"parachainInfo": {
 					"parachainId": id,
 				},
-				"collatorSelection": {
+				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 					"candidacyBond": 100 * MYTH,
+					"minStake": 10 * MYTH,
+					"desiredCandidates": 5,
+					"collatorRewardPercentage": Percent::from_parts(20),
+					"extraReward": 0,
 				},
 				"session": {
 					"keys": invulnerables

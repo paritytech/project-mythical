@@ -1,10 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-use frame_support::traits::tokens::imbalance::ResolveTo;
-use frame_support::{
-	traits::fungible,
-	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
-};
-use pallet_collator_selection::StakingPotAccountId;
+use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::U256;
@@ -14,9 +9,7 @@ use sp_runtime::{
 };
 
 pub use account::EthereumSignature;
-use frame_support::traits::{Currency, Imbalance, Incrementable, OnUnbalanced};
-use pallet_balances::NegativeImbalance;
-use sp_std::marker::PhantomData;
+use frame_support::traits::Incrementable;
 
 // Cumulus types re-export
 // These types are shared between the mainnet and testnet runtimes
@@ -63,44 +56,6 @@ pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
 	polkadot_primitives::MAX_POV_SIZE as u64,
 );
-
-/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
-/// the result on to `ToStakingPot`.
-
-pub struct DealWithFees<R>(PhantomData<R>);
-impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
-where
-	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
-	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
-{
-	fn on_unbalanceds<B>(
-		mut fees_then_tips: impl Iterator<
-			Item = fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>,
-		>,
-	) {
-		if let Some(mut fees) = fees_then_tips.next() {
-			if let Some(tips) = fees_then_tips.next() {
-				tips.merge_into(&mut fees);
-			}
-			ResolveTo::<StakingPotAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(fees)
-		}
-	}
-}
-
-/// Implementation of `OnUnbalanced` that deposits the fees into a staking pot for later payout.
-pub struct ToStakingPot<R>(PhantomData<R>);
-impl<R> OnUnbalanced<NegativeImbalance<R>> for ToStakingPot<R>
-where
-	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
-	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
-{
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		let staking_pot = <pallet_collator_selection::Pallet<R>>::account_id();
-		<pallet_balances::Pallet<R>>::resolve_creating(&staking_pot, amount);
-	}
-}
 
 #[derive(Clone, TypeInfo, Encode, PartialEq, Eq, Decode, Copy, MaxEncodedLen, Debug)]
 pub struct IncrementableU256(U256);

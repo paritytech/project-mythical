@@ -5387,6 +5387,7 @@ dependencies = [
 name = "mainnet-runtime"
 version = "0.1.0"
 dependencies = [
+ "account",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-session-benchmarking",
@@ -5409,7 +5410,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
- "pallet-collator-selection",
+ "pallet-collator-staking",
  "pallet-collective",
  "pallet-democracy",
  "pallet-dmarket",
@@ -10101,7 +10102,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
- "pallet-collator-selection",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-primitives",

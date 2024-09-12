@@ -52,7 +52,7 @@ parameter_types! {
 			// MYTHOS ERC20
 			AccountKey20 { network: None, key: hex!("BA41Ddf06B7fFD89D1267b5A93BFeF2424eb2003") }
 		]);
-	pub StakingPot: AccountId = crate::CollatorSelection::account_id();
+	pub StakingPot: AccountId = crate::CollatorStaking::account_id();
 	// Arbitrary value to allow to test reserve transfers, only for testing.
 	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
 }
