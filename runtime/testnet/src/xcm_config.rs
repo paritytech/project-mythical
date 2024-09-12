@@ -60,7 +60,7 @@ parameter_types! {
 			GlobalConsensus(NetworkId::Ethereum { chain_id: 11155111 }), // sepolia
 			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
 		]);
-	pub StakingPot: AccountId = crate::CollatorStaking::account_id();
+	pub TreasuryPot: AccountId = crate::Treasury::account_id();
 	// Arbitrary value to allow to test reserve transfers, only for testing.
 	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
 }
@@ -223,7 +223,13 @@ pub type Traders = (
 	//Relay token.
 	FixedRateOfFungible<RelayPerSecondAndByte, ()>,
 	//Native asset.
-	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ResolveTo<StakingPot, Balances>>,
+	UsingComponents<
+		WeightToFee,
+		SelfReserve,
+		AccountId,
+		Balances,
+		ResolveTo<TreasuryPot, Balances>,
+	>,
 );
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<AssetHubLocation>);
@@ -254,7 +260,7 @@ impl xcm_executor::Config for XcmConfig {
 	//Currently fees are being burned.
 	type FeeManager = XcmFeeManagerFromComponents<
 		WaivedLocations,
-		XcmFeeToAccountId20<Self::AssetTransactor, AccountId, StakingPot>,
+		XcmFeeToAccountId20<Self::AssetTransactor, AccountId, TreasuryPot>,
 	>;
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
