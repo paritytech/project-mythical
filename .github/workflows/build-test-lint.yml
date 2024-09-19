@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build:
     name: "Build"
-    runs-on: arc-runners-project-mythical
+    runs-on: parity-large
     container:
       image: "paritytech/ci-unified:latest"
     steps:
