@@ -2,10 +2,10 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.106
-POLKADOT_V=v1.13.0
-POLKADOT_RUNTIMES_V=v1.2.8
-PASEO_RUNTIMES_V=v1.2.4
+ZOMBIENET_V=v1.3.109
+POLKADOT_V=stable2407-2
+POLKADOT_RUNTIMES_V=v1.3.2
+PASEO_RUNTIMES_V=main
 BIN_DIR=bin
 
 case "$(uname -s)" in
@@ -106,31 +106,16 @@ zombienet_build() {
 zombienet_testnet() {
   zombienet_init
   cargo +stable build --release
-  echo "spawning rococo-local relay chain plus mythos testnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-rococo.toml -p native
+  echo "spawning paseo-local relay chain plus mythos testnet as a parachain..."
+  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet.toml -p native
 }
 
 zombienet_testnet_asset_hub() {
   zombienet_init
   cargo +stable build --release
-  echo "spawning rococo-local relay chain plus muse testnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-asset-hub-rococo.toml -p native
+  echo "spawning paseo-local relay chain plus muse testnet as a parachain plus asset-hub..."
+  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-asset-hub.toml -p native
 }
-
-zombienet_testnet_paseo() {
-  zombienet_init
-  cargo +stable build --release --features paseo
-  echo "spawning paseo-local relay chain plus mythos testnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-paseo.toml -p native
-}
-
-### To be addressed once https://github.com/paseo-network/runtimes/issues/52 is resolved ###
-# zombienet_testnet_asset_hub_paseo() {
-#   zombienet_init
-#   cargo +stable build --release --features paseo
-#   echo "spawning paseo-local relay chain plus muse testnet as a parachain plus asset-hub..."
-#   ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-asset-hub-paseo.toml -p native
-# }
 
 zombienet_mainnet() {
   zombienet_init
@@ -151,10 +136,8 @@ print_help() {
   echo ""
   echo "$ ./zombienet.sh init                       # fetches zombienet and polkadot executables"
   echo "$ ./zombienet.sh build                      # builds polkadot executables from source"
-  echo "$ ./zombienet.sh testnet                    # spawns a rococo-local relay chain plus muse testnet-local as a parachain"
-  echo "$ ./zombienet.sh testnet_asset_hub          # spawns a rococo-local relay chain plus muse testnet-local as a parachain plus asset-hub"
-  echo "$ ./zombienet.sh testnet_paseo              # spawns a paseo-local relay chain plus muse testnet-local as a parachain"
-  # echo "$ ./zombienet.sh testnet_asset_hub_paseo    # spawns a paseo-local relay chain plus muse testnet-local as a parachain plus asset-hub"
+  echo "$ ./zombienet.sh testnet                    # spawns a paseo-local relay chain plus muse testnet-local as a parachain"
+  echo "$ ./zombienet.sh testnet_asset_hub          # spawns a paseo-local relay chain plus muse testnet-local as a parachain plus asset-hub"
   echo "$ ./zombienet.sh mainnet                    # spawns a polkadot-local relay chain plus mythos mainnet-local as a parachain"
   echo "$ ./zombienet.sh mainnet_asset_hub          # spawns a polkadot-local relay chain plus mythos mainnet-local as a parachain plus asset-hub"
 }
