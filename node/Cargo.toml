@@ -88,9 +88,6 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = []
-paseo = [
-	"testnet-runtime/paseo"
-]
 runtime-benchmarks = [
   "mainnet-runtime/runtime-benchmarks",
   "testnet-runtime/runtime-benchmarks",

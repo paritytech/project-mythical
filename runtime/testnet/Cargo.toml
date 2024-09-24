@@ -98,7 +98,6 @@ fp-self-contained = { workspace = true, default-features = false, features = [
 
 [features]
 default = ["std"]
-paseo = []
 std = [
   "parity-scale-codec/std",
   "log/std",

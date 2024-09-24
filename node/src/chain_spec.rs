@@ -81,13 +81,7 @@ pub mod testnet {
 
 		GenericChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
-			Extensions {
-				#[cfg(feature = "paseo")]
-				relay_chain: "paseo-local".into(),
-				#[cfg(not(feature = "paseo"))]
-				relay_chain: "rococo-local".into(),
-				para_id: PARA_ID,
-			},
+			Extensions { relay_chain: "paseo-local".into(), para_id: PARA_ID },
 		)
 		// Name
 		.with_name("Development Muse Testnet")
@@ -154,13 +148,7 @@ pub mod testnet {
 
 		GenericChainSpec::builder(
 			testnet_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
-			Extensions {
-				#[cfg(feature = "paseo")]
-				relay_chain: "paseo".into(),
-				#[cfg(not(feature = "paseo"))]
-				relay_chain: "rococo".into(),
-				para_id: PARA_ID,
-			},
+			Extensions { relay_chain: "paseo".into(), para_id: PARA_ID },
 		)
 		.with_name("Muse Testnet")
 		.with_id("muse")
