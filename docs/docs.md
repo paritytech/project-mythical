@@ -22,7 +22,7 @@ Originally, the $MYTH token was live on the Ethereum mainnet. It has since been 
 
 -   **Muse ([Testnet](../runtime/testnet/src/lib.rs))**:
 
-    -   Deployed on [Rococo](https://dotapps-io.ipns.dweb.link/?rpc=wss%3A%2F%2Frococo-muse-rpc.polkadot.io#/explorer) and [Paseo](https://dotapps-io.ipns.dweb.link/?rpc=wss%3A%2F%2Fpaseo-muse-rpc.polkadot.io#/explorer) networks.
+    -   Deployed on [Paseo](https://dotapps-io.ipns.dweb.link/?rpc=wss%3A%2F%2Fpaseo-muse-rpc.polkadot.io#/explorer) network.
     -   Used for testing and development purposes.
 
 -   **Mythos ([Mainnet](../runtime/mainnet/src/lib.rs))**:
