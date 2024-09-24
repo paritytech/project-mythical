@@ -200,7 +200,7 @@ pub mod testnet {
 				},
 				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": 100 * MUSE,
+					"minCandidacyBond": 100 * MUSE,
 					"minStake": 10 * MUSE,
 					"desiredCandidates": 5,
 					"collatorRewardPercentage": Percent::from_parts(20),
@@ -391,7 +391,7 @@ pub mod mainnet {
 				},
 				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": 100 * MYTH,
+					"minCandidacyBond": 100 * MYTH,
 					"minStake": 10 * MYTH,
 					"desiredCandidates": 5,
 					"collatorRewardPercentage": Percent::from_parts(20),
