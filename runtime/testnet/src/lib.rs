@@ -104,6 +104,21 @@ pub type UncheckedExtrinsic =
 pub type CheckedExtrinsic =
 	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
 
+pub struct PrepareForMove;
+impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
+	fn on_runtime_upgrade() -> Weight {
+		// This is taken from https://hackmd.io/@bkchr/BkorHJMaA
+		cumulus_pallet_parachain_system::LastHrmpMqcHeads::<Runtime>::kill();
+		cumulus_pallet_parachain_system::LastDmqMqcHead::<Runtime>::kill();
+
+		// This is taken from https://github.com/paseo-network/support/blob/main/docs/rococo_migration.md#2-migrate-state-and-history
+		cumulus_pallet_parachain_system::LastRelayChainBlockNumber::<Runtime>::kill();
+
+		// Weight negligible as the block will always fail to build
+		Weight::zero()
+	}
+}
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -114,6 +129,7 @@ pub type Executive = frame_executive::Executive<
 	(
 		pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
 		cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
+		PrepareForMove,
 	),
 >;
 
@@ -234,7 +250,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1016,
+	spec_version: 1017,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
