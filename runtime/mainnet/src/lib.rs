@@ -1327,6 +1327,18 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl pallet_collator_staking::CollatorStakingApi<Block, AccountId, Balance> for Runtime {
+		fn main_pot_account() -> AccountId {
+			CollatorStaking::account_id()
+		}
+		fn extra_reward_pot_account() -> AccountId {
+			CollatorStaking::extra_reward_account_id()
+		}
+		fn total_rewards(account: AccountId) -> Balance {
+			CollatorStaking::calculate_unclaimed_rewards(&account)
+		}
+	}
+
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
 		fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
