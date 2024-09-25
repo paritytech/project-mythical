@@ -631,7 +631,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type BondUnlockDelay = BondUnlockDelay;
 	type StakeUnlockDelay = StakeUnlockDelay;
 	type MaxSessionRewards = ConstU32<500>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
 
 parameter_types! {
