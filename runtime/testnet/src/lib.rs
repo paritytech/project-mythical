@@ -1371,12 +1371,15 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_collator_staking::CollatorStakingApi<Block, AccountId> for Runtime {
+	impl pallet_collator_staking::CollatorStakingApi<Block, AccountId, Balance> for Runtime {
 		fn main_pot_account() -> AccountId {
 			CollatorStaking::account_id()
 		}
 		fn extra_reward_pot_account() -> AccountId {
 			CollatorStaking::extra_reward_account_id()
+		}
+		fn total_rewards(account: AccountId) -> Balance {
+			CollatorStaking::calculate_unclaimed_rewards(&account)
 		}
 	}
 
