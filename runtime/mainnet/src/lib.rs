@@ -114,11 +114,6 @@ pub type Executive = frame_executive::Executive<
 	(),
 >;
 
-// TODO remove this when the migration is completed
-impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
-	type ChannelList = ParachainSystem;
-}
-
 pub mod fee {
 	use super::{Balance, ExtrinsicBaseWeight, MILLI_DOT, MILLI_MYTH};
 	use frame_support::weights::{
