@@ -5,7 +5,7 @@ use pallet_collator_staking::WeightInfo;
 use sp_runtime::Percent;
 use sp_std::vec;
 
-use crate::{CollatorSelection, Runtime, RuntimeOrigin, MUSE};
+use crate::{CollatorStaking, Runtime, RuntimeOrigin, MUSE};
 
 pub struct CollatorStakingSetupMigration;
 impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
@@ -20,7 +20,7 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 		];
 		for invulnerable in invulnerables {
 			if let Ok(result) =
-				CollatorSelection::add_invulnerable(RuntimeOrigin::root(), invulnerable.into())
+				CollatorStaking::add_invulnerable(RuntimeOrigin::root(), invulnerable.into())
 			{
 				if let Some(weight) = result.actual_weight {
 					total_weight.saturating_accrue(weight);
@@ -29,29 +29,28 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 		}
 
 		// Candidacy bond
-		if let Ok(_) = CollatorSelection::set_min_candidacy_bond(RuntimeOrigin::root(), 100 * MUSE)
-		{
+		if let Ok(_) = CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 100 * MUSE) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_min_candidacy_bond(),
 			);
 		}
 
 		// MinStake
-		if let Ok(_) = CollatorSelection::set_minimum_stake(RuntimeOrigin::root(), 10 * MUSE) {
+		if let Ok(_) = CollatorStaking::set_minimum_stake(RuntimeOrigin::root(), 10 * MUSE) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_minimum_stake(),
 			);
 		}
 
 		// DesiredCandidates
-		if let Ok(_) = CollatorSelection::set_desired_candidates(RuntimeOrigin::root(), 5) {
+		if let Ok(_) = CollatorStaking::set_desired_candidates(RuntimeOrigin::root(), 5) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_desired_candidates(),
 			);
 		}
 
 		// Collator reward percentage
-		if let Ok(_) = CollatorSelection::set_collator_reward_percentage(
+		if let Ok(_) = CollatorStaking::set_collator_reward_percentage(
 			RuntimeOrigin::root(),
 			Percent::from_parts(20),
 		) {

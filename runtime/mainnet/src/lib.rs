@@ -549,7 +549,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 6 * HOURS;
+	pub const Period: u32 = 24 * HOURS;
 	pub const Offset: u32 = 0;
 }
 
@@ -626,11 +626,11 @@ impl pallet_collator_staking::Config for Runtime {
 	type CollatorId = <Self as frame_system::Config>::AccountId;
 	type CollatorIdOf = pallet_collator_staking::IdentityCollator;
 	type CollatorRegistration = Session;
-	type MaxStakedCandidates = ConstU32<16>;
+	type MaxStakedCandidates = ConstU32<5>;
 	type MaxStakers = MaxStakers;
 	type BondUnlockDelay = BondUnlockDelay;
 	type StakeUnlockDelay = StakeUnlockDelay;
-	type MaxSessionRewards = ConstU32<500>;
+	type MaxSessionRewards = ConstU32<365>;
 	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
 
@@ -1336,6 +1336,9 @@ impl_runtime_apis! {
 		}
 		fn total_rewards(account: AccountId) -> Balance {
 			CollatorStaking::calculate_unclaimed_rewards(&account)
+		}
+		fn should_claim(account: AccountId) -> bool {
+			!CollatorStaking::staker_has_claimed(&account)
 		}
 	}
 

@@ -409,7 +409,7 @@ parameter_types! {
 
 impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
-	type EventHandler = (CollatorSelection,);
+	type EventHandler = (CollatorStaking,);
 }
 
 parameter_types! {
@@ -576,7 +576,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 10;
+	pub const Period: u32 = 25;
 	pub const Offset: u32 = 0;
 }
 
@@ -587,7 +587,7 @@ impl pallet_session::Config for Runtime {
 	type ValidatorIdOf = pallet_collator_staking::IdentityCollator;
 	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
 	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
-	type SessionManager = CollatorSelection;
+	type SessionManager = CollatorStaking;
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
@@ -651,11 +651,11 @@ impl pallet_collator_staking::Config for Runtime {
 	type CollatorId = <Self as frame_system::Config>::AccountId;
 	type CollatorIdOf = pallet_collator_staking::IdentityCollator;
 	type CollatorRegistration = Session;
-	type MaxStakedCandidates = ConstU32<16>;
+	type MaxStakedCandidates = ConstU32<5>;
 	type MaxStakers = MaxStakers;
 	type BondUnlockDelay = ConstU32<20>;
 	type StakeUnlockDelay = ConstU32<10>;
-	type MaxSessionRewards = ConstU32<500>;
+	type MaxSessionRewards = ConstU32<365>;
 	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
 
@@ -1082,7 +1082,7 @@ construct_runtime!(
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
-		CollatorSelection: pallet_collator_staking = 21,
+		CollatorStaking: pallet_collator_staking = 21,
 		Session: pallet_session = 22,
 		Aura: pallet_aura = 23,
 		AuraExt: cumulus_pallet_aura_ext = 24,
@@ -1187,7 +1187,7 @@ mod benches {
 		[pallet_treasury, Treasury]
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
-		[pallet_collator_staking, CollatorSelection]
+		[pallet_collator_staking, CollatorStaking]
 	);
 }
 
@@ -1373,13 +1373,16 @@ impl_runtime_apis! {
 
 	impl pallet_collator_staking::CollatorStakingApi<Block, AccountId, Balance> for Runtime {
 		fn main_pot_account() -> AccountId {
-			CollatorSelection::account_id()
+			CollatorStaking::account_id()
 		}
 		fn extra_reward_pot_account() -> AccountId {
-			CollatorSelection::extra_reward_account_id()
+			CollatorStaking::extra_reward_account_id()
 		}
 		fn total_rewards(account: AccountId) -> Balance {
-			CollatorSelection::calculate_unclaimed_rewards(&account)
+			CollatorStaking::calculate_unclaimed_rewards(&account)
+		}
+		fn should_claim(account: AccountId) -> bool {
+			!CollatorStaking::staker_has_claimed(&account)
 		}
 	}
 

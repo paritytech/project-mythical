@@ -198,7 +198,7 @@ pub mod testnet {
 				"parachainInfo": {
 					"parachainId": id,
 				},
-				"collatorSelection": {
+				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 					"minCandidacyBond": 100 * MUSE,
 					"minStake": 10 * MUSE,
