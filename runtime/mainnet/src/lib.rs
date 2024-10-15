@@ -880,11 +880,17 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
+	//TODO: Pending confirmation
 	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
+	//TODO: Pending confirmation
 	pub const VotingPeriod: BlockNumber = 7 * DAYS;
+	//TODO: Pending confirmation
 	pub const FastTrackVotingPeriod: BlockNumber = DAYS;
+	//TODO: Pending confirmation
 	pub const MinimumDeposit: Balance = 100 * MYTH;
+	//TODO: Pending confirmation
 	pub const EnactmentPeriod: BlockNumber = 8 * DAYS;
+	//TODO: Pending confirmation
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const MaxProposals: u32 = 100;
 }
@@ -919,30 +925,41 @@ impl pallet_democracy::Config for Runtime {
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	>;
+	//TODO: Pending confirmation
 	type SubmitOrigin = EnsureSigned<AccountId>;
+	//TODO: Pending confirmation
 	type FastTrackOrigin = RootOrCouncilTwoThirdsMajority;
 	type InstantOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	>;
+	//TODO: Pending confirmation
 	type CancellationOrigin = RootOrCouncilTwoThirdsMajority;
+	//TODO: Pending confirmation
 	type BlacklistOrigin = EnsureRoot<AccountId>;
+	//TODO: Pending confirmation
 	type CancelProposalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	>;
+	//TODO: Pending confirmation
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
 	type PalletsOrigin = OriginCaller;
+	//TODO: Pending confirmation
 	type Slash = Treasury;
 }
 
 parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
+	//TODO: Pending confirmation
 	pub const SpendPeriod: BlockNumber = 7 * DAYS;
+	//TODO: Pending confirmation
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaximumReasonLength: u32 = 300;
+	//TODO: Pending confirmation
 	pub const MaxApprovals: u32 = 100;
+	//TODO: Pending confirmation
 	pub const MaxBalance: Balance = Balance::MAX;
+	//TODO: Pending confirmation
 	pub const SpendPayoutPeriod: BlockNumber = 30 * DAYS;
 }
 
@@ -960,6 +977,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
+	//TODO: Pending confirmation
 	type SpendOrigin = EnsureWithSuccess<
 		EitherOfDiverse<
 			EnsureRoot<AccountId>,
