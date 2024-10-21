@@ -314,6 +314,137 @@ pub mod pallet {
 				<T as Config>::WeightInfo::batch(calls_len as u32, approvals.len() as u32);
 			Ok(Some(base_weight.saturating_add(weight)).into())
 		}
+
+		/// Execute multiple calls from multiple callers in a single batch.
+		///
+		/// If one of the calls fails, the whole batch reverts.
+		///
+		/// This function works the same as [Pallet::batch], but the bytes signed by
+		/// approvers must be wrapped in between <Bytes> ... </Bytes>.
+		/// This is how the rawSign is currently implemented in modern substrate clients.
+		/// 
+		#[pallet::call_index(1)]
+		#[pallet::weight({
+			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();
+			let dispatch_weight = dispatch_infos.iter()
+				.map(|di| di.weight)
+				.fold(Weight::zero(), |total: Weight, weight: Weight| total.saturating_add(weight))
+				.saturating_add(<T as Config>::WeightInfo::batch_v2(calls.len() as u32, approvals.len() as u32));
+			let dispatch_class = {
+				let all_operational = dispatch_infos.iter()
+					.map(|di| di.class)
+					.all(|class| class == DispatchClass::Operational);
+				if all_operational {
+					DispatchClass::Operational
+				} else {
+					DispatchClass::Normal
+				}
+			};
+			(dispatch_weight, dispatch_class)
+        })]
+		pub fn batch_v2(
+			origin: OriginFor<T>,
+			domain: [u8; 8],
+			sender: <T as frame_system::Config>::AccountId,
+			bias: [u8; 32],
+			expires_at: <T as pallet_timestamp::Config>::Moment,
+			calls: BoundedVec<BatchedCall<T>, <T as Config>::MaxCalls>,
+			approvals: BoundedVec<Approval<T>, <T as Config>::MaxCalls>,
+		) -> DispatchResultWithPostInfo {
+			if calls.is_empty() {
+				return Err(Error::<T>::NoCalls.into());
+			}
+			if approvals.is_empty() {
+				return Err(Error::<T>::NoApprovals.into());
+			}
+
+			if approvals.len() > 1 {
+				for pair in approvals.windows(2) {
+					match pair {
+						[a, b] if a.from < b.from => (),
+						_ => return Err(Error::<T>::UnsortedApprovals.into()),
+					};
+				}
+			}
+
+			// Origin must be `sender`.
+			match ensure_signed(origin) {
+				Ok(account_id) if account_id == sender => account_id,
+				Ok(_) => return Err(Error::<T>::BatchSenderIsNotOrigin.into()),
+				Err(e) => return Err(e.into()),
+			};
+
+			if pallet_timestamp::Pallet::<T>::get() > expires_at {
+				return Err(Error::<T>::Expired.into());
+			}
+
+			ensure!(domain == <T as Config>::Domain::get(), Error::<T>::InvalidDomain);
+
+			let bytes = Batch {
+				pallet_index: Self::index() as u8,
+				call_index: 0,
+				domain,
+				sender: sender.clone(),
+				bias,
+				expires_at,
+				calls: calls.clone(),
+				approvals_zero: 0,
+			}
+			.encode();
+			let bytes = [b"<Bytes>", &bytes[..], b"</Bytes>"].concat();
+			let hash = <<T as frame_system::Config>::Hashing>::hash(&bytes);
+
+			if Applied::<T>::contains_key(hash) {
+				return Err(Error::<T>::AlreadyApplied.into());
+			}
+
+			Applied::<T>::insert(hash, ());
+
+			// Check the signatures.
+			for (i, approval) in approvals.iter().enumerate() {
+				let ok = approval
+					.signature
+					.verify(bytes.as_ref(), &approval.from.clone().into_account());
+				if !ok {
+					return Err(Error::<T>::InvalidSignature(i as u16).into());
+				}
+			}
+
+			let mut weight = Weight::zero();
+
+			let calls_len = calls.len();
+
+			// Apply calls.
+			for (i, payload) in calls.into_iter().enumerate() {
+				let ok = approvals.binary_search_by_key(&&payload.from, |a| &a.from).is_ok();
+				if !ok {
+					return Err(Error::<T>::InvalidCallOrigin(i as u16).into());
+				}
+
+				let info = payload.call.get_dispatch_info();
+				let origin = <<T as frame_system::Config>::RuntimeOrigin>::from(
+					frame_system::RawOrigin::Signed(payload.from.into_account()),
+				);
+				let result = payload.call.dispatch(origin);
+				weight = weight.saturating_add(extract_actual_weight(&result, &info));
+				result.map_err(|mut err| {
+					// Take the weight of this function itself into account.
+					let base_weight = <T as Config>::WeightInfo::batch(
+						i.saturating_add(1) as u32,
+						approvals.len() as u32,
+					);
+					// Return the actual used weight + base_weight of this call.
+					err.post_info = Some(base_weight + weight).into();
+					err
+				})?;
+			}
+
+			Self::deposit_event(Event::BatchApplied { hash });
+
+			let base_weight =
+				<T as Config>::WeightInfo::batch(calls_len as u32, approvals.len() as u32);
+			Ok(Some(base_weight.saturating_add(weight)).into())
+		}
 	}
 }
 
