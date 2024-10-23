@@ -382,7 +382,7 @@ pub mod pallet {
 
 			let bytes = Batch {
 				pallet_index: Self::index() as u8,
-				call_index: 0,
+				call_index: 1,
 				domain,
 				sender: sender.clone(),
 				bias,

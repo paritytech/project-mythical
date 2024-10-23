@@ -662,7 +662,7 @@ mod multibatching_test {
 					.expect("Mock config must match runtime config for BoundedVec size");
 			}
 
-			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
+			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
 				domain,
 				sender: sender.into(),
 				bias,
@@ -880,7 +880,7 @@ mod multibatching_test {
 					.expect("Mock config must match runtime config for BoundedVec size");
 			}
 
-			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
+			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
 				domain,
 				sender: sender.into(),
 				bias,
@@ -1124,7 +1124,7 @@ mod multibatching_test {
 					.expect("Mock config must match runtime config for BoundedVec size");
 			}
 
-			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
+			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
 				domain,
 				sender: sender.into(),
 				bias,
