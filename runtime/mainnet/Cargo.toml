@@ -29,7 +29,6 @@ smallvec = { workspace = true }
 runtime-common = { workspace = true, default-features = false }
 pallet-dmarket = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
-pallet-migration = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 pallet-escrow = {workspace = true, default-features = false}
 

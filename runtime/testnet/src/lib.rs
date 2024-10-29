@@ -695,15 +695,6 @@ impl pallet_dmarket::Config for Runtime {
 	type BenchmarkHelper = ();
 }
 
-impl pallet_migration::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
-
 parameter_types! {
 	pub const ProxyDepositBase: Balance = deposit(1, 8);
 	pub const ProxyDepositFactor: Balance = deposit(0, 33);
@@ -897,7 +888,6 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -973,7 +963,6 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
-		[pallet_migration, Migration]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_vesting, Vesting]
