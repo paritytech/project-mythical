@@ -5407,7 +5407,6 @@ dependencies = [
  "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
- "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-myth-proxy",
@@ -6919,28 +6918,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-weights",
-]
-
-[[package]]
-name = "pallet-migration"
-version = "0.0.1"
-dependencies = [
- "account",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "pallet-dmarket",
- "pallet-nfts",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-api",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -13386,7 +13363,6 @@ dependencies = [
  "pallet-escrow",
  "pallet-marketplace",
  "pallet-message-queue",
- "pallet-migration",
  "pallet-multibatching",
  "pallet-multisig",
  "pallet-myth-proxy",
