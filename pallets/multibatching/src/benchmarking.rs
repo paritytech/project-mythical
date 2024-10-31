@@ -136,7 +136,7 @@ pub mod benchmarks {
 		}
 		.into();
 		let pseudo_call_bytes = pseudo_call.encode();
-        let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
+		let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 		let hash = keccak_256(&pseudo_call_bytes);
 
 		let mut approvals = BoundedVec::new();
@@ -154,7 +154,15 @@ pub mod benchmarks {
 		approvals.sort_by_key(|a| a.from.clone());
 
 		#[extrinsic_call]
-		Pallet::<T>::batch_v2(RawOrigin::Signed(sender), domain, sender.into(), bias, expires_at, calls, approvals);
+		Pallet::<T>::batch_v2(
+			RawOrigin::Signed(sender),
+			domain,
+			sender.into(),
+			bias,
+			expires_at,
+			calls,
+			approvals,
+		);
 	}
 
 	impl_benchmark_test_suite!(Multibatching, crate::mock::new_test_ext(), crate::mock::Test);

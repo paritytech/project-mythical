@@ -322,7 +322,7 @@ pub mod pallet {
 		/// This function works the same as [Pallet::batch], but the bytes signed by
 		/// approvers must be wrapped in between <Bytes> ... </Bytes>.
 		/// This is how the rawSign is currently implemented in modern substrate clients.
-		/// 
+		///
 		#[pallet::call_index(1)]
 		#[pallet::weight({
 			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();

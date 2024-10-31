@@ -670,7 +670,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
@@ -745,7 +745,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = blake2_256(&pseudo_call_bytes);
@@ -823,7 +823,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let _hash = keccak_256(&pseudo_call_bytes);
@@ -888,7 +888,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
@@ -976,7 +976,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
@@ -1054,7 +1054,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
@@ -1132,7 +1132,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
@@ -1211,7 +1211,7 @@ mod multibatching_test {
 				calls: calls.clone(),
 				approvals: BoundedVec::new(),
 			}
-				.into();
+			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
@@ -1250,5 +1250,4 @@ mod multibatching_test {
 			);
 		})
 	}
-
 }
