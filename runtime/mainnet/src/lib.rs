@@ -603,7 +603,7 @@ parameter_types! {
 	pub const ExtraRewardPotId: PalletId = PalletId(*b"ExtraPot");
 	pub const MaxCandidates: u32 = 15;
 	pub const MinEligibleCollators: u32 = 2;
-	pub const MaxInvulnerables: u32 = 2;
+	pub const MaxInvulnerables: u32 = 4;
 	pub const MaxStakers: u32 = 200_000;
 	pub const KickThreshold: u32 = 2 * Period::get();
 	pub const BondUnlockDelay: BlockNumber = 28 * DAYS;
