@@ -13,8 +13,9 @@ pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
+use frame_support::traits::fungible::Balanced;
 use frame_support::traits::{
-	fungible, AsEnsureOriginWithArg, Imbalance, InstanceFilter, OnUnbalanced, WithdrawReasons,
+	fungible, AsEnsureOriginWithArg, InstanceFilter, OnUnbalanced, WithdrawReasons,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
@@ -40,7 +41,7 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::HoldConsideration,
-		tokens::{imbalance::ResolveTo, PayFromAccount, UnityAssetBalanceConversion},
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstU32, ConstU64, ConstU8, EitherOfDiverse, LinearStoragePrice,
 	},
 	weights::{ConstantMultiplier, Weight},
@@ -50,10 +51,8 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
-use pallet_collator_staking::StakingPotAccountId;
 use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
-use pallet_treasury::TreasuryAccountId;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_primitives::Moment;
 pub use runtime_common::{
@@ -131,7 +130,7 @@ pub type Executive = frame_executive::Executive<
 pub struct DealWithFees<R>(PhantomData<R>);
 impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_collator_staking::Config + pallet_treasury::Config,
+	R: pallet_balances::Config + pallet_authorship::Config,
 	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
@@ -140,18 +139,14 @@ where
 			Item = fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>,
 		>,
 	) {
-		if let Some(mut fees) = fees_then_tips.next() {
-			if let Some(tips) = fees_then_tips.next() {
-				tips.merge_into(&mut fees);
+		// We discard the fees, as they will get burned.
+		let _ = fees_then_tips.next();
+
+		// If there is a tip for the author we deliver it.
+		if let Some(tips) = fees_then_tips.next() {
+			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+				let _ = <pallet_balances::Pallet<R>>::resolve(&author, tips);
 			}
-			// Half goes to the staking pot, and half to treasury.
-			let (staking_pot_fees, treasury_fees) = fees.ration(50, 50);
-			ResolveTo::<StakingPotAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				staking_pot_fees,
-			);
-			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				treasury_fees,
-			);
 		}
 	}
 }

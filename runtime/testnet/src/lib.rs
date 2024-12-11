@@ -24,7 +24,6 @@ use sp_runtime::{
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 
-use pallet_treasury::TreasuryAccountId;
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -32,10 +31,9 @@ use sp_version::RuntimeVersion;
 
 use frame_support::traits::{
 	fungible,
-	fungible::HoldConsideration,
-	tokens::{imbalance::ResolveTo, PayFromAccount, UnityAssetBalanceConversion},
-	AsEnsureOriginWithArg, Imbalance, InstanceFilter, LinearStoragePrice, OnUnbalanced,
-	WithdrawReasons,
+	fungible::{Balanced, HoldConsideration},
+	tokens::{PayFromAccount, UnityAssetBalanceConversion},
+	AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice, OnUnbalanced, WithdrawReasons,
 };
 use frame_support::{
 	construct_runtime, derive_impl,
@@ -51,7 +49,6 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned, EnsureWithSuccess,
 };
-use pallet_collator_staking::StakingPotAccountId;
 use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -148,7 +145,7 @@ pub type Executive = frame_executive::Executive<
 pub struct DealWithFees<R>(PhantomData<R>);
 impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_collator_staking::Config + pallet_treasury::Config,
+	R: pallet_balances::Config + pallet_authorship::Config,
 	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
@@ -157,18 +154,14 @@ where
 			Item = fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>,
 		>,
 	) {
-		if let Some(mut fees) = fees_then_tips.next() {
-			if let Some(tips) = fees_then_tips.next() {
-				tips.merge_into(&mut fees);
+		// We discard the fees, as they will get burned.
+		let _ = fees_then_tips.next();
+
+		// If there is a tip for the author we deliver it.
+		if let Some(tips) = fees_then_tips.next() {
+			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+				let _ = <pallet_balances::Pallet<R>>::resolve(&author, tips);
 			}
-			// Half goes to the staking pot, and half to treasury.
-			let (staking_pot_fees, treasury_fees) = fees.ration(50, 50);
-			ResolveTo::<StakingPotAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				staking_pot_fees,
-			);
-			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				treasury_fees,
-			);
 		}
 	}
 }
