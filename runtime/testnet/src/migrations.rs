@@ -18,18 +18,24 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 			hex!("25451A4de12dcCc2D166922fA938E900fCc4ED24"),
 			hex!("E04CC55ebEE1cBCE552f250e85c57B70B2E2625b"),
 		];
-		for invulnerable in invulnerables {
+		for (i, invulnerable) in invulnerables.into_iter().enumerate() {
 			if let Ok(result) =
 				CollatorStaking::add_invulnerable(RuntimeOrigin::root(), invulnerable.into())
 			{
 				if let Some(weight) = result.actual_weight {
 					total_weight.saturating_accrue(weight);
+				} else {
+					total_weight.saturating_accrue(
+						<Runtime as pallet_collator_staking::Config>::WeightInfo::add_invulnerable(
+							i as u32,
+						),
+					)
 				}
 			}
 		}
 
 		// Candidacy bond
-		if let Ok(_) = CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 100 * MUSE) {
+		if let Ok(_) = CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 50 * MUSE) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_min_candidacy_bond(),
 			);
@@ -43,7 +49,7 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 		}
 
 		// DesiredCandidates
-		if let Ok(_) = CollatorStaking::set_desired_candidates(RuntimeOrigin::root(), 5) {
+		if let Ok(_) = CollatorStaking::set_desired_candidates(RuntimeOrigin::root(), 6) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_desired_candidates(),
 			);
@@ -52,14 +58,14 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 		// Collator reward percentage
 		if let Ok(_) = CollatorStaking::set_collator_reward_percentage(
 			RuntimeOrigin::root(),
-			Percent::from_parts(20),
+			Percent::from_parts(10),
 		) {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_collator_reward_percentage(),
 			);
 		}
 
-		log::info!("CollatorStakingSetupMigration executed");
+		log::info!("CollatorStakingSetupMigration successfully executed");
 		total_weight
 	}
 }
