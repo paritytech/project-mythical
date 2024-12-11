@@ -21,18 +21,21 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 			hex!("F4d1C38f3Be73d7cD2123968141Aec3AbB393153"),
 		];
 		for (i, invulnerable) in invulnerables.into_iter().enumerate() {
-			if let Ok(result) =
-				CollatorStaking::add_invulnerable(RuntimeOrigin::root(), invulnerable.into())
-			{
-				if let Some(weight) = result.actual_weight {
-					total_weight.saturating_accrue(weight);
-				} else {
-					total_weight.saturating_accrue(
-						<Runtime as pallet_collator_staking::Config>::WeightInfo::add_invulnerable(
-							i as u32,
-						),
-					)
-				}
+			let result =
+				CollatorStaking::add_invulnerable(RuntimeOrigin::root(), invulnerable.into());
+			match result {
+				Ok(info) => {
+					if let Some(weight) = info.actual_weight {
+						total_weight.saturating_accrue(weight);
+					} else {
+						total_weight.saturating_accrue(
+							<Runtime as pallet_collator_staking::Config>::WeightInfo::add_invulnerable(
+								i as u32,
+							),
+						)
+					}
+				},
+				Err(e) => log::warn!("An error occurred adding an invulnerable: {:?}", e),
 			}
 		}
 
