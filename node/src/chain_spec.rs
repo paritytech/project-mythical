@@ -214,7 +214,7 @@ pub mod testnet {
 						.into_iter()
 						.map(|(acc, aura)| {
 							(
-								acc.clone(),                // account id
+								acc,                        // account id
 								acc,                        // validator id
 								testnet_session_keys(aura), // session keys
 							)
