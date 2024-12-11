@@ -35,31 +35,33 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 		}
 
 		// Candidacy bond
-		if let Ok(_) = CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 50 * MUSE) {
+		if CollatorStaking::set_min_candidacy_bond(RuntimeOrigin::root(), 50 * MUSE).is_ok() {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_min_candidacy_bond(),
 			);
 		}
 
 		// MinStake
-		if let Ok(_) = CollatorStaking::set_minimum_stake(RuntimeOrigin::root(), 10 * MUSE) {
+		if CollatorStaking::set_minimum_stake(RuntimeOrigin::root(), 10 * MUSE).is_ok() {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_minimum_stake(),
 			);
 		}
 
 		// DesiredCandidates
-		if let Ok(_) = CollatorStaking::set_desired_candidates(RuntimeOrigin::root(), 6) {
+		if CollatorStaking::set_desired_candidates(RuntimeOrigin::root(), 6).is_ok() {
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_desired_candidates(),
 			);
 		}
 
 		// Collator reward percentage
-		if let Ok(_) = CollatorStaking::set_collator_reward_percentage(
+		if CollatorStaking::set_collator_reward_percentage(
 			RuntimeOrigin::root(),
 			Percent::from_parts(10),
-		) {
+		)
+		.is_ok()
+		{
 			total_weight.saturating_accrue(
 				<Runtime as pallet_collator_staking::Config>::WeightInfo::set_collator_reward_percentage(),
 			);
