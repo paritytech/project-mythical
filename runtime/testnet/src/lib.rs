@@ -625,7 +625,7 @@ parameter_types! {
 	pub const BondUnlockDelay: BlockNumber = 5 * MINUTES;
 	pub const StakeUnlockDelay: BlockNumber = 2 * MINUTES;
 	pub const AutoCompoundingThreshold: Balance = 50 * MUSE;
-	pub const MaxRewardSessions: u32 = 2 * 365; // two years
+	pub const MaxRewardSessions: u32 = 365; // two years
 	pub const MaxStakedCandidates: u32 = 3;
 }
 
