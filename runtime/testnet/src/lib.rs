@@ -175,6 +175,8 @@ pub mod fee {
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
 
+	const FEE_MULTIPLIER: Balance = 7;
+
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
 	///
@@ -200,7 +202,7 @@ pub mod fee {
 			let proof_fee: Balance = proof_polynomial.eval(weight.proof_size());
 
 			// Take the maximum instead of the sum to charge by the more scarce resource.
-			ref_fee.max(proof_fee)
+			ref_fee.max(proof_fee).saturating_mul(FEE_MULTIPLIER)
 		}
 	}
 
