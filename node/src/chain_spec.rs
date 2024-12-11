@@ -200,10 +200,10 @@ pub mod testnet {
 				},
 				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"minCandidacyBond": 100 * MUSE,
+					"minCandidacyBond": 50 * MUSE,
 					"minStake": 10 * MUSE,
-					"desiredCandidates": 5,
-					"collatorRewardPercentage": Percent::from_parts(20),
+					"desiredCandidates": 6,
+					"collatorRewardPercentage": Percent::from_parts(10),
 					"extraReward": 0,
 				},
 				"council": {
@@ -391,10 +391,10 @@ pub mod mainnet {
 				},
 				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"minCandidacyBond": 100 * MYTH,
-					"minStake": 10 * MYTH,
-					"desiredCandidates": 5,
-					"collatorRewardPercentage": Percent::from_parts(20),
+					"minCandidacyBond": 5_000 * MYTH,
+					"minStake": 500 * MYTH,
+					"desiredCandidates": 6,
+					"collatorRewardPercentage": Percent::from_parts(10),
 					"extraReward": 0,
 				},
 				"session": {
@@ -402,7 +402,7 @@ pub mod mainnet {
 						.into_iter()
 						.map(|(acc, aura)| {
 							(
-								acc.clone(),                // account id
+								acc,                        // account id
 								acc,                        // validator id
 								mainnet_session_keys(aura), // session keys
 							)
