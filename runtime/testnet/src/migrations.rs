@@ -15,8 +15,8 @@ impl OnRuntimeUpgrade for CollatorStakingSetupMigration {
 
 		// Add invulnerables
 		let invulnerables = vec![
-			hex!("25451A4de12dcCc2D166922fA938E900fCc4ED24"),
-			hex!("E04CC55ebEE1cBCE552f250e85c57B70B2E2625b"),
+			hex!("e07113E692708775d0Cc39E00Fe7f2974bFF4e20"),
+			hex!("E6b4f55209A70384dB3D147C06b99E32fEB03d6F"),
 		];
 		for (i, invulnerable) in invulnerables.into_iter().enumerate() {
 			if let Ok(result) =
