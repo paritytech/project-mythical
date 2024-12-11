@@ -50,9 +50,11 @@ pallet-migration = { path = "pallets/migration", default-features = false }
 pallet-multibatching = { path = "pallets/multibatching", default-features = false }
 runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
-pallet-collator-staking = { path = "../pallet-collator-staking", default-features = false }
 pallet-nfts = { path = "pallets/nfts", default-features = false }
 pallet-myth-proxy = { path = "pallets/myth-proxy", default-features = false }
+
+# External pallets
+pallet-collator-staking = { git = "https://github.com/blockdeep/pallet-collator-staking.git", branch = "audit-fixes", default-features = false }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2407-2", default-features = false }

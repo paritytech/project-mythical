@@ -601,13 +601,16 @@ impl pallet_aura::Config for Runtime {
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"StakePot");
 	pub const ExtraRewardPotId: PalletId = PalletId(*b"ExtraPot");
-	pub const MaxCandidates: u32 = 100;
-	pub const MinEligibleCollators: u32 = 1;
-	pub const MaxInvulnerables: u32 = 20;
-	pub const MaxStakers: u32 = 200;
-	pub const KickThreshold: u32 = 5 * Period::get();
+	pub const MaxCandidates: u32 = 15;
+	pub const MinEligibleCollators: u32 = 2;
+	pub const MaxInvulnerables: u32 = 2;
+	pub const MaxStakers: u32 = 200_000;
+	pub const KickThreshold: u32 = 2 * Period::get();
 	pub const BondUnlockDelay: BlockNumber = 28 * DAYS;
-	pub const StakeUnlockDelay: BlockNumber = 28 * DAYS;
+	pub const StakeUnlockDelay: BlockNumber = 3 * DAYS;
+	pub const AutoCompoundingThreshold: Balance = 2500 * MYTH;
+	pub const MaxRewardSessions: u32 = 2 * 365; // two years
+	pub const MaxStakedCandidates: u32 = 3;
 }
 
 impl pallet_collator_staking::Config for Runtime {
@@ -617,7 +620,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
 	type ExtraRewardPotId = ExtraRewardPotId;
-	type ExtraRewardReceiver = ();
+	type ExtraRewardReceiver = TreasuryAccount;
 	type MaxCandidates = MaxCandidates;
 	type MinEligibleCollators = MinEligibleCollators;
 	type MaxInvulnerables = MaxInvulnerables;
@@ -626,11 +629,13 @@ impl pallet_collator_staking::Config for Runtime {
 	type CollatorId = <Self as frame_system::Config>::AccountId;
 	type CollatorIdOf = pallet_collator_staking::IdentityCollator;
 	type CollatorRegistration = Session;
-	type MaxStakedCandidates = ConstU32<5>;
+	type MaxStakedCandidates = MaxStakedCandidates;
 	type MaxStakers = MaxStakers;
 	type BondUnlockDelay = BondUnlockDelay;
 	type StakeUnlockDelay = StakeUnlockDelay;
-	type MaxSessionRewards = ConstU32<365>;
+	type RestakeUnlockDelay = Period;
+	type MaxRewardSessions = MaxRewardSessions;
+	type AutoCompoundingThreshold = AutoCompoundingThreshold;
 	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
 
