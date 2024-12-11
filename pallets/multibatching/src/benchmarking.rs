@@ -98,5 +98,72 @@ pub mod benchmarks {
 		_(RawOrigin::Signed(sender), domain, sender.into(), bias, expires_at, calls, approvals);
 	}
 
+	#[benchmark]
+	fn batch_v2(c: Linear<1, { T::MaxCalls::get() }>, s: Linear<1, { T::MaxCalls::get() }>) {
+		let call_count = c as usize;
+		let signer_count = s as usize;
+
+		let domain: [u8; 8] = T::Domain::get();
+		let bias = [0u8; 32];
+		let expires_at = Timestamp::<T>::get() + T::BenchmarkHelper::timestamp(100_000);
+
+		let sender: AccountId20 = whitelisted_caller();
+
+		let mut signers = Vec::<(Public, EthereumSigner, AccountId20)>::with_capacity(signer_count);
+		for _ in 0..signer_count {
+			let public: Public = ecdsa_generate(0.into(), None);
+			let signer: EthereumSigner = public.into();
+			let account = signer.clone().into_account();
+			signers.push((public, signer, account));
+		}
+
+		let mut calls = BoundedVec::new();
+		let iter = (0..call_count).zip(signers.iter().cycle());
+		for (_, (_, signer, _)) in iter {
+			let call = frame_system::Call::remark { remark: Default::default() }.into();
+			calls
+				.try_push(BatchedCall::<T> { from: signer.clone().into(), call })
+				.expect("Benchmark config must match runtime config for BoundedVec size");
+		}
+
+		let pseudo_call: <T as Config>::RuntimeCall = Call::<T>::batch_v2 {
+			domain,
+			sender: sender.into(),
+			bias,
+			expires_at,
+			calls: calls.clone(),
+			approvals: BoundedVec::new(),
+		}
+		.into();
+		let pseudo_call_bytes = pseudo_call.encode();
+		let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
+		let hash = keccak_256(&pseudo_call_bytes);
+
+		let mut approvals = BoundedVec::new();
+		for (public, _signer, account) in &signers {
+			approvals
+				.try_push(Approval::<T> {
+					from: EthereumSigner::from(account.0).into(),
+					signature: EthereumSignature::from(
+						ecdsa_sign_prehashed(0.into(), public, &hash).unwrap(),
+					)
+					.into(),
+				})
+				.expect("Benchmark config must match runtime config for BoundedVec size");
+		}
+		approvals.sort_by_key(|a| a.from.clone());
+
+		#[extrinsic_call]
+		Pallet::<T>::batch_v2(
+			RawOrigin::Signed(sender),
+			domain,
+			sender.into(),
+			bias,
+			expires_at,
+			calls,
+			approvals,
+		);
+	}
+
 	impl_benchmark_test_suite!(Multibatching, crate::mock::new_test_ext(), crate::mock::Test);
 }

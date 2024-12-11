@@ -57,4 +57,25 @@ impl<T: frame_system::Config> pallet_multibatching::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+
+	/// Storage: `Timestamp::Now` (r:1 w:0)
+	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Storage: `Multibatching::Applied` (r:1 w:1)
+	/// Proof: `Multibatching::Applied` (`max_values`: None, `max_size`: Some(32), added: 2507, mode: `MaxEncodedLen`)
+	/// The range of component `c` is `[1, 128]`.
+	/// The range of component `s` is `[1, 128]`.
+	fn batch_v2(c: u32, s: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `12`
+		//  Estimated: `3497`
+		// Minimum execution time: 488_143_000 picoseconds.
+		Weight::from_parts(497_863_000, 0)
+			.saturating_add(Weight::from_parts(0, 3497))
+			// Standard Error: 200_979
+			.saturating_add(Weight::from_parts(5_989_676, 0).saturating_mul(c.into()))
+			// Standard Error: 200_979
+			.saturating_add(Weight::from_parts(57_523_530, 0).saturating_mul(s.into()))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
 }

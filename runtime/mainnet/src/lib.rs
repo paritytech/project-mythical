@@ -113,6 +113,9 @@ pub type UncheckedExtrinsic =
 pub type CheckedExtrinsic =
 	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
 
+/// Pending migrations to be applied.
+pub type Migrations = (migrations::CollatorStakingSetupMigration,);
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -120,7 +123,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(migrations::CollatorStakingSetupMigration,),
+	Migrations,
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
@@ -265,7 +268,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("mythos"),
 	impl_name: create_runtime_str!("mythos"),
 	authoring_version: 1,
-	spec_version: 1010,
+	spec_version: 1011,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,

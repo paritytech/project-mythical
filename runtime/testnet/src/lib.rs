@@ -130,6 +130,9 @@ impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
 	}
 }
 
+/// Pending migrations to be applied.
+pub type Migrations = (migrations::CollatorStakingSetupMigration,);
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -137,11 +140,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(
-		cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
-		PrepareForMove,
-		migrations::CollatorStakingSetupMigration,
-	),
+	Migrations,
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
@@ -172,11 +171,6 @@ where
 			);
 		}
 	}
-}
-
-// TODO remove this when the migration is completed
-impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
-	type ChannelList = ParachainSystem;
 }
 
 pub mod fee {
@@ -291,7 +285,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("muse"),
 	impl_name: create_runtime_str!("muse"),
 	authoring_version: 1,
-	spec_version: 1017,
+	spec_version: 1020,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -757,15 +751,6 @@ impl pallet_dmarket::Config for Runtime {
 	type BenchmarkHelper = ();
 }
 
-impl pallet_migration::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type WeightInfo = weights::pallet_migration::WeightInfo<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
-
 parameter_types! {
 	pub const ProxyDepositBase: Balance = deposit(1, 8);
 	pub const ProxyDepositFactor: Balance = deposit(0, 33);
@@ -1103,7 +1088,6 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		Migration: pallet_migration = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -1171,7 +1155,6 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
-		[pallet_migration, Migration]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_vesting, Vesting]
