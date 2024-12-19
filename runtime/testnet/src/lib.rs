@@ -16,7 +16,10 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
+use sp_core::{
+	crypto::{FromEntropy, KeyTypeId},
+	ConstBool, OpaqueMetadata, H160,
+};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Verify},
@@ -1005,6 +1008,25 @@ parameter_types! {
 	pub const SpendPayoutPeriod: BlockNumber = 7 * DAYS;
 }
 
+pub struct TreasuryBenchmarkHelper<T>(PhantomData<T>);
+impl<T> pallet_treasury::ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
+where
+	T: fungible::Mutate<AccountId> + fungible::Inspect<AccountId>,
+{
+	fn create_asset_kind(_seed: u32) -> () {
+		()
+	}
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+		let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+		<T as fungible::Mutate<_>>::mint_into(
+			&account,
+			<T as fungible::Inspect<_>>::minimum_balance(),
+		)
+		.unwrap();
+		account
+	}
+}
+
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
 	type RejectOrigin = EitherOfDiverse<
@@ -1034,7 +1056,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = SpendPayoutPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
+	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
