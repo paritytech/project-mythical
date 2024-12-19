@@ -17,10 +17,17 @@ use frame_support::traits::fungible::Balanced;
 use frame_support::traits::{
 	fungible, AsEnsureOriginWithArg, InstanceFilter, OnUnbalanced, WithdrawReasons,
 };
+
+#[cfg(feature = "runtime-benchmarks")]
+use pallet_treasury::ArgumentsFactory;
+#[cfg(feature = "runtime-benchmarks")]
+use sp_core::crypto::FromEntropy;
+
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use runtime_common::TreasuryBenchmarkHelper;
+
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
+
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentityLookup, Verify},
@@ -986,6 +993,28 @@ parameter_types! {
 	pub const MaxApprovals: u32 = 100;
 	pub const MaxBalance: Balance = Balance::MAX;
 	pub const SpendPayoutPeriod: BlockNumber = 30 * DAYS;
+}
+
+pub struct TreasuryBenchmarkHelper<T>(PhantomData<T>);
+
+#[cfg(feature = "runtime-benchmarks")]
+
+impl<T> ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
+where
+	T: fungible::Mutate<AccountId> + fungible::Inspect<AccountId>,
+{
+	fn create_asset_kind(_seed: u32) -> () {
+		()
+	}
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+		let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+		<T as fungible::Mutate<_>>::mint_into(
+			&account,
+			<T as fungible::Inspect<_>>::minimum_balance(),
+		)
+		.unwrap();
+		account
+	}
 }
 
 impl pallet_treasury::Config for Runtime {
