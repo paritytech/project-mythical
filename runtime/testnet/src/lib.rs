@@ -1152,7 +1152,6 @@ mod benches {
 		[pallet_marketplace, Marketplace]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
-		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
 		[pallet_dmarket, Dmarket]
