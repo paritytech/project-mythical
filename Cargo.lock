@@ -6649,7 +6649,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-staking"
 version = "1.15.2"
-source = "git+https://github.com/blockdeep/pallet-collator-staking.git?branch=audit-fixes#5f5b8798cfb33d0d412673524cebee42a5edbdb1"
+source = "git+https://github.com/blockdeep/pallet-collator-staking.git?tag=rc-polkadot-stable2407-2#d77a3bbf3a766a4fdbcb65ff834fa0fde9724256"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

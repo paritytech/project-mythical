@@ -84,6 +84,8 @@ impl From<u16> for IncrementableU256 {
 }
 
 pub struct TreasuryBenchmarkHelper<T>(PhantomData<T>);
+
+#[cfg(feature = "runtime-benchmarks")]
 impl<T> pallet_treasury::ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
 where
 	T: Mutate<AccountId> + Inspect<AccountId>,

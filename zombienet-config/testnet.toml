@@ -3,6 +3,14 @@ chain = "paseo-local"
 default_command = "./bin/polkadot"
 chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
+[relaychain.genesis.runtimeGenesis.patch.configuration.config]
+scheduling_lookahead = 2
+
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.async_backing_params]
+max_candidate_depth = 3
+allowed_ancestry_len = 2
+
+
 	[[relaychain.nodes]]
 	name = "alice"
 	validator = true
