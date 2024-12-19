@@ -1,8 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
+use core::marker::PhantomData;
+use frame_support::{
+	traits::fungible::{Inspect, Mutate},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
+};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
-use sp_core::U256;
+use sp_core::{crypto::FromEntropy, U256};
+
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
@@ -75,5 +80,20 @@ impl Incrementable for IncrementableU256 {
 impl From<u16> for IncrementableU256 {
 	fn from(value: u16) -> Self {
 		IncrementableU256(U256::from(value))
+	}
+}
+
+pub struct TreasuryBenchmarkHelper<T>(PhantomData<T>);
+impl<T> pallet_treasury::ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
+where
+	T: Mutate<AccountId> + Inspect<AccountId>,
+{
+	fn create_asset_kind(_seed: u32) -> () {
+		()
+	}
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+		let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+		<T as Mutate<_>>::mint_into(&account, <T as Inspect<_>>::minimum_balance()).unwrap();
+		account
 	}
 }

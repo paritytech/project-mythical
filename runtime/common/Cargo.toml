@@ -25,6 +25,7 @@ sp-runtime = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 sp-std = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-treasury = { workspace = true, default-features = false }
 
 
 parachains-common = { workspace = true, default-features = false }

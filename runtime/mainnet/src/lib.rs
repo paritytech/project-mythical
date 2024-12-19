@@ -18,6 +18,7 @@ use frame_support::traits::{
 	fungible, AsEnsureOriginWithArg, InstanceFilter, OnUnbalanced, WithdrawReasons,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use runtime_common::TreasuryBenchmarkHelper;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
@@ -1016,7 +1017,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = SpendPayoutPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
+	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

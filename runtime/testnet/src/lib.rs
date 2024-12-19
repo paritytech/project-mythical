@@ -16,10 +16,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use sp_api::impl_runtime_apis;
-use sp_core::{
-	crypto::{FromEntropy, KeyTypeId},
-	ConstBool, OpaqueMetadata, H160,
-};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Verify},
@@ -77,7 +74,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 
 // XCM Imports
 use crate::xcm_config::SelfReserve;
-use runtime_common::AccountIdOf;
+use runtime_common::{AccountIdOf, TreasuryBenchmarkHelper};
 
 /// The address format for describing accounts.
 pub type Address = AccountId;
@@ -1006,25 +1003,6 @@ parameter_types! {
 	pub const MaxApprovals: u32 = 10;
 	pub const MaxBalance: Balance = Balance::MAX;
 	pub const SpendPayoutPeriod: BlockNumber = 7 * DAYS;
-}
-
-pub struct TreasuryBenchmarkHelper<T>(PhantomData<T>);
-impl<T> pallet_treasury::ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
-where
-	T: fungible::Mutate<AccountId> + fungible::Inspect<AccountId>,
-{
-	fn create_asset_kind(_seed: u32) -> () {
-		()
-	}
-	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
-		let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
-		<T as fungible::Mutate<_>>::mint_into(
-			&account,
-			<T as fungible::Inspect<_>>::minimum_balance(),
-		)
-		.unwrap();
-		account
-	}
 }
 
 impl pallet_treasury::Config for Runtime {
