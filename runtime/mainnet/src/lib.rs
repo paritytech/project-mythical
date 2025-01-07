@@ -614,7 +614,7 @@ parameter_types! {
 	pub const MaxInvulnerables: u32 = 4;
 	pub const MaxStakers: u32 = 200_000;
 	pub const KickThreshold: u32 = 2 * Period::get();
-	pub const BondUnlockDelay: BlockNumber = 28 * DAYS;
+	pub const BondUnlockDelay: BlockNumber = 3 * DAYS;
 	pub const StakeUnlockDelay: BlockNumber = 3 * DAYS;
 	pub const AutoCompoundingThreshold: Balance = 2500 * MYTH;
 	pub const MaxRewardSessions: u32 = 365; // two years
