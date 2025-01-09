@@ -181,6 +181,7 @@ pub mod fee {
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
 
+	// This constant will multiply the overall fee users will have to spend for transactions.
 	const FEE_MULTIPLIER: Balance = 7;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
@@ -631,7 +632,9 @@ parameter_types! {
 	pub const BondUnlockDelay: BlockNumber = 5 * MINUTES;
 	pub const StakeUnlockDelay: BlockNumber = 2 * MINUTES;
 	pub const AutoCompoundingThreshold: Balance = 50 * MUSE;
-	pub const MaxRewardSessions: u32 = 365; // one year
+	/// Rewards are claimable for up to a year.
+	/// Pending to claim rewards past a year will be lost.
+	pub const MaxRewardSessions: u32 = 365;
 	pub const MaxStakedCandidates: u32 = 3;
 }
 
