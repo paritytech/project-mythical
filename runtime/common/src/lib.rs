@@ -74,7 +74,7 @@ where
 	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
-	fn on_unbalanceds<B>(
+	fn on_unbalanceds(
 		mut fees_then_tips: impl Iterator<
 			Item = fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>,
 		>,
