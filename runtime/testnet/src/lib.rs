@@ -6,7 +6,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-mod migrations;
 mod weights;
 pub mod xcm_config;
 
@@ -135,7 +134,7 @@ impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
 }
 
 /// Pending migrations to be applied.
-pub type Migrations = (migrations::CollatorStakingSetupMigration,);
+pub type Migrations = ();
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
