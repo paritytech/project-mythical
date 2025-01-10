@@ -94,11 +94,6 @@ parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
 
-# Frontier
-fp-self-contained = { workspace = true, default-features = false, features = [
-  "serde",
-] }
-
 [features]
 default = ["std"]
 std = [
@@ -114,7 +109,6 @@ std = [
   "cumulus-primitives-core/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "cumulus-primitives-utility/std",
-  "fp-self-contained/std",
   "frame-executive/std",
   "frame-support/std",
   "frame-system-rpc-runtime-api/std",
@@ -170,7 +164,6 @@ runtime-benchmarks = [
   "frame-support/runtime-benchmarks",
   "frame-system-benchmarking/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
-  "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
   "pallet-collator-selection/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
@@ -196,7 +189,6 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
-  "fp-self-contained/try-runtime",
   "cumulus-pallet-aura-ext/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-message-queue/try-runtime",

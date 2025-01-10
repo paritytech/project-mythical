@@ -27,6 +27,7 @@ use sp_core::{ecdsa, H160};
 
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sp_core::crypto::AccountId32;
+#[cfg(feature = "std")]
 use sp_io::hashing::keccak_256;
 use sp_runtime::MultiSignature;
 

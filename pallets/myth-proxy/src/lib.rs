@@ -280,7 +280,7 @@ pub mod pallet {
 		#[pallet::call_index(1)]
 		#[pallet::weight({
 			let di = call.get_dispatch_info();
-			T::WeightInfo::proxy().saturating_add(di.weight)
+			T::WeightInfo::proxy().saturating_add(di.call_weight)
 		})]
 		pub fn proxy(
 			origin: OriginFor<T>,

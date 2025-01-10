@@ -17,7 +17,7 @@ macro_rules! assert_proxy_error {
 			DispatchErrorWithPostInfo {
 				error: $expected_error.into(),
 				post_info: PostDispatchInfo {
-					actual_weight: Some(info.weight),
+					actual_weight: Some(info.call_weight),
 					pays_fee: Pays::Yes
 				},
 			}

@@ -197,7 +197,7 @@ pub mod pallet {
 		#[pallet::weight({
 			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();
 			let dispatch_weight = dispatch_infos.iter()
-				.map(|di| di.weight)
+				.map(|di| di.call_weight)
 				.fold(Weight::zero(), |total: Weight, weight: Weight| total.saturating_add(weight))
 				.saturating_add(<T as Config>::WeightInfo::batch(calls.len() as u32, approvals.len() as u32));
 			let dispatch_class = {
@@ -327,7 +327,7 @@ pub mod pallet {
 		#[pallet::weight({
 			let dispatch_infos = calls.iter().map(|call| call.call.get_dispatch_info()).collect::<Vec<_>>();
 			let dispatch_weight = dispatch_infos.iter()
-				.map(|di| di.weight)
+				.map(|di| di.call_weight)
 				.fold(Weight::zero(), |total: Weight, weight: Weight| total.saturating_add(weight))
 				.saturating_add(<T as Config>::WeightInfo::batch_v2(calls.len() as u32, approvals.len() as u32));
 			let dispatch_class = {

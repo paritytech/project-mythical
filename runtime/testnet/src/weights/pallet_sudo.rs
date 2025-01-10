@@ -83,4 +83,9 @@ impl<T: frame_system::Config> pallet_sudo::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+
+	fn check_only_sudo_account() -> Weight {
+		Weight::from_parts(5_046_000, 1517)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+	}
 }

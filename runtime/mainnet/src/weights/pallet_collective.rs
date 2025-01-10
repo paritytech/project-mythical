@@ -289,4 +289,23 @@ impl<T: frame_system::Config> pallet_collective::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().writes(3))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(p.into()))
 	}
+
+	fn kill(d: u32, p: u32) -> Weight {
+		Weight::from_parts(24_273_426, 0)
+			.saturating_add(Weight::from_parts(0, 4896))
+			// Standard Error: 82_114
+			.saturating_add(Weight::from_parts(996_567, 0).saturating_mul(d.into()))
+			// Standard Error: 1_271
+			.saturating_add(Weight::from_parts(213_968, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(3))
+			.saturating_add(T::DbWeight::get().writes(3))
+			.saturating_add(Weight::from_parts(0, 123).saturating_mul(d.into()))
+			.saturating_add(Weight::from_parts(0, 37).saturating_mul(p.into()))
+	}
+
+	fn release_proposal_cost() -> Weight {
+		Weight::from_parts(19_196_000, 0)
+			.saturating_add(Weight::from_parts(0, 4376))
+			.saturating_add(T::DbWeight::get().reads(2))
+	}
 }
