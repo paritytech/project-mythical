@@ -1,6 +1,7 @@
 [relaychain]
 chain = "paseo-local"
 default_command = "./bin/polkadot"
+default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
 	[[relaychain.nodes]]
