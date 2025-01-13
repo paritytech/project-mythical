@@ -49,5 +49,7 @@ CMD ["cp", "-v", "/var/opt/mythos_${environment}.compact.compressed.wasm", "/run
 FROM debian:bullseye-slim
 COPY --from=builder \
     /workdir/target/release/mythos-node /usr/bin
+# Install ca certs inside docker container. See https://github.com/paritytech/project-mythical/issues/158
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 CMD ["/usr/bin/mythos-node"]
