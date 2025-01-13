@@ -171,9 +171,9 @@ macro_rules! construct_async_run {
 		match runner.config().chain_spec.runtime() {
 			Runtime::Testnet | Runtime::Default => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<testnet_runtime::RuntimeApi, TestnetRuntimeExecutor, _>(
+					let $components = new_partial::<testnet_runtime::RuntimeApi, _>(
 						&$config,
-						crate::service::build_import_queue::<testnet_runtime::RuntimeApi, TestnetRuntimeExecutor>,
+						crate::service::build_import_queue::<testnet_runtime::RuntimeApi>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -181,9 +181,9 @@ macro_rules! construct_async_run {
 			}
 			Runtime::Mainnet => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<mainnet_runtime::RuntimeApi, MainnetRuntimeExecutor, _>(
+					let $components = new_partial::<mainnet_runtime::RuntimeApi, _>(
 						&$config,
-						crate::service::build_import_queue::<mainnet_runtime::RuntimeApi, MainnetRuntimeExecutor>,
+						crate::service::build_import_queue::<mainnet_runtime::RuntimeApi>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -197,19 +197,17 @@ macro_rules! construct_benchmark_partials {
 	($config:expr, |$partials:ident| $code:expr) => {
 		match $config.chain_spec.runtime() {
 			Runtime::Testnet | Runtime::Default => {
-				let $partials =
-					new_partial::<testnet_runtime::RuntimeApi, TestnetRuntimeExecutor, _>(
-						&$config,
-						crate::service::build_import_queue::<_, TestnetRuntimeExecutor>,
-					)?;
+				let $partials = new_partial::<testnet_runtime::RuntimeApi, _>(
+					&$config,
+					crate::service::build_import_queue::<_>,
+				)?;
 				$code
 			},
 			Runtime::Mainnet => {
-				let $partials =
-					new_partial::<mainnet_runtime::RuntimeApi, MainnetRuntimeExecutor, _>(
-						&$config,
-						crate::service::build_import_queue::<_, MainnetRuntimeExecutor>,
-					)?;
+				let $partials = new_partial::<mainnet_runtime::RuntimeApi, _>(
+					&$config,
+					crate::service::build_import_queue::<_>,
+				)?;
 				$code
 			},
 		}

@@ -92,7 +92,7 @@ type ParachainBlockImport<RuntimeApi> =
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-pub fn new_partial<RuntimeApi, Executor, BIQ>(
+pub fn new_partial<RuntimeApi, BIQ>(
 	config: &Configuration,
 	build_import_queue: BIQ,
 ) -> Result<
@@ -117,7 +117,6 @@ where
 		+ sp_block_builder::BlockBuilder<Block>,
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
 		sc_client_api::StateBackend<BlakeTwo256>,
-	Executor: NativeExecutionDispatch + 'static,
 	BIQ: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
 		ParachainBlockImport<RuntimeApi>,
@@ -259,7 +258,7 @@ where
 {
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial::<RuntimeApi, Executor, BIQ>(&parachain_config, build_import_queue)?;
+	let params = new_partial::<RuntimeApi, BIQ>(&parachain_config, build_import_queue)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, Net>::new(
@@ -430,7 +429,7 @@ where
 
 /// Build the import queue for the parachain runtime.
 #[allow(clippy::type_complexity)]
-pub(crate) fn build_import_queue<RuntimeApi, Executor: NativeExecutionDispatch + 'static>(
+pub(crate) fn build_import_queue<RuntimeApi>(
 	client: Arc<ParachainClient<RuntimeApi>>,
 	block_import: ParachainBlockImport<RuntimeApi>,
 	config: &Configuration,
@@ -469,7 +468,7 @@ where
 }
 
 #[allow(clippy::too_many_arguments)]
-fn start_consensus<RuntimeApi, Executor>(
+fn start_consensus<RuntimeApi>(
 	client: Arc<ParachainClient<RuntimeApi>>,
 	backend: Arc<ParachainBackend>,
 	block_import: ParachainBlockImport<RuntimeApi>,
@@ -500,7 +499,6 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-	Executor: NativeExecutionDispatch + 'static,
 {
 	// NOTE: because we use Aura here explicitly, we can use `CollatorSybilResistance::Resistant`
 	// when starting the network.
@@ -579,8 +577,8 @@ where
 		polkadot_config,
 		collator_options,
 		para_id,
-		build_import_queue::<RuntimeApi, Executor>,
-		start_consensus::<RuntimeApi, Executor>,
+		build_import_queue::<RuntimeApi>,
+		start_consensus::<RuntimeApi>,
 		hwbench,
 	)
 	.await
