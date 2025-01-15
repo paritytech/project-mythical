@@ -28,7 +28,7 @@ chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {
 [[parachains]]
 id = 1000
 chain = "asset-hub-paseo-local"
-chain_spec_command = "./bin/paseo-chain-spec-generator paseo-local"
+chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]
