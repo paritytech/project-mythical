@@ -1,15 +1,8 @@
 [relaychain]
+chain = "polkadot-local"
 default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
-chain = "polkadot-local"
 chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
-
-[relaychain.genesis.runtimeGenesis.patch.configuration.config]
-scheduling_lookahead = 2
-
-[relaychain.genesis.runtimeGenesis.patch.configuration.config.async_backing_params]
-max_candidate_depth = 3
-allowed_ancestry_len = 2
 
     [[relaychain.nodes]]
     name = "alice"
@@ -35,6 +28,7 @@ allowed_ancestry_len = 2
 [[parachains]]
 id = 3369
 chain = "mainnet-local-v"
+addToGenesis = true
 cumulus_based = true
 
     [[parachains.collators]]

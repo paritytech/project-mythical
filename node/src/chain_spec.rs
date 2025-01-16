@@ -214,7 +214,7 @@ pub mod testnet {
 						.into_iter()
 						.map(|(acc, aura)| {
 							(
-								acc,                        // account id
+								acc,                		// account id
 								acc,                        // validator id
 								testnet_session_keys(aura), // session keys
 							)
@@ -402,7 +402,7 @@ pub mod mainnet {
 						.into_iter()
 						.map(|(acc, aura)| {
 							(
-								acc,                        // account id
+								acc,                		// account id
 								acc,                        // validator id
 								mainnet_session_keys(aura), // session keys
 							)

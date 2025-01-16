@@ -2,7 +2,7 @@
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
 
-// Make the WASM binary available.
+extern crate alloc; // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
@@ -21,9 +21,9 @@ use pallet_treasury::ArgumentsFactory;
 use sp_core::crypto::FromEntropy;
 
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, H160};
+use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
@@ -112,11 +112,10 @@ pub type SignedExtra = (
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 
 /// Extrinsic type that has already been checked.
-pub type CheckedExtrinsic =
-	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
+pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
 pub struct PrepareForMove;
 impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
@@ -284,14 +283,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("muse"),
-	impl_name: create_runtime_str!("muse"),
+	spec_name: alloc::borrow::Cow::Borrowed("muse"),
+	impl_name: alloc::borrow::Cow::Borrowed("muse"),
 	authoring_version: 1,
 	spec_version: 1021,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 pub const MICRO_MUSE: Balance = 1_000_000_000_000;
@@ -428,6 +427,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxReserves = ConstU32<50>;
 	type MaxFreezes = ConstU32<50>;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -459,6 +459,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
+	type WeightInfo = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -495,6 +496,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 }
 
 type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
@@ -904,6 +906,9 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = RootOrCouncilTwoThirdsMajority;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
+	type DisapproveOrigin = EnsureRoot<Self::AccountId>;
+	type KillOrigin = EnsureRoot<Self::AccountId>;
+	type Consideration = ();
 }
 
 parameter_types! {
@@ -1064,6 +1069,7 @@ impl pallet_treasury::Config for Runtime {
 	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = SpendPayoutPeriod;
+	type BlockNumberProvider = frame_system::Pallet<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
@@ -1120,57 +1126,6 @@ construct_runtime!(
 		Dmarket: pallet_dmarket = 52,
 	}
 );
-
-impl fp_self_contained::SelfContainedCall for RuntimeCall {
-	type SignedInfo = sp_core::H160;
-
-	//Ethereum calls dont exist in this runtime
-	fn is_self_contained(&self) -> bool {
-		match self {
-			_ => false,
-		}
-	}
-
-	fn check_self_contained(
-		&self,
-	) -> Option<Result<Self::SignedInfo, sp_runtime::transaction_validity::TransactionValidityError>>
-	{
-		match self {
-			_ => None,
-		}
-	}
-
-	fn validate_self_contained(
-		&self,
-		_info: &Self::SignedInfo,
-		_dispatch_info: &sp_runtime::traits::DispatchInfoOf<RuntimeCall>,
-		_len: usize,
-	) -> Option<sp_runtime::transaction_validity::TransactionValidity> {
-		match self {
-			_ => None,
-		}
-	}
-
-	fn pre_dispatch_self_contained(
-		&self,
-		_info: &Self::SignedInfo,
-		_dispatch_info: &sp_runtime::traits::DispatchInfoOf<RuntimeCall>,
-		_len: usize,
-	) -> Option<Result<(), sp_runtime::transaction_validity::TransactionValidityError>> {
-		match self {
-			_ => None,
-		}
-	}
-
-	fn apply_self_contained(
-		self,
-		_info: Self::SignedInfo,
-	) -> Option<sp_runtime::DispatchResultWithInfo<sp_runtime::traits::PostDispatchInfoOf<Self>>> {
-		match self {
-			_ => None,
-		}
-	}
-}
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
@@ -1438,7 +1393,7 @@ impl_runtime_apis! {
 
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
 			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
 
 			use frame_system_benchmarking::Pallet as SystemBench;

@@ -92,7 +92,7 @@ type ParachainBlockImport<RuntimeApi> =
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-pub fn new_partial<RuntimeApi, Executor, BIQ>(
+pub fn new_partial<RuntimeApi, BIQ>(
 	config: &Configuration,
 	build_import_queue: BIQ,
 ) -> Result<
@@ -101,7 +101,7 @@ pub fn new_partial<RuntimeApi, Executor, BIQ>(
 		ParachainBackend,
 		(),
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>,
+		sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient<RuntimeApi>>,
 		(ParachainBlockImport<RuntimeApi>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
 	sc_service::Error,
@@ -117,7 +117,6 @@ where
 		+ sp_block_builder::BlockBuilder<Block>,
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
 		sc_client_api::StateBackend<BlakeTwo256>,
-	Executor: NativeExecutionDispatch + 'static,
 	BIQ: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
 		ParachainBlockImport<RuntimeApi>,
@@ -166,12 +165,15 @@ where
 		telemetry
 	});
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
+	let transaction_pool = Arc::from(
+		sc_transaction_pool::Builder::new(
+			task_manager.spawn_essential_handle(),
+			client.clone(),
+			config.role.is_authority().into(),
+		)
+		.with_options(config.transaction_pool.clone())
+		.with_prometheus(config.prometheus_registry())
+		.build(),
 	);
 
 	let block_import = ParachainBlockImport::<RuntimeApi>::new(client.clone(), backend.clone());
@@ -244,7 +246,7 @@ where
 		Option<TelemetryHandle>,
 		&TaskManager,
 		Arc<dyn RelayChainInterface>,
-		Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>>,
+		Arc<sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient<RuntimeApi>>>,
 		KeystorePtr,
 		Duration,
 		ParaId,
@@ -256,7 +258,7 @@ where
 {
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial::<RuntimeApi, Executor, BIQ>(&parachain_config, build_import_queue)?;
+	let params = new_partial::<RuntimeApi, BIQ>(&parachain_config, build_import_queue)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, Net>::new(
@@ -301,9 +303,7 @@ where
 	if parachain_config.offchain_worker.enabled {
 		use futures::FutureExt;
 
-		task_manager.spawn_handle().spawn(
-			"offchain-workers-runner",
-			"offchain-work",
+		let offchain_workers =
 			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
 				runtime_api_provider: client.clone(),
 				keystore: Some(params.keystore_container.keystore()),
@@ -315,9 +315,11 @@ where
 				is_validator: parachain_config.role.is_authority(),
 				enable_http_requests: false,
 				custom_extensions: move |_| vec![],
-			})
-			.run(client.clone(), task_manager.spawn_handle())
-			.boxed(),
+			})?;
+		task_manager.spawn_handle().spawn(
+			"offchain-workers-runner",
+			"offchain-work",
+			offchain_workers.run(client.clone(), task_manager.spawn_handle()).boxed(),
 		);
 	}
 
@@ -427,7 +429,7 @@ where
 
 /// Build the import queue for the parachain runtime.
 #[allow(clippy::type_complexity)]
-pub(crate) fn build_import_queue<RuntimeApi, Executor: NativeExecutionDispatch + 'static>(
+pub(crate) fn build_import_queue<RuntimeApi>(
 	client: Arc<ParachainClient<RuntimeApi>>,
 	block_import: ParachainBlockImport<RuntimeApi>,
 	config: &Configuration,
@@ -466,7 +468,7 @@ where
 }
 
 #[allow(clippy::too_many_arguments)]
-fn start_consensus<RuntimeApi, Executor>(
+fn start_consensus<RuntimeApi>(
 	client: Arc<ParachainClient<RuntimeApi>>,
 	backend: Arc<ParachainBackend>,
 	block_import: ParachainBlockImport<RuntimeApi>,
@@ -474,7 +476,9 @@ fn start_consensus<RuntimeApi, Executor>(
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
-	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>>,
+	transaction_pool: Arc<
+		sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient<RuntimeApi>>,
+	>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
@@ -495,7 +499,6 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-	Executor: NativeExecutionDispatch + 'static,
 {
 	// NOTE: because we use Aura here explicitly, we can use `CollatorSybilResistance::Resistant`
 	// when starting the network.
@@ -504,7 +507,7 @@ where
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
-		Arc::new(custom_pool::CustomPool::new(transaction_pool)),
+		transaction_pool,
 		prometheus_registry,
 		telemetry.clone(),
 	);
@@ -574,8 +577,8 @@ where
 		polkadot_config,
 		collator_options,
 		para_id,
-		build_import_queue::<RuntimeApi, Executor>,
-		start_consensus::<RuntimeApi, Executor>,
+		build_import_queue::<RuntimeApi>,
+		start_consensus::<RuntimeApi>,
 		hwbench,
 	)
 	.await

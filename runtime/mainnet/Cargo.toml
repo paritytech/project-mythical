@@ -31,6 +31,7 @@ pallet-dmarket = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 pallet-escrow = {workspace = true, default-features = false}
+account = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
@@ -98,12 +99,6 @@ parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
 
-# Frontier
-fp-self-contained = { workspace = true, default-features = false, features = [
-  "serde",
-] }
-account = { workspace = true }
-
 [features]
 default = ["std"]
 std = [
@@ -119,7 +114,6 @@ std = [
   "cumulus-primitives-core/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "cumulus-primitives-utility/std",
-  "fp-self-contained/std",
   "frame-executive/std",
   "frame-support/std",
   "frame-system-rpc-runtime-api/std",
@@ -172,6 +166,7 @@ std = [
   # Local
   "xcm-primitives/std",
   "pallet-escrow/std",
+  "account/std",
 ]
 
 runtime-benchmarks = [
@@ -179,7 +174,6 @@ runtime-benchmarks = [
   "frame-support/runtime-benchmarks",
   "frame-system-benchmarking/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
-  "fp-self-contained/try-runtime",
   "pallet-balances/runtime-benchmarks",
   "pallet-collator-staking/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
@@ -209,7 +203,6 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
-  "fp-self-contained/try-runtime",
   "cumulus-pallet-aura-ext/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-message-queue/try-runtime",
