@@ -6,6 +6,7 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{crypto::UncheckedInto, ecdsa, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use sp_runtime::Percent;
 
 pub type GenericChainSpec = sc_service::GenericChainSpec<Extensions>;
 
@@ -197,9 +198,13 @@ pub mod testnet {
 				"parachainInfo": {
 					"parachainId": id,
 				},
-				"collatorSelection": {
+				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": 100 * MUSE,
+					"minCandidacyBond": 50 * MUSE,
+					"minStake": 10 * MUSE,
+					"desiredCandidates": 6,
+					"collatorRewardPercentage": Percent::from_parts(10),
+					"extraReward": 0,
 				},
 				"council": {
 					"members": council,
@@ -384,9 +389,13 @@ pub mod mainnet {
 				"parachainInfo": {
 					"parachainId": id,
 				},
-				"collatorSelection": {
+				"collatorStaking": {
 					"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-					"candidacyBond": 100 * MYTH,
+					"minCandidacyBond": 5_000 * MYTH,
+					"minStake": 500 * MYTH,
+					"desiredCandidates": 6,
+					"collatorRewardPercentage": Percent::from_parts(10),
+					"extraReward": 0,
 				},
 				"session": {
 					"keys": invulnerables
