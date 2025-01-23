@@ -6823,7 +6823,7 @@ dependencies = [
 
 [[package]]
 name = "mythos-node"
-version = "1.15.2"
+version = "1.17.0"
 dependencies = [
  "clap",
  "color-print",
@@ -7561,7 +7561,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-staking"
 version = "1.2.0"
-source = "git+https://github.com/blockdeep/pallet-collator-staking.git?tag=v1.2.0#a03d64c9360f863508d5bc92a01cf91b80935c60"
+source = "git+https://github.com/blockdeep/pallet-collator-staking.git?tag=v1.2.1#78951bd9ea8cb78a881f64ade513f71ef2c34093"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
