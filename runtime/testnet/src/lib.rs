@@ -624,7 +624,7 @@ impl pallet_aura::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PotId: PalletId = PalletId(*b"StakePot");
+	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const ExtraRewardPotId: PalletId = PalletId(*b"ExtraPot");
 	pub const MaxCandidates: u32 = 15;
 	pub const MinEligibleCollators: u32 = 2;
