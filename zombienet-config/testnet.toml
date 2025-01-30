@@ -14,20 +14,24 @@ chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {
 
 [[parachains]]
 id = 3369
-addToGenesis = true
-cumulus_based = true
-chain = "local-v"
+default_command = "polkadot-omni-node"
+default_args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000 -lparachain=debug", "-lxcm=trace", "--state-cache-size=0"]
+chain_spec_command = """chain-spec-builder \
+-c /dev/stdout \
+create \
+-t development \
+--chain-id local-testnet \
+--chain-name "Development Testnet" \
+--runtime ./target/release/wbuild/testnet-runtime/testnet_runtime.compact.compressed.wasm \
+--relay-chain paseo-local \
+--para-id 3369 \
+--properties tokenSymbol=MUSE,tokenDecimals=18,ss58Format=29972,isEthereum=true \
+named-preset development"""
 
 	[[parachains.collators]]
 	name = "muse-collator01"
-	command = "./target/release/mythos-node"
 	ws_port = 9933
 	rpc_port = 8833
-	args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000 -lparachain=debug"]
 
 	[[parachains.collators]]
 	name = "muse-collator02"
-	ws_port = 9822
-	rpc_port = 8822
-	command = "./target/release/mythos-node"
-	args = ["--rpc-max-connections 10000"]

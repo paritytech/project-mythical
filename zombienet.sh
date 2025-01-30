@@ -107,28 +107,28 @@ zombienet_testnet() {
   zombienet_init
   cargo +stable build --release
   echo "spawning paseo-local relay chain plus mythos testnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
 }
 
 zombienet_testnet_asset_hub() {
   zombienet_init
   cargo +stable build --release
   echo "spawning paseo-local relay chain plus muse testnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-asset-hub.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/testnet-asset-hub.toml -p native
 }
 
 zombienet_mainnet() {
   zombienet_init
   cargo +stable build --release
   echo "spawning paseo-local relay chain plus mythos mainnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
 }
 
 zombienet_mainnet_asset_hub() {
   zombienet_init
   cargo +stable build --release
   echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet-asset-hub.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/mainnet-asset-hub.toml -p native
 }
 
 print_help() {

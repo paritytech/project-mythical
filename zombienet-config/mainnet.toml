@@ -27,17 +27,24 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 
 [[parachains]]
 id = 3369
-chain = "mainnet-local-v"
-addToGenesis = true
-cumulus_based = true
+default_command = "polkadot-omni-node"
+default_args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000 -lparachain=debug", "-lxcm=trace", "--state-cache-size=0"]
+chain_spec_command = """chain-spec-builder \
+-c /dev/stdout \
+create \
+-t development \
+--chain-id local-mainnet \
+--chain-name "Development Mainnet" \
+--runtime ./target/release/wbuild/mainnet-runtime/mainnet_runtime.compact.compressed.wasm \
+--relay-chain polkadot-local \
+--para-id 3369 \
+--properties tokenSymbol=MYTH,tokenDecimals=18,ss58Format=29972,isEthereum=true \
+named-preset development"""
 
-    [[parachains.collators]]
-    name = "mythos-collator01"
-    ws_port = 9920
-    command = "./target/release/mythos-node"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+	[[parachains.collators]]
+	name = "mythos-collator01"
+	ws_port = 9920
+	rpc_port = 8820
 
-    [[parachains.collators]]
-    name = "mythos-collator02"
-    command = "./target/release/mythos-node"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+	[[parachains.collators]]
+	name = "mythos-collator02"
