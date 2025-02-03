@@ -6058,6 +6058,7 @@ dependencies = [
  "polkadot-runtime-common",
  "runtime-common",
  "scale-info",
+ "serde_json",
  "smallvec",
  "sp-api",
  "sp-block-builder",
@@ -10645,7 +10646,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
- "pallet-treasury",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-primitives",
@@ -10653,6 +10653,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-std",
+ "staging-xcm",
 ]
 
 [[package]]
@@ -14405,6 +14406,7 @@ dependencies = [
  "polkadot-runtime-common",
  "runtime-common",
  "scale-info",
+ "serde_json",
  "smallvec",
  "sp-api",
  "sp-block-builder",
