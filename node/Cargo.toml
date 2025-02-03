@@ -7,7 +7,7 @@ homepage = { workspace = true }
 license = { workspace = true }
 name = "mythos-node"
 repository = { workspace = true }
-version = "1.15.2"
+version = "1.17.0"
 
 [dependencies]
 clap = { workspace = true }
@@ -28,7 +28,6 @@ runtime-common = { workspace = true }
 # Substrate
 frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
-pallet-multisig = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }

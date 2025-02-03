@@ -52,7 +52,7 @@ parameter_types! {
 			// MYTHOS ERC20
 			AccountKey20 { network: None, key: hex!("BA41Ddf06B7fFD89D1267b5A93BFeF2424eb2003") }
 		]);
-	pub StakingPot: AccountId = crate::CollatorSelection::account_id();
+	pub TreasuryPot: AccountId = crate::Treasury::account_id();
 	// Arbitrary value to allow to test reserve transfers, only for testing.
 	// pub EthereumCurrencyLocation: Location = Location::new(1, [Parachain(2001)]);
 }
@@ -211,7 +211,13 @@ pub type Traders = (
 	//Relay token.
 	FixedRateOfFungible<RelayPerSecondAndByte, ()>,
 	//Native asset.
-	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ResolveTo<StakingPot, Balances>>,
+	UsingComponents<
+		WeightToFee,
+		SelfReserve,
+		AccountId,
+		Balances,
+		ResolveTo<TreasuryPot, Balances>,
+	>,
 );
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<AssetHubLocation>);
@@ -242,7 +248,7 @@ impl xcm_executor::Config for XcmConfig {
 	//Currently fees are being burned.
 	type FeeManager = XcmFeeManagerFromComponents<
 		WaivedLocations,
-		XcmFeeToAccountId20<Self::AssetTransactor, AccountId, StakingPot>,
+		XcmFeeToAccountId20<Self::AssetTransactor, AccountId, TreasuryPot>,
 	>;
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;

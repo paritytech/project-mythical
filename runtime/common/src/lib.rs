@@ -1,27 +1,23 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-use frame_support::traits::tokens::imbalance::ResolveTo;
-use frame_support::{
-	traits::fungible,
-	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
-};
-use pallet_collator_selection::StakingPotAccountId;
+use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
-use sp_core::U256;
+use sp_core::{Pair, Public, U256};
+
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
 };
 
 pub use account::EthereumSignature;
-use frame_support::traits::{Currency, Imbalance, Incrementable, OnUnbalanced};
-use pallet_balances::NegativeImbalance;
-use sp_std::marker::PhantomData;
+use frame_support::traits::Incrementable;
 
 // Cumulus types re-export
 // These types are shared between the mainnet and testnet runtimes
 //https://github.com/paritytech/cumulus/tree/master/parachains/common
 pub use parachains_common::{AuraId, Balance, Block, BlockNumber, Hash};
+
+extern crate alloc;
 
 pub type Signature = EthereumSignature;
 
@@ -64,44 +60,6 @@ pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 	polkadot_primitives::MAX_POV_SIZE as u64,
 );
 
-/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
-/// the result on to `ToStakingPot`.
-
-pub struct DealWithFees<R>(PhantomData<R>);
-impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
-where
-	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
-	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
-{
-	fn on_unbalanceds(
-		mut fees_then_tips: impl Iterator<
-			Item = fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>,
-		>,
-	) {
-		if let Some(mut fees) = fees_then_tips.next() {
-			if let Some(tips) = fees_then_tips.next() {
-				tips.merge_into(&mut fees);
-			}
-			ResolveTo::<StakingPotAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(fees)
-		}
-	}
-}
-
-/// Implementation of `OnUnbalanced` that deposits the fees into a staking pot for later payout.
-pub struct ToStakingPot<R>(PhantomData<R>);
-impl<R> OnUnbalanced<NegativeImbalance<R>> for ToStakingPot<R>
-where
-	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<account::AccountId20> + Into<account::AccountId20>,
-	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
-{
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		let staking_pot = <pallet_collator_selection::Pallet<R>>::account_id();
-		<pallet_balances::Pallet<R>>::resolve_creating(&staking_pot, amount);
-	}
-}
-
 #[derive(Clone, TypeInfo, Encode, PartialEq, Eq, Decode, Copy, MaxEncodedLen, Debug)]
 pub struct IncrementableU256(U256);
 
@@ -121,4 +79,31 @@ impl From<u16> for IncrementableU256 {
 	fn from(value: u16) -> Self {
 		IncrementableU256(U256::from(value))
 	}
+}
+
+/// The default XCM version to set in genesis config.
+pub const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
+
+/// Helper function to generate a crypto pair from seed.
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&alloc::format!("//{}", seed), None)
+		.expect("static values are valid; qed")
+		.public()
+}
+
+type AccountPublic = <EthereumSignature as Verify>::Signer;
+
+/// Helper function to generate an account ID from seed.
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+where
+	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
+{
+	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
+
+/// Generate collator keys from seed.
+///
+/// This function's return type must always match the session keys of the chain in tuple format.
+pub fn get_collator_keys_from_seed(seed: &str) -> AuraId {
+	get_from_seed::<AuraId>(seed)
 }

@@ -25,8 +25,7 @@ sp-runtime = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 sp-std = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
-pallet-collator-selection = { workspace = true, default-features = false }
-
+xcm = { workspace = true, default-features = false }
 
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
@@ -45,7 +44,7 @@ std = [
   "sp-std/std",
   "account/std",
   "pallet-balances/std",
-  "pallet-collator-selection/std",
+  "xcm/std",
 ]
 
 runtime-benchmarks = [

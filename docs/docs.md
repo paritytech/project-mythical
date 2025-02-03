@@ -84,7 +84,7 @@ The Mythos parachain includes the following standard FRAME pallets:
 
     - **Purpose**: Supports block authorship and validation.
 
-6. **[pallet-collator-selection](https://crates.io/crates/pallet-collator-selection)**
+6. **[pallet-collator-staking](https://github.com/blockdeep/pallet-collator-staking)**
 
     - **Purpose**: Handles the selection and management of collators.
 
@@ -218,7 +218,7 @@ scripts/run-benchmarks.sh mainnet pallet_marketplace,pallet_nfts
 
 #### Collator Selection
 
--   Mythos uses the **[Collator Selection](https://crates.io/crates/pallet-collator-selection)** pallet to manage the selection and management of collators who produce blocks and validate transactions.
+-   Mythos uses the **[Collator Staking](https://github.com/blockdeep/pallet-collator-staking)** pallet to manage the selection and management of collators who produce blocks and validate transactions.
     This pallet ensures that the selection process is fair and transparent, providing incentives for collators to act honestly.
 -   **Collators**: These are nodes that gather transactions, create blocks, and submit them to the relay chain for finalization. The selection process is designed to be transparent and fair, incentivizing collators to act in the best interest of the network. Collators are rewarded for their participation, encouraging them to maintain high availability and performance.
 

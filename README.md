@@ -54,6 +54,28 @@ In case the script fails to fetch the relay chain runtimes they can also be buil
 ./zombienet.sh build
 ```
 
+### Notes regarding presets
+
+Presets are predefined configurations that simplify initializing a chain’s genesis state. They
+establish key parameters like balances, collator sets, council members, and the sudo (root) account.
+By using presets, you can quickly spin up a network for testing or specialized use without manually
+defining every genesis detail.
+
+#### dev
+
+- Minimal, local-friendly preset with default collators (e.g., “Alith” and “Balthasar”).
+- Distributes tokens across several accounts for testing.
+- Sets a small council and a single sudo key for convenient local control.
+
+#### muse/mythos
+
+- Uses two specific collators.
+- Assigns different account balances for a more structured distribution.
+- No council members; includes one sudo key for administration.
+
+These presets are especially useful for quickly preparing Zombienet-based test setups or any local
+development scenario without manually customizing every detail.
+
 ### Notes regarding Polkadot.js and Ethereum accounts
 
 On Polkadot.js, when bootstraping the local network with zombienet, the normal accounts are not derived from a seed.

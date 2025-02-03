@@ -15,6 +15,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder = { workspace = true, optional = true }
 
 [dependencies]
+serde_json = { workspace = true }
 hex-literal = { workspace = true }
 log = { workspace = true, default-features = false }
 parity-scale-codec = { workspace = true, default-features = false, features = ["derive"]}
@@ -28,7 +29,9 @@ pallet-marketplace = { workspace = true, default-features = false }
 pallet-multibatching = { workspace = true, default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 pallet-escrow = { workspace = true, default-features = false }
+pallet-collator-staking = { workspace = true, default-features = false }
 pallet-myth-proxy = { workspace = true, default-features = false }
+account = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
@@ -43,16 +46,20 @@ pallet-aura = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 pallet-collective = { workspace = true, default-features = false }
+pallet-democracy = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
+pallet-scheduler = { workspace = true, default-features = false }
 pallet-timestamp = { workspace = true, default-features = false }
 pallet-transaction-payment = { workspace = true, default-features = false }
+pallet-treasury = { workspace = true, default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-features = false }
 pallet-utility = { workspace = true, default-features = false }
 pallet-message-queue = { workspace = true, default-features = false }
 pallet-multisig = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
 pallet-proxy = { workspace = true, default-features = false }
+pallet-preimage = { workspace = true, default-features = false }
 pallet-vesting = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
@@ -85,7 +92,6 @@ cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
 cumulus-primitives-core = { workspace = true, default-features = false }
 cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 cumulus-primitives-utility = { workspace = true, default-features = false }
-pallet-collator-selection = { workspace = true, default-features = false }
 parachain-info = { workspace = true, default-features = false }
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
@@ -93,6 +99,7 @@ polkadot-primitives = { workspace = true, default-features = false }
 [features]
 default = ["std"]
 std = [
+  "serde_json/std",
   "parity-scale-codec/std",
   "log/std",
   "scale-info/std",
@@ -112,18 +119,22 @@ std = [
   "pallet-aura/std",
   "pallet-authorship/std",
   "pallet-balances/std",
-  "pallet-collator-selection/std",
+  "pallet-collator-staking/std",
   "pallet-collective/std",
+  "pallet-democracy/std",
   "pallet-dmarket/std",
   "pallet-multibatching/std",
   "pallet-marketplace/std",
   "pallet-multisig/std",
   "pallet-nfts/std",
+  "pallet-preimage/std",
   "pallet-session/std",
+  "pallet-scheduler/std",
   "pallet-sudo/std",
   "pallet-timestamp/std",
   "pallet-transaction-payment-rpc-runtime-api/std",
   "pallet-transaction-payment/std",
+  "pallet-treasury/std",
   "pallet-utility/std",
   "pallet-xcm/std",
   "pallet-proxy/std",
@@ -153,6 +164,7 @@ std = [
   "xcm-primitives/std",
   "pallet-escrow/std",
   "pallet-myth-proxy/std",
+  "account/std",
 ]
 
 runtime-benchmarks = [
@@ -161,16 +173,20 @@ runtime-benchmarks = [
   "frame-system-benchmarking/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
   "pallet-balances/runtime-benchmarks",
-  "pallet-collator-selection/runtime-benchmarks",
+  "pallet-collator-staking/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
+  "pallet-democracy/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
   "pallet-dmarket/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-multibatching/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
+  "pallet-preimage/runtime-benchmarks",
+  "pallet-scheduler/runtime-benchmarks",
   "pallet-sudo/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
+  "pallet-treasury/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
@@ -196,17 +212,21 @@ try-runtime = [
   "pallet-aura/try-runtime",
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
-  "pallet-collator-selection/try-runtime",
+  "pallet-collator-staking/try-runtime",
   "pallet-collective/try-runtime",
+  "pallet-democracy/try-runtime",
   "pallet-dmarket/try-runtime",
   "pallet-multibatching/try-runtime",
   "pallet-marketplace/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-nfts/try-runtime",
+  "pallet-preimage/try-runtime",
+  "pallet-scheduler/try-runtime",
   "pallet-session/try-runtime",
   "pallet-sudo/try-runtime",
   "pallet-timestamp/try-runtime",
   "pallet-transaction-payment/try-runtime",
+  "pallet-treasury/try-runtime",
   "pallet-utility/try-runtime",
   "pallet-xcm/try-runtime",
   "pallet-proxy/try-runtime",
