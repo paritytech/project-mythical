@@ -1,13 +1,10 @@
-#[cfg(all(feature = "std", feature = "metadata-hash"))]
+#[cfg(feature = "std")]
 fn main() {
-	substrate_wasm_builder::WasmBuilder::init_with_defaults()
-		.enable_metadata_hash("MYTH", 18)
+	substrate_wasm_builder::WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
 		.build()
-}
-
-#[cfg(all(feature = "std", not(feature = "metadata-hash")))]
-fn main() {
-	substrate_wasm_builder::WasmBuilder::init_with_defaults().build()
 }
 
 /// The wasm builder is deactivated when compiling
