@@ -8,7 +8,9 @@
     "/dns/polkadot-mythos-connect-1.polkadot.io/tcp/30333/p2p/12D3KooWLin9rPs8irgJZgFTab6nhQjFSVp6xYTPTrLGrbjZypeu",
     "/dns/polkadot-mythos-connect-1.polkadot.io/tcp/443/wss/p2p/12D3KooWLin9rPs8irgJZgFTab6nhQjFSVp6xYTPTrLGrbjZypeu",
     "/dns/boot.helikon.io/tcp/8710/p2p/12D3KooWJkp1w3AqnppvoZWvUv393PwaNA5MfDc1LceaLvqwZgwr",
-    "/dns/boot.helikon.io/tcp/8712/wss/p2p/12D3KooWJkp1w3AqnppvoZWvUv393PwaNA5MfDc1LceaLvqwZgwr"
+    "/dns/boot.helikon.io/tcp/8712/wss/p2p/12D3KooWJkp1w3AqnppvoZWvUv393PwaNA5MfDc1LceaLvqwZgwr",
+    "/dns/boot.metaspan.io/tcp/11433/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ",
+    "/dns/boot.metaspan.io/tcp/11436/wss/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ"
   ],
   "telemetryEndpoints": null,
   "protocolId": "mythos",
