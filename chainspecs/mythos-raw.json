@@ -10,7 +10,9 @@
     "/dns/boot.helikon.io/tcp/8710/p2p/12D3KooWJkp1w3AqnppvoZWvUv393PwaNA5MfDc1LceaLvqwZgwr",
     "/dns/boot.helikon.io/tcp/8712/wss/p2p/12D3KooWJkp1w3AqnppvoZWvUv393PwaNA5MfDc1LceaLvqwZgwr",
     "/dns/boot.metaspan.io/tcp/11433/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ",
-    "/dns/boot.metaspan.io/tcp/11436/wss/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ"
+    "/dns/boot.metaspan.io/tcp/11436/wss/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ",
+    "/dns/mythos-bootnode.radiumblock.com/tcp/30333/p2p/12D3KooWN2F6hiks7re1Y4pxQQvzCyrnCCX8vyhfRrU4xqky6LD5",
+    "/dns/mythos-bootnode.radiumblock.com/tcp/30336/wss/p2p/12D3KooWN2F6hiks7re1Y4pxQQvzCyrnCCX8vyhfRrU4xqky6LD5"
   ],
   "telemetryEndpoints": null,
   "protocolId": "mythos",
