@@ -12,7 +12,9 @@
     "/dns/boot.metaspan.io/tcp/11433/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ",
     "/dns/boot.metaspan.io/tcp/11436/wss/p2p/12D3KooWQyZLieszShULfKAM6Ju9txiv2u9a6QYS5uQd1sEJc3HZ",
     "/dns/mythos-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWNXgPTbaAARxVMX9aSLygkqhcWqdbA318tyC3rdy4bgB2",
-    "/dns/mythos-boot-ng.dwellir.com/tcp/30376/p2p/12D3KooWNXgPTbaAARxVMX9aSLygkqhcWqdbA318tyC3rdy4bgB2"
+    "/dns/mythos-boot-ng.dwellir.com/tcp/30376/p2p/12D3KooWNXgPTbaAARxVMX9aSLygkqhcWqdbA318tyC3rdy4bgB2",
+    "/dns/mythos-bootnode.radiumblock.com/tcp/30333/p2p/12D3KooWN2F6hiks7re1Y4pxQQvzCyrnCCX8vyhfRrU4xqky6LD5",
+    "/dns/mythos-bootnode.radiumblock.com/tcp/30336/wss/p2p/12D3KooWN2F6hiks7re1Y4pxQQvzCyrnCCX8vyhfRrU4xqky6LD5"
   ],
   "telemetryEndpoints": null,
   "protocolId": "mythos",
