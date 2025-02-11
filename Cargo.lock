@@ -6017,6 +6017,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
+ "frame-metadata-hash-extension",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
@@ -6159,6 +6160,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "808b50db46293432a45e63bc15ea51e0ab4c0a1647b8eb114e31a3e698dd6fbe"
 dependencies = [
  "hash-db",
+]
+
+[[package]]
+name = "merkleized-metadata"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38c592efaf1b3250df14c8f3c2d952233f0302bb81d3586db2f303666c1cd607"
+dependencies = [
+ "array-bytes",
+ "blake3",
+ "frame-metadata 18.0.0",
+ "parity-scale-codec",
+ "scale-decode",
+ "scale-info",
 ]
 
 [[package]]
@@ -14021,15 +14036,24 @@ name = "substrate-wasm-builder"
 version = "25.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-stable2412-1#ab5882bbc67bcc48464566a2b48171265147acac"
 dependencies = [
+ "array-bytes",
  "build-helper",
  "cargo_metadata",
  "console",
  "filetime",
+ "frame-metadata 18.0.0",
  "jobserver",
+ "merkleized-metadata",
+ "parity-scale-codec",
  "parity-wasm",
  "polkavm-linker",
+ "sc-executor",
  "shlex",
+ "sp-core",
+ "sp-io",
  "sp-maybe-compressed-blob",
+ "sp-tracing",
+ "sp-version",
  "strum 0.26.3",
  "tempfile",
  "toml 0.8.19",
@@ -14341,6 +14365,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
+ "frame-metadata-hash-extension",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
