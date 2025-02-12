@@ -47,7 +47,7 @@ impl<Matcher: MatchesFungible<Balance>> TransactAsset for BurnerAdapter<Matcher>
 			what, _who,
 		);
 		match Matcher::matches_fungible(what) {
-			Some(_) => Ok(()),
+			Some(_) => Ok(()), // Doing nothing burns the funds.
 			None => Err(XcmError::AssetNotFound),
 		}
 	}

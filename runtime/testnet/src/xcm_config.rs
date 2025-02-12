@@ -98,6 +98,7 @@ pub type BridgedLocalAssetTransactor = FungibleAdapter<
 	(),
 >;
 
+/// Transactor that burns DOT received from snowbridge.
 pub type DotBurnerTransactor = BurnerAdapter<IsConcrete<RelayLocation>>;
 
 /// Means for transacting assets on this chain.
