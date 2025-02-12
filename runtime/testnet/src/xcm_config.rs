@@ -11,6 +11,7 @@ use hex_literal::hex;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::ParentRelayOrSiblingParachains;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
+use runtime_common::burner_adapter::BurnerAdapter;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 use xcm_builder::{
@@ -97,8 +98,11 @@ pub type BridgedLocalAssetTransactor = FungibleAdapter<
 	(),
 >;
 
+pub type DotBurnerTransactor = BurnerAdapter<IsConcrete<RelayLocation>>;
+
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (LocalAssetTransactor, BridgedLocalAssetTransactor);
+pub type AssetTransactors =
+	(LocalAssetTransactor, BridgedLocalAssetTransactor, DotBurnerTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
