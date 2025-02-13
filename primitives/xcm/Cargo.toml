@@ -8,7 +8,6 @@ log = { workspace = true, default-features = false }
 parity-scale-codec = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-runtime-common = { workspace = true }
 sp-std = { workspace = true }
 sp-runtime = { workspace = true }
 xcm = { workspace = true }
@@ -23,6 +22,5 @@ std = [
     "frame-system/std",
     "sp-std/std",
     "sp-runtime/std",
-    "runtime-common/std",
     "xcm/std",
 ]

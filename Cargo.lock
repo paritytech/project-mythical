@@ -16183,7 +16183,6 @@ dependencies = [
  "frame-system",
  "log",
  "parity-scale-codec",
- "runtime-common",
  "sp-runtime",
  "sp-std",
  "staging-xcm",

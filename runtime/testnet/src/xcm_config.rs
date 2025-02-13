@@ -98,7 +98,7 @@ pub type BridgedLocalAssetTransactor = FungibleAdapter<
 >;
 
 /// Transactor that burns Relay Tokens received from Snowbridge.
-pub type RelayTokenBurnerTransactor = BurnerAdapter<IsConcrete<RelayLocation>>;
+pub type RelayTokenBurnerTransactor = BurnerAdapter<Balances, IsConcrete<RelayLocation>, AccountId>;
 
 /// Means for transacting assets on this chain.
 pub type AssetTransactors =

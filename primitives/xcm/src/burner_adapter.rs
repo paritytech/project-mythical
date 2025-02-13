@@ -1,12 +1,19 @@
 use core::marker::PhantomData;
-use runtime_common::Balance;
+use frame_support::traits::tokens::fungible;
 use xcm::latest::prelude::{Asset, Location, XcmContext, XcmError, XcmResult};
 use xcm_executor::{
 	traits::{MatchesFungible, TransactAsset},
 	AssetsInHolding,
 };
-pub struct BurnerAdapter<Matcher>(PhantomData<Matcher>);
-impl<Matcher: MatchesFungible<Balance>> TransactAsset for BurnerAdapter<Matcher> {
+
+pub struct BurnerAdapter<Fungible, Matcher, AccountId>(PhantomData<(Fungible, Matcher, AccountId)>);
+
+impl<Fungible, Matcher, AccountId> TransactAsset for BurnerAdapter<Fungible, Matcher, AccountId>
+where
+	Fungible: fungible::Mutate<AccountId>,
+	Matcher: MatchesFungible<Fungible::Balance>,
+	AccountId: Clone + Eq,
+{
 	fn can_check_in(_origin: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
 		log::trace!(
 			target: "xcm::burner_adapter",
