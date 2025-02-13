@@ -1,7 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub mod burner_adapter;
-
 use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;

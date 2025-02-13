@@ -10630,7 +10630,6 @@ dependencies = [
  "account",
  "frame-support",
  "frame-system",
- "log",
  "pallet-balances",
  "parachains-common",
  "parity-scale-codec",
@@ -10640,7 +10639,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "staging-xcm",
- "staging-xcm-executor",
 ]
 
 [[package]]
@@ -16185,6 +16183,7 @@ dependencies = [
  "frame-system",
  "log",
  "parity-scale-codec",
+ "runtime-common",
  "sp-runtime",
  "sp-std",
  "staging-xcm",

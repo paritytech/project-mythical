@@ -1,5 +1,5 @@
-use crate::Balance;
 use core::marker::PhantomData;
+use runtime_common::Balance;
 use xcm::latest::prelude::{Asset, Location, XcmContext, XcmError, XcmResult};
 use xcm_executor::{
 	traits::{MatchesFungible, TransactAsset},

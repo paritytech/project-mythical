@@ -11,7 +11,6 @@ use hex_literal::hex;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::ParentRelayOrSiblingParachains;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
-use runtime_common::burner_adapter::BurnerAdapter;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 use xcm_builder::{
@@ -25,7 +24,7 @@ use xcm_builder::{
 };
 use xcm_executor::XcmExecutor;
 
-use xcm_primitives::{SignedToAccountId20, XcmFeeToAccountId20};
+use xcm_primitives::{burner_adapter::BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,

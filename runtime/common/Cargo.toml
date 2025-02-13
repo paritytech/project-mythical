@@ -17,7 +17,6 @@ parity-scale-codec = { workspace = true, default-features = false, features = [
 scale-info = { workspace = true, default-features = false, features = [
   "derive",
 ] }
-log = { workspace = true, default-features = false }
 
 # Substrate
 frame-support = { workspace = true, default-features = false }
@@ -27,7 +26,6 @@ sp-core = { workspace = true, default-features = false }
 sp-std = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 xcm = { workspace = true, default-features = false }
-xcm-executor = { workspace = true, default-features = false }
 
 parachains-common = { workspace = true, default-features = false }
 polkadot-primitives = { workspace = true, default-features = false }
@@ -42,13 +40,11 @@ std = [
   "account/std",
   "frame-support/std",
   "frame-system/std",
-  "log/std",
   "sp-runtime/std",
   "sp-core/std",
   "sp-std/std",
   "pallet-balances/std",
   "xcm/std",
-  "xcm-executor/std",
 ]
 
 runtime-benchmarks = [

@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod burner_adapter;
+
 use core::marker::PhantomData;
 use frame_support::traits::{Get, OriginTrait};
 use xcm::latest::prelude::*;
