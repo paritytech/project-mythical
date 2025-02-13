@@ -96,12 +96,12 @@ pub type BridgedLocalAssetTransactor = FungibleAdapter<
 	(),
 >;
 
-/// Transactor that burns DOT received from snowbridge.
-pub type DotBurnerTransactor = BurnerAdapter<IsConcrete<RelayLocation>>;
+/// Transactor that burns Relay Tokens received from Snowbridge.
+pub type RelayTokenBurnerTransactor = BurnerAdapter<IsConcrete<RelayLocation>>;
 
 /// Means for transacting assets on this chain.
 pub type AssetTransactors =
-	(LocalAssetTransactor, BridgedLocalAssetTransactor, DotBurnerTransactor);
+	(LocalAssetTransactor, BridgedLocalAssetTransactor, RelayTokenBurnerTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
