@@ -24,7 +24,7 @@ use xcm_builder::{
 };
 use xcm_executor::XcmExecutor;
 
-use xcm_primitives::{burner_adapter::BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
+use xcm_primitives::{BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
