@@ -37,12 +37,12 @@ account = { workspace = true }
 [features]
 default = ["std"]
 std = [
+  "account/std",
   "frame-support/std",
   "frame-system/std",
   "sp-runtime/std",
   "sp-core/std",
   "sp-std/std",
-  "account/std",
   "pallet-balances/std",
   "xcm/std",
 ]

@@ -24,7 +24,7 @@ use xcm_builder::{
 };
 use xcm_executor::XcmExecutor;
 
-use xcm_primitives::{SignedToAccountId20, XcmFeeToAccountId20};
+use xcm_primitives::{BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
@@ -97,8 +97,12 @@ pub type BridgedLocalAssetTransactor = FungibleAdapter<
 	(),
 >;
 
+/// Transactor that burns Relay Tokens received from Snowbridge.
+pub type RelayTokenBurnerTransactor = BurnerAdapter<Balances, IsConcrete<RelayLocation>, AccountId>;
+
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (LocalAssetTransactor, BridgedLocalAssetTransactor);
+pub type AssetTransactors =
+	(LocalAssetTransactor, BridgedLocalAssetTransactor, RelayTokenBurnerTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
