@@ -74,7 +74,7 @@ where
 			Some(_) => {
 				log::trace!(
 					target: "xcm::burner_adapter",
-					// Error propagrates as `AssetNotFound` in executor therefore the log.
+					// Error propagates as `AssetNotFound` in executor therefore the log.
 					"returning Unimplemented as we don't support withdrawals"
 				);
 				Err(XcmError::Unimplemented)
