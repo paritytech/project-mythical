@@ -6,6 +6,7 @@ extern crate alloc; // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migration;
 mod weights;
 pub mod xcm_config;
 
@@ -135,7 +136,7 @@ impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
 }
 
 /// Pending migrations to be applied.
-pub type Migrations = ();
+pub type Migrations = (migration::ResetCollatorStakingRewardsRuntimeMigration,);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -288,7 +289,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("muse"),
 	impl_name: alloc::borrow::Cow::Borrowed("muse"),
 	authoring_version: 1,
-	spec_version: 1023,
+	spec_version: 1024,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
