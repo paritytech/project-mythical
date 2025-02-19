@@ -81,6 +81,7 @@ polkadot-runtime-common = { workspace = true, default-features = false }
 xcm = { workspace = true, default-features = false }
 xcm-builder = { workspace = true, default-features = false }
 xcm-executor = { workspace = true, default-features = false }
+xcm-runtime-apis = { workspace = true, default-features = false }
 
 # Cumulus
 cumulus-primitives-aura = { workspace = true, default-features = false }

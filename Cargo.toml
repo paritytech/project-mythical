@@ -2,12 +2,7 @@
 panic = "unwind"
 
 [workspace]
-members = [
-  "node",
-  "primitives/xcm",
-  "runtime/mainnet",
-  "runtime/testnet",
-]
+members = ["node", "primitives/xcm", "runtime/mainnet", "runtime/testnet"]
 
 resolver = "2"
 
@@ -28,11 +23,13 @@ hex-literal = "0.4.1"
 jsonrpsee = { version = "0.24.3", features = ["server"] }
 log = { version = "0.4.22", default-features = false }
 parity-scale-codec = { version = "3.6.12", default-features = false, features = [
-	"derive",
+  "derive",
 ] }
 scale-info = { version = "2.11.3", default-features = false }
 serde = { version = "1.0.214", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.132", default-features = false, features = ["arbitrary_precision"] }
+serde_json = { version = "1.0.132", default-features = false, features = [
+  "arbitrary_precision",
+] }
 impl-serde = { version = "0.5.0", default-features = false }
 smallvec = "1.13.2"
 libsecp256k1 = { version = "0.7.1", default-features = false }
@@ -149,6 +146,7 @@ polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot-sdk", 
 xcm = { package = "staging-xcm", git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
+xcm-runtime-apis = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 
 # Primitives
 account = { path = "./primitives/account", default-features = false }
