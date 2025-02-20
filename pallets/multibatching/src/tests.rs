@@ -746,9 +746,7 @@ mod multibatching_test {
 			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				assert_ok!(
-					calls.try_push(BatchedCall::<Test> { from: signer.clone(), call })
-				);
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
