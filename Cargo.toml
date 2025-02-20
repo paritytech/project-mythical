@@ -49,7 +49,7 @@ pallet-nfts = { path = "pallets/nfts", default-features = false }
 pallet-myth-proxy = { path = "pallets/myth-proxy", default-features = false }
 
 # External pallets
-pallet-collator-staking = { git = "https://github.com/blockdeep/pallet-collator-staking.git", tag = "v1.2.3", default-features = false }
+pallet-collator-staking = { git = "https://github.com/blockdeep/pallet-collator-staking.git", tag = "v1.2.4", default-features = false }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
