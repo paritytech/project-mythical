@@ -39,18 +39,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -59,29 +56,19 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_ok!(Multibatching::batch(
-				RuntimeOrigin::signed(sender.clone()),
+				RuntimeOrigin::signed(sender),
 				domain,
-				sender.clone().into(),
+				sender,
 				bias,
 				expires_at,
 				calls,
@@ -113,18 +100,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -133,30 +117,20 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = blake2_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -190,18 +164,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -210,17 +181,13 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let _hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let approvals = BoundedVec::new();
 
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -254,18 +221,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -274,29 +238,19 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_ok!(Multibatching::batch(
-				RuntimeOrigin::signed(sender.clone()),
+				RuntimeOrigin::signed(sender),
 				domain,
-				sender.clone().into(),
+				sender,
 				bias,
 				expires_at,
 				calls.clone(),
@@ -304,9 +258,9 @@ mod multibatching_test {
 			));
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -340,19 +294,16 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let wrong_sender = account(1);
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: wrong_sender.into(),
+				sender: wrong_sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -361,30 +312,20 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					wrong_sender.clone().into(),
+					wrong_sender,
 					bias,
 					expires_at,
 					calls,
@@ -418,18 +359,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -438,30 +376,20 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -495,18 +423,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -516,30 +441,21 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = keccak_256(&pseudo_call_bytes);
 
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.remove(0);
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -558,8 +474,8 @@ mod multibatching_test {
 
 			let domain: [u8; 8] = *b"MYTH_NET";
 			let bias = [0u8; 32];
-			let expires_at =
-				Timestamp::get() + <Test as pallet_timestamp::Config>::Moment::from(100_000_u64);
+			let expires_at = Timestamp::get()
+				+ <Test as pallet_timestamp::Config>::Moment::from(100_000_000_u64);
 
 			let sender = account(0);
 
@@ -573,18 +489,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -593,32 +506,22 @@ mod multibatching_test {
 			.into();
 			let pseudo_call_bytes = pseudo_call.encode();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			// sign by wrong signer
 			approvals.sort_by_key(|a| a.from.clone());
-			approvals[0].signature = signers[1].0.sign_prehashed(&hash.into()).into();
+			approvals[0].signature = signers[1].0.sign_prehashed(&hash).into();
 
 			assert_noop!(
 				Multibatching::batch(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -653,18 +556,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -675,28 +575,19 @@ mod multibatching_test {
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
 
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_ok!(Multibatching::batch_v2(
-				RuntimeOrigin::signed(sender.clone()),
+				RuntimeOrigin::signed(sender),
 				domain,
-				sender.clone().into(),
+				sender,
 				bias,
 				expires_at,
 				calls,
@@ -728,18 +619,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -750,29 +638,20 @@ mod multibatching_test {
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = blake2_256(&pseudo_call_bytes);
 
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -806,18 +685,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -827,17 +703,13 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let _hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let approvals = BoundedVec::new();
 
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -871,18 +743,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -892,29 +761,19 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_ok!(Multibatching::batch_v2(
-				RuntimeOrigin::signed(sender.clone()),
+				RuntimeOrigin::signed(sender),
 				domain,
-				sender.clone().into(),
+				sender,
 				bias,
 				expires_at,
 				calls.clone(),
@@ -922,9 +781,9 @@ mod multibatching_test {
 			));
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -958,19 +817,16 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let wrong_sender = account(1);
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: wrong_sender.into(),
+				sender: wrong_sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -980,30 +836,20 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					wrong_sender.clone().into(),
+					wrong_sender,
 					bias,
 					expires_at,
 					calls,
@@ -1037,18 +883,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -1058,30 +901,20 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -1115,18 +948,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch_v2 {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -1136,31 +966,21 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			approvals.remove(0);
 			approvals.sort_by_key(|a| a.from.clone());
 
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
@@ -1194,18 +1014,15 @@ mod multibatching_test {
 			}
 
 			let mut calls = BoundedVec::new();
-			let iter = (0..call_count).into_iter().zip(signers.iter().cycle());
+			let iter = (0..call_count).zip(signers.iter().cycle());
 			for (_, (_, signer, _)) in iter {
 				let call = frame_system::Call::remark { remark: vec![] }.into();
-				calls
-					.try_push(BatchedCall::<Test> { from: signer.clone().into(), call })
-					.ok()
-					.expect("Mock config must match runtime config for BoundedVec size");
+				assert_ok!(calls.try_push(BatchedCall::<Test> { from: signer.clone(), call }));
 			}
 
 			let pseudo_call: <Test as Config>::RuntimeCall = Call::<Test>::batch {
 				domain,
-				sender: sender.into(),
+				sender,
 				bias,
 				expires_at,
 				calls: calls.clone(),
@@ -1215,32 +1032,22 @@ mod multibatching_test {
 			let pseudo_call_bytes = pseudo_call.encode();
 			let pseudo_call_bytes = [b"<Bytes>", &pseudo_call_bytes[..], b"</Bytes>"].concat();
 			let hash = keccak_256(&pseudo_call_bytes);
-
-			//eprintln!("test   bytes: {}", hex::encode(&pseudo_call_bytes));
-			//eprintln!("test   hash: {}", hex::encode(hash.into()));
-
 			let mut approvals = BoundedVec::new();
 			for (pair, _, account) in &signers {
-				approvals
-					.try_push(Approval::<Test> {
-						from: EthereumSigner::from(account.0).into(),
-						signature: EthereumSignature::from(pair.sign_prehashed(&hash.into()))
-							.into(),
-					})
-					.ok()
-					.expect("Benchmark config must match runtime config for BoundedVec size");
-				eprintln!("test  from: {:?}", &approvals.last().unwrap().from);
-				eprintln!("test   sig: {:?}", &approvals.last().unwrap().signature);
+				assert_ok!(approvals.try_push(Approval::<Test> {
+					from: EthereumSigner::from(account.0),
+					signature: EthereumSignature::from(pair.sign_prehashed(&hash)),
+				}));
 			}
 			// sign by wrong signer
 			approvals.sort_by_key(|a| a.from.clone());
-			approvals[0].signature = signers[1].0.sign_prehashed(&hash.into()).into();
+			approvals[0].signature = signers[1].0.sign_prehashed(&hash).into();
 
 			assert_noop!(
 				Multibatching::batch_v2(
-					RuntimeOrigin::signed(sender.clone()),
+					RuntimeOrigin::signed(sender),
 					domain,
-					sender.clone().into(),
+					sender,
 					bias,
 					expires_at,
 					calls,
