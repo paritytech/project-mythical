@@ -101,7 +101,7 @@ sp-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", tag = 
 sp-core = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 sp-genesis-builder = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 sp-inherents = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
-sp-io = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
+sp-io = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false, features = ["improved_panic_error_reporting"] }
 sp-keystore = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 sp-offchain = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2412-1", default-features = false }
