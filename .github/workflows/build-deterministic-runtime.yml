@@ -35,6 +35,7 @@ jobs:
         env:
           # Includes metadata hash for production chains.
           BUILD_OPTS: "--features on-chain-release-build"
+          RUSTC_VERSION: "1.81.0"
         with:
           chain: ${{ matrix.runtime }}
 
