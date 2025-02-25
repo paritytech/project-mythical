@@ -37,6 +37,7 @@ jobs:
 
       - name: Store srtool digest to disk
         run: |
+          echo '${{ steps.srtool_build.outputs.json }}'
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.runtime }}-srtool-digest.json
 
       # Manual trigger: add artifacts to run
