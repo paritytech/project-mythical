@@ -66,8 +66,7 @@ pub struct IncrementableU256(U256);
 
 impl Incrementable for IncrementableU256 {
 	fn increment(&self) -> Option<Self> {
-		let val = self.clone();
-		Some(Self(val.0.saturating_add(U256::one())))
+		self.0.checked_add(U256::one()).map_or_else(|| None, |value| Some(Self(value)))
 	}
 
 	fn initial_value() -> Option<Self> {

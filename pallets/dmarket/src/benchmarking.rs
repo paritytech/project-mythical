@@ -1,4 +1,3 @@
-#![cfg(feature = "runtime-benchmarks")]
 use super::*;
 use crate::Pallet as Dmarket;
 use frame_benchmarking::v2::*;
@@ -130,7 +129,7 @@ pub mod benchmarks {
 	fn force_set_collection() {
 		let collection_id = T::BenchmarkHelper::collection(0);
 		let caller: T::AccountId = funded_and_whitelisted_account::<T>("caller", 0);
-		let _ = mint_nft::<T>(1, caller);
+		mint_nft::<T>(1, caller);
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, collection_id);

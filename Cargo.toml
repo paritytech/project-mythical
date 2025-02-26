@@ -2,7 +2,12 @@
 panic = "unwind"
 
 [workspace]
-members = ["node", "primitives/xcm", "runtime/mainnet", "runtime/testnet"]
+members = [
+	"node",
+	"primitives/*",
+	"runtime/*",
+	"pallets/*",
+]
 
 resolver = "2"
 

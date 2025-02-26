@@ -1,4 +1,3 @@
-#![cfg(feature = "runtime-benchmarks")]
 use super::*;
 use crate::Pallet as Marketplace;
 use frame_benchmarking::v2::*;

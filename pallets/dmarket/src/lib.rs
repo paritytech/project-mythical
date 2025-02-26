@@ -26,8 +26,6 @@ pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use core::usize;
-
 	use crate::Item;
 
 	use super::*;
@@ -103,7 +101,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// The fee signer account was updated.
 		CollectionUpdated { collection_id: T::CollectionId },
-		///
+		/// A successful trade is executed.
 		Trade {
 			buyer: T::AccountId,
 			seller: T::AccountId,
@@ -119,29 +117,29 @@ pub mod pallet {
 		ItemNotFound,
 		/// Item can only be operated by the Item owner.
 		SellerNotItemOwner,
-		/// The bid with the provided parameters has already been executed
+		/// The bid with the provided parameters has already been executed.
 		BidAlreadyExecuted,
-		/// The ask with the provided parameters has already been executed
+		/// The ask with the provided parameters has already been executed.
 		AskAlreadyExecuted,
-		/// Buyer balance is not enough to pay for trade costs
+		/// Buyer balance is not enough to pay for trade costs.
 		BuyerBalanceTooLow,
-		/// Bid expiration timestamp must be in the future
+		/// Bid expiration timestamp must be in the future.
 		BidExpired,
-		/// Ask expiration timestamp must be in the future
+		/// Ask expiration timestamp must be in the future.
 		AskExpired,
-		/// The signature provided by the buyer is invalid
+		/// The signature provided by the buyer is invalid.
 		InvalidBuyerSignature,
-		/// The signature provided by the seller is invalid
+		/// The signature provided by the seller is invalid.
 		InvalidSellerSignature,
 		/// Same buyer and seller not allowed.
 		BuyerIsSeller,
-		/// Invalid Signed message
+		/// Invalid Signed message.
 		BadSignedMessage,
 		/// Dmarket collection already set to the provided value.
 		CollectionAlreadyInUse,
-		/// Dmarket collection has not been set
+		/// Dmarket collection has not been set.
 		CollectionNotSet,
-		/// The provided Dmarket collect was not found
+		/// The provided Dmarket collect was not found.
 		CollectionNotFound,
 	}
 
@@ -177,7 +175,7 @@ pub mod pallet {
 				Error::<T>::CollectionAlreadyInUse
 			);
 
-			DmarketCollection::<T>::put(collection_id.clone());
+			DmarketCollection::<T>::put(collection_id);
 			Self::deposit_event(Event::CollectionUpdated { collection_id });
 			Ok(())
 		}
@@ -283,7 +281,7 @@ pub mod pallet {
 			message: &Vec<u8>,
 			signature: T::Signature,
 		) -> Result<(), DispatchError> {
-			if !signature.verify(message.as_ref(), &who) {
+			if !signature.verify(message.as_ref(), who) {
 				return Err(Error::<T>::BadSignedMessage.into());
 			}
 

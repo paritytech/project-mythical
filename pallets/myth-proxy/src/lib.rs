@@ -599,7 +599,7 @@ impl<T: Config> Pallet<T> {
 	/// This function only removes one approval at a time to avoid blocking the runtime and
 	/// to ease calculation of the consumed weight.
 	pub fn cleanup_approvals() -> bool {
-		InvalidatedAgents::<T>::iter().next().map_or(false, |(agent, _)| {
+		InvalidatedAgents::<T>::iter().next().is_some_and(|(agent, _)| {
 			let maybe_approval = ApprovalsByAgent::<T>::iter_prefix(&agent).next();
 
 			if let Some((approval, _)) = maybe_approval {
