@@ -37,6 +37,7 @@ jobs:
           BUILD_OPTS: "--features on-chain-release-build"
         with:
           chain: ${{ matrix.runtime }}
+          tag: 1.81
 
       - name: Store srtool digest to disk
         run: |
