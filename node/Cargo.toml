@@ -17,7 +17,6 @@ jsonrpsee = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-hex-literal = { workspace = true }
 
 # Local
 testnet-runtime = { workspace = true }
@@ -47,6 +46,7 @@ sp-block-builder = { workspace = true }
 sp-blockchain = { workspace = true }
 sp-consensus-aura = { workspace = true }
 sp-core = { workspace = true }
+sp-genesis-builder = { workspace = true }
 sp-io = { workspace = true }
 sp-keystore = { workspace = true }
 sp-offchain = { workspace = true }
@@ -60,7 +60,6 @@ substrate-prometheus-endpoint = { workspace = true }
 # Polkadot
 polkadot-cli = { workspace = true }
 polkadot-primitives = { workspace = true }
-xcm = { workspace = true, default-features = false }
 
 # Cumulus
 cumulus-primitives-aura = { workspace = true }
