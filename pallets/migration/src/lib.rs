@@ -71,7 +71,7 @@ pub mod pallet {
 	pub trait BenchmarkHelper<CollectionId, Moment> {
 		/// Returns a collection id from a given integer.
 		fn collection(id: u16) -> CollectionId;
-		/// Returns an nft id from a given integer.
+		/// Returns a NFT id from a given integer.
 		fn timestamp(value: u64) -> Moment;
 	}
 
@@ -82,7 +82,7 @@ pub mod pallet {
 	pub type Migrator<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 	pub struct MigratorProvider<T: crate::Config>(sp_std::marker::PhantomData<T>);
 
-	impl<T: crate::Config> SortedMembers<T::AccountId> for MigratorProvider<T> {
+	impl<T: Config> SortedMembers<T::AccountId> for MigratorProvider<T> {
 		fn sorted_members() -> Vec<T::AccountId> {
 			if let Some(migrator) = Migrator::<T>::get() {
 				return vec![migrator];
@@ -113,7 +113,7 @@ pub mod pallet {
 		ItemNotFound,
 		/// Tried to store an account that is already set for this storage value.
 		AccountAlreadySet,
-		// Migrator is not set.
+		/// Migrator is not set.
 		MigratorNotSet,
 		/// The account is already the owner of the item.
 		AlreadyOwner,
@@ -170,7 +170,7 @@ pub mod pallet {
 			Self::ensure_migrator(origin)?;
 			let collection = Self::get_dmarket_collection()?;
 
-			let owner = pallet_nfts::Pallet::<T>::owner(collection.clone(), item.clone())
+			let owner = pallet_nfts::Pallet::<T>::owner(collection, item)
 				.ok_or(Error::<T>::ItemNotFound)?;
 
 			ensure!(owner != transfer_to, Error::<T>::AlreadyOwner);

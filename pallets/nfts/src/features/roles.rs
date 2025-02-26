@@ -117,7 +117,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		role: CollectionRole,
 	) -> bool {
 		CollectionRoleOf::<T, I>::get(collection_id, account_id)
-			.map_or(false, |roles| roles.has_role(role))
+			.is_some_and(|roles| roles.has_role(role))
 	}
 
 	/// Finds the account by a provided role within a collection.

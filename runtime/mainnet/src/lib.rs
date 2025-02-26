@@ -1016,8 +1016,8 @@ impl<T> ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
 where
 	T: fungible::Mutate<AccountId> + fungible::Inspect<AccountId>,
 {
-	fn create_asset_kind(_seed: u32) -> () {
-		()
+	fn create_asset_kind(_seed: u32) {
+		// no-op
 	}
 	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
 		let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();

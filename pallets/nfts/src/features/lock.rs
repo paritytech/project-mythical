@@ -28,7 +28,6 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	/// settings on the collection. The only setting that can't be disabled is `DepositRequired`.
 	///
 	/// Note: it's possible only to lock the setting, but not to unlock it after.
-
 	///
 	/// - `origin`: The origin of the transaction, representing the account attempting to lock the
 	///   collection.

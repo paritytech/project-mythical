@@ -25,8 +25,6 @@ pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use core::usize;
-
 	use super::*;
 	use frame_support::{
 		ensure,
@@ -47,6 +45,13 @@ pub mod pallet {
 		BoundedVec, DispatchError, Saturating,
 	};
 	use sp_std::vec::Vec;
+
+	type ExecOrderOf<T> = ExecOrder<
+		<T as frame_system::Config>::AccountId,
+		BalanceOf<T>,
+		<T as pallet_timestamp::Config>::Moment,
+		<T as frame_system::Config>::AccountId,
+	>;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -104,19 +109,27 @@ pub mod pallet {
 		MarketplaceBid,
 	}
 
+	/// The current authority account for the pallet.
 	#[pallet::storage]
 	pub type Authority<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
+	/// The account responsible for signing fee-related operations.
+	///
+	/// This account is expected to provide valid signatures for operations
+	/// requiring authentication related to transaction fees.
 	#[pallet::storage]
 	pub type FeeSigner<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
+	/// A mapping that stores the state of nonces used for preventing replay attacks.
 	#[pallet::storage]
 	pub type Nonces<T: Config> =
 		StorageMap<_, Identity, BoundedVec<u8, T::NonceStringLimit>, bool, ValueQuery>;
 
+	/// The account where marketplace payouts will be sent.
 	#[pallet::storage]
 	pub type PayoutAddress<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
+	/// A mapping of active Ask orders in the marketplace.
 	#[pallet::storage]
 	pub type Asks<T: Config> = StorageDoubleMap<
 		_,
@@ -127,6 +140,7 @@ pub mod pallet {
 		Ask<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
 	>;
 
+	/// A mapping that stores active Bid orders in the marketplace.
 	#[pallet::storage]
 	pub type Bids<T: Config> = StorageNMap<
 		_,
@@ -173,13 +187,13 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The account is not the authority
+		/// The account is not the authority.
 		NotAuthority,
 		/// Tried to store an account that is already set for this storage value.
 		AccountAlreadySet,
-		//// The fee signer address doesn't exist
+		/// The fee signer address doesn't exist.
 		FeeSignerAddressNotSet,
-		// The payout address doesn't exist
+		/// The payout address doesn't exist.
 		PayoutAddressNotSet,
 		/// The item was not found.
 		ItemNotFound,
@@ -191,15 +205,15 @@ pub mod pallet {
 		InvalidFeePercent,
 		/// Ask or Bid with the same characteristics already exists.
 		OrderAlreadyExists,
-		/// A valid match must exist to execute the order
+		/// A valid match must exist to execute the order.
 		ValidMatchMustExist,
 		/// Item can only be operated by the Item owner.
 		NotItemOwner,
-		/// Invalid Signed message
+		/// Invalid Signed message.
 		BadSignedMessage,
 		/// The Item is already locked and can't be used.
 		ItemAlreadyLocked,
-		/// Nonce has already been used
+		/// Nonce has already been used.
 		AlreadyUsedNonce,
 		/// The item is already owned by the account trying to bid on it.
 		BidOnOwnedItem,
@@ -209,11 +223,11 @@ pub mod pallet {
 		OrderExpired,
 		/// The order was not found.
 		OrderNotFound,
-		/// User Balance is insufficient for the required action
+		/// User Balance is insufficient for the required action.
 		InsufficientFunds,
-		/// The caller is not the orderc creator or the admin account of the pallet
+		/// The caller is not the order creator or the admin account of the pallet.
 		NotOrderCreatorOrAdmin,
-		/// The provided nonce had an invalid size
+		/// The provided nonce had an invalid size.
 		BadNonce,
 		/// An overflow happened.
 		Overflow,
@@ -251,7 +265,10 @@ pub mod pallet {
 
 		/// Sets the fee signer address, allowing the designated account that signs fees.
 		///
-		/// Only an account with the authority role can execute this function. /// - `fee_signer`: The account ID of the fee signer to be set.
+		/// Only an account with the authority role can execute this function.
+		///
+		/// Parameters:
+		/// - `fee_signer`: The account ID of the fee signer to be set.
 		///
 		/// Emits `FeeSignerAddressUpdate` event upon successful execution.
 		///
@@ -368,7 +385,7 @@ pub mod pallet {
 						Error::<T>::OrderAlreadyExists
 					);
 					ensure!(item_owner == who.clone(), Error::<T>::NotItemOwner);
-					//Check if item is locked
+					// Check if item is locked
 					pallet_nfts::Pallet::<T>::disable_transfer(&order.collection, &order.item)
 						.map_err(|_| Error::<T>::ItemAlreadyLocked)?;
 
@@ -412,7 +429,7 @@ pub mod pallet {
 					);
 					ensure!(item_owner != who.clone(), Error::<T>::BidOnOwnedItem);
 
-					//Reserve neccesary amount to pay for the item + fees
+					// Reserve necessary amount to pay for the item + fees
 					let bid_payment = Self::calc_bid_payment(&order.price, &order.fee)?;
 					<T as crate::Config>::Currency::hold(
 						&HoldReason::MarketplaceBid.into(),
@@ -452,7 +469,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Cancelation of an Ask or Bid order.
+		/// Cancellation of an Ask or Bid order.
 		///
 		/// Callable by either the authority or the order creator.
 		///
@@ -481,7 +498,7 @@ pub mod pallet {
 			let authority = Authority::<T>::get();
 
 			match order_type {
-				//Order type Ask
+				// Order type Ask
 				OrderType::Ask => {
 					let ask = Asks::<T>::get(collection, item).ok_or(Error::<T>::OrderNotFound)?;
 					ensure!(
@@ -491,10 +508,10 @@ pub mod pallet {
 
 					Asks::<T>::remove(collection, item);
 
-					// Re enable item transfer
+					// Re-enable item transfer
 					pallet_nfts::Pallet::<T>::enable_transfer(&collection, &item)?;
 				},
-				//Order type Bid
+				// Order type Bid
 				OrderType::Bid => {
 					let bid = Bids::<T>::get((collection, item, price))
 						.ok_or(Error::<T>::OrderNotFound)?;
@@ -535,7 +552,7 @@ pub mod pallet {
 			collection: &T::CollectionId,
 			item: &ItemId,
 			price: &BalanceOf<T>,
-		) -> Option<ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>> {
+		) -> Option<ExecOrderOf<T>> {
 			let timestamp = pallet_timestamp::Pallet::<T>::get();
 
 			match order_type {
@@ -560,7 +577,7 @@ pub mod pallet {
 		}
 
 		pub fn execute_order(
-			exec_order: ExecOrder<T::AccountId, BalanceOf<T>, T::Moment, T::AccountId>,
+			exec_order: ExecOrderOf<T>,
 			who: T::AccountId,
 			collection: T::CollectionId,
 			item: ItemId,
@@ -623,7 +640,7 @@ pub mod pallet {
 			price: &BalanceOf<T>,
 			fee: &BalanceOf<T>,
 		) -> Result<BalanceOf<T>, Error<T>> {
-			price.checked_add(&fee).ok_or(Error::<T>::Overflow)
+			price.checked_add(fee).ok_or(Error::<T>::Overflow)
 		}
 
 		pub fn process_fees(
@@ -634,19 +651,19 @@ pub mod pallet {
 			price: BalanceOf<T>,
 			escrow_agent: Option<T::AccountId>,
 		) -> Result<(), DispatchError> {
-			//Amount to be payed by the buyer
+			// Amount to be paid by the buyer
 			let buyer_payment_amount = price.checked_add(&buyer_fee).ok_or(Error::<T>::Overflow)?;
 
-			//Amount to be payed to the marketplace at the payoutAddress
+			// Amount to be paid to the marketplace at the payoutAddress
 			let marketplace_pay_amount =
 				buyer_fee.checked_add(&seller_fee).ok_or(Error::<T>::Overflow)?;
 
-			//Amount to be payed to the seller (Earings - marketFees)
+			// Amount to be paid to the seller (Earings - marketFees)
 			let seller_pay_amount = buyer_payment_amount
 				.checked_sub(&marketplace_pay_amount)
 				.ok_or(Error::<T>::Overflow)?;
 
-			<T as crate::Config>::Currency::release(
+			<T as Config>::Currency::release(
 				&HoldReason::MarketplaceBid.into(),
 				buyer,
 				buyer_payment_amount,
@@ -655,7 +672,7 @@ pub mod pallet {
 			// Pay fees to PayoutAddress
 			let payout_address =
 				PayoutAddress::<T>::get().ok_or(Error::<T>::PayoutAddressNotSet)?;
-			<T as crate::Config>::Currency::transfer(
+			<T as Config>::Currency::transfer(
 				buyer,
 				&payout_address,
 				marketplace_pay_amount,
@@ -667,12 +684,7 @@ pub mod pallet {
 					T::Escrow::make_deposit(buyer, seller, seller_pay_amount, &agent)?;
 				},
 				None => {
-					<T as crate::Config>::Currency::transfer(
-						buyer,
-						seller,
-						seller_pay_amount,
-						Preserve,
-					)?;
+					<T as Config>::Currency::transfer(buyer, seller, seller_pay_amount, Preserve)?;
 				},
 			}
 

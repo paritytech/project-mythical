@@ -7506,6 +7506,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-migration"
+version = "0.0.1"
+dependencies = [
+ "account",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "pallet-dmarket",
+ "pallet-nfts",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-migrations"
 version = "9.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-stable2412-1#ab5882bbc67bcc48464566a2b48171265147acac"
@@ -7580,9 +7602,7 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
  "sp-io",
- "sp-keystore",
  "sp-runtime",
  "sp-std",
 ]

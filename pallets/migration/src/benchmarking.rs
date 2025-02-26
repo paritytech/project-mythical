@@ -1,4 +1,3 @@
-#![cfg(feature = "runtime-benchmarks")]
 use super::*;
 use crate::Pallet as Migration;
 use frame_benchmarking::v2::*;
@@ -96,7 +95,7 @@ pub mod benchmarks {
 		assert_eq!(DmarketCollection::<T>::get().unwrap(), collection);
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(migrator), item.clone(), receiver.clone());
+		_(RawOrigin::Signed(migrator), item, receiver.clone());
 
 		assert_eq!(Nfts::<T>::owner(collection, item), Some(receiver));
 	}

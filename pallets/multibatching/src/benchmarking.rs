@@ -1,4 +1,3 @@
-#![cfg(feature = "runtime-benchmarks")]
 use super::*;
 #[allow(unused_imports)]
 use crate::Pallet as Multibatching;

@@ -146,7 +146,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 
 		// NOTE: if the item was previously burned, the ItemConfigOf record might not exist
 		let is_locked = Self::get_item_config(&collection, &item)
-			.map_or(false, |c| c.has_disabled_setting(ItemSetting::UnlockedMetadata));
+			.is_ok_and(|c| c.has_disabled_setting(ItemSetting::UnlockedMetadata));
 
 		ensure!(is_root || !is_locked, Error::<T, I>::LockedItemMetadata);
 
