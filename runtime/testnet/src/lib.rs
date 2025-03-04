@@ -792,6 +792,8 @@ pub enum ProxyType {
 	Balances,
 	/// Does not allow to create or remove proxies.
 	RestrictProxyManagement,
+	/// A proxy type dedicated to operations related to staking.
+	Staking,
 }
 
 impl Default for ProxyType {
@@ -826,6 +828,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						pallet_myth_proxy::Call::register_sponsor_agent { .. }
 					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::revoke_sponsor_agent { .. })
 			),
+			ProxyType::Staking => matches!(call, RuntimeCall::CollatorStaking { .. }),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
