@@ -182,7 +182,7 @@ pub mod fee {
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
 
-	// This constant will multiply the overall fee users will have to spend for transactions.
+	/// This constant will multiply the overall fee users will have to spend for transactions.
 	pub const FEE_MULTIPLIER: Balance = 7;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
