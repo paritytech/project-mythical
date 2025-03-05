@@ -183,7 +183,7 @@ pub mod fee {
 	use sp_runtime::Perbill;
 
 	// This constant will multiply the overall fee users will have to spend for transactions.
-	const FEE_MULTIPLIER: Balance = 7;
+	pub const FEE_MULTIPLIER: Balance = 7;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -449,8 +449,7 @@ impl pallet_multibatching::Config for Runtime {
 }
 
 parameter_types! {
-	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICRO_MUSE;
+	pub const TransactionByteFee: Balance = fee::FEE_MULTIPLIER * 100 * MICRO_MUSE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {

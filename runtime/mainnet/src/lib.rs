@@ -172,7 +172,7 @@ pub mod fee {
 	use sp_runtime::Perbill;
 
 	// This constant will multiply the overall fee users will have to spend for transactions.
-	const FEE_MULTIPLIER: Balance = 7;
+	pub const FEE_MULTIPLIER: Balance = 7;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -438,7 +438,7 @@ impl pallet_multibatching::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 100 * MICRO_MYTH;
+	pub const TransactionByteFee: Balance = fee::FEE_MULTIPLIER * 100 * MICRO_MYTH;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -1013,7 +1013,6 @@ parameter_types! {
 pub struct TreasuryBenchmarkHelper<T>(PhantomData<T>);
 
 #[cfg(feature = "runtime-benchmarks")]
-
 impl<T> ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper<T>
 where
 	T: fungible::Mutate<AccountId> + fungible::Inspect<AccountId>,
