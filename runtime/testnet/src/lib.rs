@@ -147,8 +147,8 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
-/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
-/// the result on to `ToStakingPot` and `Treasury`.
+/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and burning
+/// the fee.
 pub struct DealWithFees<R>(PhantomData<R>);
 impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
@@ -182,8 +182,8 @@ pub mod fee {
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
 
-	// This constant will multiply the overall fee users will have to spend for transactions.
-	const FEE_MULTIPLIER: Balance = 7;
+	/// This constant will multiply the overall fee users will have to spend for transactions.
+	pub const FEE_MULTIPLIER: Balance = 7;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -288,7 +288,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("muse"),
 	impl_name: alloc::borrow::Cow::Borrowed("muse"),
 	authoring_version: 1,
-	spec_version: 1025,
+	spec_version: 1026,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -449,8 +449,7 @@ impl pallet_multibatching::Config for Runtime {
 }
 
 parameter_types! {
-	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICRO_MUSE;
+	pub const TransactionByteFee: Balance = fee::FEE_MULTIPLIER * 100 * MICRO_MUSE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -792,6 +791,8 @@ pub enum ProxyType {
 	Balances,
 	/// Does not allow to create or remove proxies.
 	RestrictProxyManagement,
+	/// A proxy type dedicated to operations related to staking.
+	Staking,
 }
 
 impl Default for ProxyType {
@@ -826,6 +827,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						pallet_myth_proxy::Call::register_sponsor_agent { .. }
 					) | RuntimeCall::MythProxy(pallet_myth_proxy::Call::revoke_sponsor_agent { .. })
 			),
+			ProxyType::Staking => matches!(call, RuntimeCall::CollatorStaking { .. }),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -1501,6 +1503,9 @@ impl_runtime_apis! {
 		}
 		fn should_claim(account: AccountId) -> bool {
 			!CollatorStaking::staker_has_claimed(&account)
+		}
+		fn candidates() -> Vec<(AccountId, Balance)> {
+			CollatorStaking::candidates()
 		}
 	}
 
