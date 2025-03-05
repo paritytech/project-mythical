@@ -147,8 +147,8 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
-/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and passing
-/// the result on to `ToStakingPot` and `Treasury`.
+/// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and burning
+/// the fee.
 pub struct DealWithFees<R>(PhantomData<R>);
 impl<R> OnUnbalanced<fungible::Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
@@ -1503,6 +1503,9 @@ impl_runtime_apis! {
 		}
 		fn should_claim(account: AccountId) -> bool {
 			!CollatorStaking::staker_has_claimed(&account)
+		}
+		fn candidates() -> Vec<(AccountId, Balance)> {
+			CollatorStaking::candidates()
 		}
 	}
 
