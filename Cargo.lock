@@ -6084,6 +6084,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-tx-pause",
  "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",
@@ -8089,6 +8090,23 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-tx-pause"
+version = "20.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-stable2412-2#863f353d20749caccfd1ccd548cc0cd85291f3a8"
+dependencies = [
+ "docify",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "pallet-proxy",
+ "pallet-utility",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
 ]
 
@@ -14480,6 +14498,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-tx-pause",
  "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",

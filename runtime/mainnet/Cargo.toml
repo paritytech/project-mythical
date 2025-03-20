@@ -63,6 +63,7 @@ pallet-preimage = { workspace = true, default-features = false }
 pallet-scheduler = { workspace = true, default-features = false }
 pallet-treasury = { workspace = true, default-features = false }
 pallet-democracy = { workspace = true, default-features = false }
+pallet-tx-pause = { workspace = true, default-features = false }
 pallet-vesting = { workspace = true, default-features = false }
 sp-api = { workspace = true, default-features = false }
 sp-block-builder = { workspace = true, default-features = false }
@@ -144,6 +145,7 @@ std = [
   "pallet-preimage/std",
   "pallet-scheduler/std",
   "pallet-treasury/std",
+  "pallet-tx-pause/std",
   "pallet-vesting/std",
   "parachain-info/std",
   "parachains-common/std",
@@ -196,6 +198,7 @@ runtime-benchmarks = [
   "pallet-preimage/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
   "pallet-treasury/runtime-benchmarks",
+  "pallet-tx-pause/runtime-benchmarks",
   "pallet-vesting/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
@@ -236,6 +239,7 @@ try-runtime = [
   "pallet-proxy/try-runtime",
   "pallet-myth-proxy/try-runtime",
   "pallet-treasury/try-runtime",
+  "pallet-tx-pause/try-runtime",
   "pallet-vesting/try-runtime",
   "parachain-info/try-runtime",
   "pallet-escrow/try-runtime",
