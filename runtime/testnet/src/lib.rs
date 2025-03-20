@@ -1172,6 +1172,8 @@ mod benches {
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
 		[pallet_collator_staking, CollatorStaking]
+		[pallet_transaction_payment, TransactionPayment]
+		[pallet_tx_pause, TxPause]
 	);
 }
 

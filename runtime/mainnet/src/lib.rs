@@ -1117,7 +1117,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		MessageQueue: pallet_message_queue = 33,
 
-		//Other
+		// Other pallets.
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
 		TxPause: pallet_tx_pause = 42,
@@ -1155,6 +1155,8 @@ mod benches {
 		[pallet_democracy, Democracy]
 		[pallet_scheduler, Scheduler]
 		[pallet_preimage, Preimage]
+		[pallet_transaction_payment, TransactionPayment]
+		[pallet_tx_pause, TxPause]
 	);
 }
 

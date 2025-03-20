@@ -193,6 +193,7 @@ runtime-benchmarks = [
   "pallet-utility/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
+  "pallet-transaction-payment/runtime-benchmarks",
   "pallet-tx-pause/runtime-benchmarks",
   "pallet-vesting/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
