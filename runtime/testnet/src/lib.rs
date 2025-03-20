@@ -288,7 +288,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("muse"),
 	impl_name: alloc::borrow::Cow::Borrowed("muse"),
 	authoring_version: 1,
-	spec_version: 1026,
+	spec_version: 1027,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -460,7 +460,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -1077,6 +1077,16 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
+impl pallet_tx_pause::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PauseOrigin = RootOrCouncilTwoThirdsMajority;
+	type UnpauseOrigin = RootOrCouncilTwoThirdsMajority;
+	type WhitelistedCalls = ();
+	type MaxNameLen = ConstU32<256>;
+	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1123,6 +1133,7 @@ construct_runtime!(
 		// Other pallets
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+		TxPause: pallet_tx_pause = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -1161,6 +1172,8 @@ mod benches {
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
 		[pallet_collator_staking, CollatorStaking]
+		[pallet_transaction_payment, TransactionPayment]
+		[pallet_tx_pause, TxPause]
 	);
 }
 
