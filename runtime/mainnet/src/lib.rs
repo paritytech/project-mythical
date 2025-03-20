@@ -449,7 +449,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -1071,7 +1071,7 @@ impl pallet_tx_pause::Config for Runtime {
 	type UnpauseOrigin = RootOrCouncilTwoThirdsMajority;
 	type WhitelistedCalls = ();
 	type MaxNameLen = ConstU32<256>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
