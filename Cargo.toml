@@ -1,5 +1,7 @@
 [profile.release]
 panic = "unwind"
+opt-level = 3
+lto = true
 
 [workspace]
 members = [
