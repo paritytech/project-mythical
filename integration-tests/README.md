@@ -22,7 +22,7 @@ Note: Downloading polkadot will automatically download also the binaries of `pol
 Use the following command in the root of this repository to build the node:
 
 ```sh
-cargo build --release
+cargo build --profile production
 ```
 
 # Usage
