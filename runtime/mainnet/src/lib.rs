@@ -1144,6 +1144,7 @@ mod benches {
 		[pallet_democracy, Democracy]
 		[pallet_scheduler, Scheduler]
 		[pallet_preimage, Preimage]
+		[pallet_transactionPayment, TransactionPayment]
 	);
 }
 
