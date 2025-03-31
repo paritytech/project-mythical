@@ -24,9 +24,9 @@ case $RUNTIME in
 esac
 
 echo "Building the binary. This can take a while..."
-cargo build --profile release --features runtime-benchmarks
+cargo build --profile production --features runtime-benchmarks
 
-BIN="./target/release/mythos-node"
+BIN="./target/production/mythos-node"
 WEIGHT_FOLDER="./runtime/$RUNTIME/src/weights"
 
 # Determine which pallets to benchmark

@@ -4,7 +4,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 46.0.0
 //! DATE: 2025-03-31, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `PAR03651`, CPU: `<UNKNOWN>`
+//! HOSTNAME: `blockdeep-ref-hw`, CPU: `AMD EPYC 7232P 8-Core Processor`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("mainnet-local-v")`, DB CACHE: 1024
 
 // Executed Command:
@@ -43,8 +43,8 @@ impl<T: frame_system::Config> pallet_transaction_payment::WeightInfo for WeightI
 		// Proof Size summary in bytes:
 		//  Measured:  `129`
 		//  Estimated: `3581`
-		// Minimum execution time: 30_000_000 picoseconds.
-		Weight::from_parts(31_000_000, 0)
+		// Minimum execution time: 61_870_000 picoseconds.
+		Weight::from_parts(62_220_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
