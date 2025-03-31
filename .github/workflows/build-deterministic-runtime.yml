@@ -38,6 +38,7 @@ jobs:
         with:
           chain: ${{ matrix.runtime }}
           tag: 1.81.0
+          profile: production
 
       - name: Store srtool digest to disk
         run: |

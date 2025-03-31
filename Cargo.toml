@@ -1,6 +1,11 @@
 [profile.release]
 panic = "unwind"
 
+[profile.production]
+inherits = "release"
+opt-level = 3
+lto = true
+
 [workspace]
 members = [
 	"node",
