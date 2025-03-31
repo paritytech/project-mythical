@@ -196,6 +196,7 @@ runtime-benchmarks = [
   "pallet-preimage/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
   "pallet-treasury/runtime-benchmarks",
+  "pallet-transaction-payment/runtime-benchmarks",
   "pallet-vesting/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
