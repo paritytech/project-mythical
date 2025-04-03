@@ -328,7 +328,6 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&cli.run.normalize())?;
 			let collator_options = cli.run.collator_options();
-
 			runner.run_node_until_exit(|config| async move {
 				let hwbench = (!cli.no_hardware_benchmarks)
 					.then_some(config.database.path().map(|database_path| {
@@ -378,7 +377,7 @@ pub fn run() -> Result<()> {
 							testnet_runtime::RuntimeApi,
 							TestnetRuntimeExecutor,
 							sc_network::NetworkWorker<_, _>
-						>(config, polkadot_config, collator_options, id, hwbench)
+						>(config, polkadot_config, collator_options, id, hwbench, cli.run.experimental_max_pov_percentage)
 						.await
 						.map(|r| r.0)
 						.map_err(Into::into)
@@ -391,7 +390,7 @@ pub fn run() -> Result<()> {
 							mainnet_runtime::RuntimeApi,
 							MainnetRuntimeExecutor,
 							sc_network::NetworkWorker<_, _>
-						>(config, polkadot_config, collator_options, id, hwbench)
+						>(config, polkadot_config, collator_options, id, hwbench, cli.run.experimental_max_pov_percentage)
 						.await
 						.map(|r| r.0)
 						.map_err(Into::into)
