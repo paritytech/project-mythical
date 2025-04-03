@@ -7220,7 +7220,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-staking"
 version = "1.2.5"
-source = "git+https://github.com/alexggh/pallet-collator-staking.git?branch=polkadot-stable2412-2-with-backport-8040#8feffafa69d86b46c4ff784f69a02f5ed1730f8e"
+source = "git+https://github.com/blockdeep/pallet-collator-staking.git?branch=polkadot-stable2412-2-with-backport-8040#8feffafa69d86b46c4ff784f69a02f5ed1730f8e"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
