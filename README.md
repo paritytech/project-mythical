@@ -19,7 +19,7 @@ git clone https://github.com/paritytech/project-mythical
 Use the following command to build the node without launching it:
 
 ```sh
-cargo build --release
+cargo build --profile production
 ```
 
 Or containerize with
