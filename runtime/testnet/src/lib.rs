@@ -1029,7 +1029,7 @@ parameter_types! {
 	pub const SpendPeriod: BlockNumber = DAYS;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
 	pub const MaximumReasonLength: u32 = 300;
-	pub const MaxApprovals: u32 = 10;
+	pub const MaxApprovals: u32 = 100;
 	pub const MaxBalance: Balance = Balance::MAX;
 	pub const SpendPayoutPeriod: BlockNumber = 7 * DAYS;
 }
@@ -1057,10 +1057,7 @@ where
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type RejectOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
-	>;
+	type RejectOrigin = RootOrCouncilTwoThirdsMajority;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
@@ -1070,10 +1067,7 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = Bounties;
 	type MaxApprovals = MaxApprovals;
 	type SpendOrigin = EnsureWithSuccess<
-		EitherOfDiverse<
-			EnsureRoot<AccountId>,
-			pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
-		>,
+		RootOrCouncilTwoThirdsMajority,
 		AccountId,
 		MaxBalance,
 	>;
