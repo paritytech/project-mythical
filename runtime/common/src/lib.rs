@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::{Pair, Public, U256};
 
@@ -61,7 +61,18 @@ pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 	polkadot_primitives::MAX_POV_SIZE as u64,
 );
 
-#[derive(Clone, TypeInfo, Encode, PartialEq, Eq, Decode, Copy, MaxEncodedLen, Debug)]
+#[derive(
+	Clone,
+	TypeInfo,
+	Encode,
+	PartialEq,
+	Eq,
+	Decode,
+	DecodeWithMemTracking,
+	Copy,
+	MaxEncodedLen,
+	Debug,
+)]
 pub struct IncrementableU256(U256);
 
 impl Incrementable for IncrementableU256 {
