@@ -1075,6 +1075,34 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
+parameter_types! {
+	pub const BountyCuratorDeposit: Permill = Permill::from_percent(50);
+	pub const BountyValueMinimum: Balance = 5 * MYTH;
+	pub const BountyDepositBase: Balance = 1 * MYTH;
+	pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
+	pub const CuratorDepositMin: Balance = 1 * MYTH;
+	pub const CuratorDepositMax: Balance = 100 * MYTH;
+	pub const BountyDepositPayoutDelay: BlockNumber = 1 * DAYS;
+	pub const BountyUpdatePeriod: BlockNumber = 7 * DAYS;
+	pub const DataDepositPerByte: Balance = 10 * MILLI_MYTH;
+}
+
+impl pallet_bounties::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type BountyDepositBase = BountyDepositBase;
+	type BountyDepositPayoutDelay = BountyDepositPayoutDelay;
+	type BountyUpdatePeriod = BountyUpdatePeriod;
+	type CuratorDepositMultiplier = CuratorDepositMultiplier;
+	type CuratorDepositMin = CuratorDepositMin;
+	type CuratorDepositMax = CuratorDepositMax;
+	type BountyValueMinimum = BountyValueMinimum;
+	type DataDepositPerByte = DataDepositPerByte;
+	type MaximumReasonLength = MaximumReasonLength;
+	type WeightInfo = ();
+	type ChildBountyManager = ();
+	type OnSlash = Treasury;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1105,6 +1133,7 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1> = 16,
 		Democracy: pallet_democracy = 17,
 		Treasury: pallet_treasury = 18,
+		Bounties: pallet_bounties = 19,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
@@ -1158,6 +1187,7 @@ mod benches {
 		[pallet_sudo, Sudo]
 		[pallet_timestamp, Timestamp]
 		[pallet_treasury, Treasury]
+		[pallet_bounties, Bounties]
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
 		[pallet_collator_staking, CollatorStaking]
