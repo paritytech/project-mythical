@@ -290,7 +290,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("muse"),
 	impl_name: alloc::borrow::Cow::Borrowed("muse"),
 	authoring_version: 1,
-	spec_version: 1026,
+	spec_version: 1027,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
