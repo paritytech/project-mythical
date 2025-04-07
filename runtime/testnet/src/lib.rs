@@ -1026,7 +1026,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
-	pub const SpendPeriod: BlockNumber = DAYS;
+	pub const SpendPeriod: BlockNumber = 5 * MINUTES;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
 	pub const MaximumReasonLength: u32 = 300;
 	pub const MaxApprovals: u32 = 100;
@@ -1137,7 +1137,7 @@ impl pallet_identity::Config for Runtime {
 	type RegistrarOrigin = RootOrCouncilTwoThirdsMajority;
 	type OffchainSignature = Signature;
 	type SigningPublicKey = <Signature as Verify>::Signer;
-	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type UsernameAuthorityOrigin = RootOrCouncilTwoThirdsMajority;
 	type PendingUsernameExpiration = ConstU32<{ 7 * MINUTES }>;
 	type UsernameGracePeriod = ConstU32<{ 30 * MINUTES }>;
 	type MaxSuffixLength = ConstU32<7>;

@@ -1124,7 +1124,7 @@ impl pallet_identity::Config for Runtime {
 	type RegistrarOrigin = RootOrCouncilTwoThirdsMajority;
 	type OffchainSignature = Signature;
 	type SigningPublicKey = <Signature as Verify>::Signer;
-	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type UsernameAuthorityOrigin = RootOrCouncilTwoThirdsMajority;
 	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
 	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
 	type MaxSuffixLength = ConstU32<7>;
