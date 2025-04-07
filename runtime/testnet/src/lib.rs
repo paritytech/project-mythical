@@ -1116,6 +1116,41 @@ impl pallet_bounties::Config for Runtime {
 	type OnSlash = Treasury;
 }
 
+parameter_types! {
+	// difference of 26 bytes on-chain for the registration and 9 bytes on-chain for the identity
+	// information, already accounted for by the byte deposit
+	pub const BasicDeposit: Balance = deposit(1, 17);
+	pub const ByteDeposit: Balance = deposit(0, 1);
+	pub const UsernameDeposit: Balance = deposit(0, 32);
+	pub const SubAccountDeposit: Balance = 2 * MUSE;   // 53 bytes on-chain
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+impl pallet_identity::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type ByteDeposit = ByteDeposit;
+	type UsernameDeposit = UsernameDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = RootOrCouncilTwoThirdsMajority;
+	type RegistrarOrigin = RootOrCouncilTwoThirdsMajority;
+	type OffchainSignature = Signature;
+	type SigningPublicKey = <Signature as Verify>::Signer;
+	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type PendingUsernameExpiration = ConstU32<{ 7 * MINUTES }>;
+	type UsernameGracePeriod = ConstU32<{ 30 * MINUTES }>;
+	type MaxSuffixLength = ConstU32<7>;
+	type MaxUsernameLength = ConstU32<32>;
+	type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1131,6 +1166,7 @@ construct_runtime!(
 		Preimage: pallet_preimage = 6,
 		Scheduler: pallet_scheduler = 7,
 		Utility: pallet_utility = 8,  // was previously 4
+		Identity: pallet_identity = 9,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -1203,6 +1239,7 @@ mod benches {
 		[pallet_bounties, Bounties]
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
+		[pallet_identity, Identity]
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
 	);

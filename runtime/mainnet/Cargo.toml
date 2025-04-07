@@ -54,6 +54,7 @@ pallet-timestamp = { workspace = true, default-features = false }
 pallet-transaction-payment = { workspace = true, default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-features = false }
 pallet-utility = { workspace = true, default-features = false }
+pallet-identity = { workspace = true, default-features = false }
 pallet-message-queue = { workspace = true, default-features = false }
 pallet-multibatching = { workspace = true, default-features = false }
 pallet-multisig = { workspace = true, default-features = false }
@@ -142,6 +143,7 @@ std = [
   "pallet-transaction-payment-rpc-runtime-api/std",
   "pallet-transaction-payment/std",
   "pallet-utility/std",
+  "pallet-identity/std",
   "pallet-xcm/std",
   "pallet-proxy/std",
   "pallet-myth-proxy/std",
@@ -195,6 +197,7 @@ runtime-benchmarks = [
   "pallet-sudo/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
+  "pallet-identity/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
   "pallet-myth-proxy/runtime-benchmarks",
@@ -241,6 +244,7 @@ try-runtime = [
   "pallet-timestamp/try-runtime",
   "pallet-transaction-payment/try-runtime",
   "pallet-utility/try-runtime",
+  "pallet-identity/try-runtime",
   "pallet-xcm/try-runtime",
   "pallet-proxy/try-runtime",
   "pallet-myth-proxy/try-runtime",
