@@ -46,7 +46,6 @@ frame-try-runtime = { workspace = true, default-features = false, optional = tru
 pallet-aura = { workspace = true, default-features = false }
 pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
-pallet-bounties = { workspace = true, default-features = false }
 pallet-collective = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
@@ -127,7 +126,6 @@ std = [
   "pallet-aura/std",
   "pallet-authorship/std",
   "pallet-balances/std",
-  "pallet-bounties/std",
   "pallet-collator-staking/std",
   "pallet-collective/std",
   "pallet-dmarket/std",
@@ -183,7 +181,6 @@ runtime-benchmarks = [
   "frame-system-benchmarking/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
   "pallet-balances/runtime-benchmarks",
-  "pallet-bounties/runtime-benchmarks",
   "pallet-collator-staking/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
   "pallet-dmarket/runtime-benchmarks",
@@ -227,7 +224,6 @@ try-runtime = [
   "pallet-aura/try-runtime",
   "pallet-authorship/try-runtime",
   "pallet-balances/try-runtime",
-  "pallet-bounties/try-runtime",
   "pallet-collator-staking/try-runtime",
   "pallet-collective/try-runtime",
   "pallet-dmarket/try-runtime",
