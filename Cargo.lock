@@ -10614,9 +10614,11 @@ name = "runtime-common"
 version = "1.0.0"
 dependencies = [
  "account",
+ "enumflags2",
  "frame-support",
  "frame-system",
  "pallet-balances",
+ "pallet-identity",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-primitives",

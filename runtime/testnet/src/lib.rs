@@ -1107,14 +1107,15 @@ impl pallet_bounties::Config for Runtime {
 }
 
 parameter_types! {
-	// difference of 26 bytes on-chain for the registration and 9 bytes on-chain for the identity
-	// information, already accounted for by the byte deposit
+	//   27 | Min encoded size of `Registration`
+	// - 10 | Min encoded size of `IdentityInfo`
+	// -----|
+	//   17 | Min size without `IdentityInfo` (accounted for in byte deposit)
 	pub const BasicDeposit: Balance = deposit(1, 17);
 	pub const ByteDeposit: Balance = deposit(0, 1);
 	pub const UsernameDeposit: Balance = deposit(0, 32);
-	pub const SubAccountDeposit: Balance = 2 * MUSE;   // 53 bytes on-chain
+	pub const SubAccountDeposit: Balance = deposit(1, 53);
 	pub const MaxSubAccounts: u32 = 100;
-	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
 }
 
@@ -1126,7 +1127,7 @@ impl pallet_identity::Config for Runtime {
 	type UsernameDeposit = UsernameDeposit;
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = MaxSubAccounts;
-	type IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>;
+	type IdentityInformation = runtime_common::IdentityInfo;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
 	type ForceOrigin = RootOrCouncilTwoThirdsMajority;
