@@ -577,7 +577,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 impl cumulus_pallet_weight_reclaim::Config for Runtime {
-	type WeightInfo = ();
+	type WeightInfo = weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1066,11 +1066,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = Bounties;
 	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = EnsureWithSuccess<
-		RootOrCouncilTwoThirdsMajority,
-		AccountId,
-		MaxBalance,
-	>;
+	type SpendOrigin = EnsureWithSuccess<RootOrCouncilTwoThirdsMajority, AccountId, MaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
@@ -1105,7 +1101,7 @@ impl pallet_bounties::Config for Runtime {
 	type BountyValueMinimum = BountyValueMinimum;
 	type DataDepositPerByte = DataDepositPerByte;
 	type MaximumReasonLength = MaximumReasonLength;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_bounties::WeightInfo<Runtime>;
 	type ChildBountyManager = ();
 	type OnSlash = Treasury;
 }

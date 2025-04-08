@@ -1053,11 +1053,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = Bounties;
 	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = EnsureWithSuccess<
-		RootOrCouncilTwoThirdsMajority,
-		AccountId,
-		MaxBalance,
-	>;
+	type SpendOrigin = EnsureWithSuccess<RootOrCouncilTwoThirdsMajority, AccountId, MaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
