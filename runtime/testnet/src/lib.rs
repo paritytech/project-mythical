@@ -237,7 +237,7 @@ pub mod fee {
 	impl WeightToFeePolynomial for ProofSizeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-			// Map 10kb proof to 1/10 MILLI_MYTH.
+			// Map 10kb proof to 1/10 MILLI_MUSE.
 			let numerator = MILLI_MUSE * 10;
 			let denominator = 10_000;
 
@@ -1079,15 +1079,14 @@ impl pallet_treasury::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BountyCuratorDeposit: Permill = Permill::from_percent(50);
-	pub const BountyValueMinimum: Balance = 5 * MUSE;
-	pub const BountyDepositBase: Balance = 1 * MUSE;
+	pub const BountyDepositBase: Balance = 10 * MUSE;
+	pub const BountyDepositPayoutDelay: BlockNumber = 0;
+	pub const BountyUpdatePeriod: BlockNumber = 90 * MINUTES;
 	pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
-	pub const CuratorDepositMin: Balance = 1 * MUSE;
-	pub const CuratorDepositMax: Balance = 100 * MUSE;
-	pub const BountyDepositPayoutDelay: BlockNumber = 1 * MINUTES;
-	pub const BountyUpdatePeriod: BlockNumber = 5 * MINUTES;
-	pub const DataDepositPerByte: Balance = 10 * MILLI_MUSE;
+	pub const CuratorDepositMin: Balance = 100 * MUSE;
+	pub const CuratorDepositMax: Balance = 2000 * MUSE;
+	pub const BountyValueMinimum: Balance = 100 * MUSE;
+	pub const DataDepositPerByte: Balance = 100 * MILLI_MUSE;
 }
 
 impl pallet_bounties::Config for Runtime {
@@ -1111,10 +1110,10 @@ parameter_types! {
 	// - 10 | Min encoded size of `IdentityInfo`
 	// -----|
 	//   17 | Min size without `IdentityInfo` (accounted for in byte deposit)
-	pub const BasicDeposit: Balance = deposit(1, 17);
-	pub const ByteDeposit: Balance = deposit(0, 1);
-	pub const UsernameDeposit: Balance = deposit(0, 32);
-	pub const SubAccountDeposit: Balance = deposit(1, 53);
+	pub const BasicDeposit: Balance = deposit(10, 170);
+	pub const ByteDeposit: Balance = deposit(0, 10);
+	pub const UsernameDeposit: Balance = deposit(0, 320);
+	pub const SubAccountDeposit: Balance = deposit(10, 530);
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
 }
@@ -1136,7 +1135,7 @@ impl pallet_identity::Config for Runtime {
 	type SigningPublicKey = <Signature as Verify>::Signer;
 	type UsernameAuthorityOrigin = RootOrCouncilTwoThirdsMajority;
 	type PendingUsernameExpiration = ConstU32<{ 7 * MINUTES }>;
-	type UsernameGracePeriod = ConstU32<{ 30 * MINUTES }>;
+	type UsernameGracePeriod = ConstU32<{ 7 * MINUTES }>;
 	type MaxSuffixLength = ConstU32<7>;
 	type MaxUsernameLength = ConstU32<32>;
 	type WeightInfo = ();

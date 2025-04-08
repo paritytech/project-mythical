@@ -1066,14 +1066,14 @@ impl pallet_treasury::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BountyDepositBase: Balance = MYTH;
+	pub const BountyDepositBase: Balance = 10 * MYTH;
 	pub const BountyDepositPayoutDelay: BlockNumber = 0;
 	pub const BountyUpdatePeriod: BlockNumber = 90 * DAYS;
 	pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
-	pub const CuratorDepositMin: Balance = 10 * MYTH;
-	pub const CuratorDepositMax: Balance = 200 * MYTH;
-	pub const BountyValueMinimum: Balance = 10 * MYTH;
-	pub const DataDepositPerByte: Balance = 10 * MILLI_MYTH;
+	pub const CuratorDepositMin: Balance = 100 * MYTH;
+	pub const CuratorDepositMax: Balance = 2000 * MYTH;
+	pub const BountyValueMinimum: Balance = 100 * MYTH;
+	pub const DataDepositPerByte: Balance = 100 * MILLI_MYTH;
 }
 
 impl pallet_bounties::Config for Runtime {
@@ -1097,10 +1097,10 @@ parameter_types! {
 	// - 10 | Min encoded size of `IdentityInfo`
 	// -----|
 	//   17 | Min size without `IdentityInfo` (accounted for in byte deposit)
-	pub const BasicDeposit: Balance = deposit(1, 17);
-	pub const ByteDeposit: Balance = deposit(0, 1);
-	pub const UsernameDeposit: Balance = deposit(0, 32);
-	pub const SubAccountDeposit: Balance = deposit(1, 53);
+	pub const BasicDeposit: Balance = deposit(10, 170);
+	pub const ByteDeposit: Balance = deposit(0, 10);
+	pub const UsernameDeposit: Balance = deposit(0, 320);
+	pub const SubAccountDeposit: Balance = deposit(10, 530);
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
 }
@@ -1122,7 +1122,7 @@ impl pallet_identity::Config for Runtime {
 	type SigningPublicKey = <Signature as Verify>::Signer;
 	type UsernameAuthorityOrigin = RootOrCouncilTwoThirdsMajority;
 	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
-	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
+	type UsernameGracePeriod = ConstU32<{ 7 * DAYS }>;
 	type MaxSuffixLength = ConstU32<7>;
 	type MaxUsernameLength = ConstU32<32>;
 	type WeightInfo = ();
