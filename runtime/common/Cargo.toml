@@ -17,6 +17,7 @@ parity-scale-codec = { workspace = true, default-features = false, features = [
 scale-info = { workspace = true, default-features = false, features = [
   "derive",
 ] }
+enumflags2 = { workspace =  true }
 
 # Substrate
 frame-support = { workspace = true, default-features = false }

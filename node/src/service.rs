@@ -211,6 +211,7 @@ async fn start_node_impl<RuntimeApi, Executor, BIQ, SC, Net>(
 	build_import_queue: BIQ,
 	start_consensus: SC,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	max_pov_percentage: Option<u32>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
@@ -253,6 +254,7 @@ where
 		CollatorPair,
 		OverseerHandle,
 		Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
+		Option<u32>,
 	) -> Result<(), sc_service::Error>,
 	Net: NetworkBackend<Block, Hash>,
 {
@@ -286,7 +288,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
 
-	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) =
 		build_network(BuildNetworkParams {
 			parachain_config: &parachain_config,
 			net_config,
@@ -419,10 +421,9 @@ where
 			collator_key.expect("Command line arguments do not allow this. qed"),
 			overseer_handle,
 			announce_block,
+			max_pov_percentage,
 		)?;
 	}
-
-	start_network.start_network();
 
 	Ok((task_manager, client))
 }
@@ -485,6 +486,7 @@ fn start_consensus<RuntimeApi>(
 	collator_key: CollatorPair,
 	overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
+	max_pov_percentage: Option<u32>,
 ) -> Result<(), sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
@@ -539,6 +541,7 @@ where
 		collator_service,
 		authoring_duration: Duration::from_millis(2000),
 		reinitialize: false,
+		max_pov_percentage,
 	};
 
 	let fut = aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _>(
@@ -556,6 +559,7 @@ pub async fn start_parachain_node<RuntimeApi, Executor, Net: NetworkBackend<Bloc
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	max_pov_percentage: Option<u32>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<RuntimeApi>>)>
 where
 	Executor: NativeExecutionDispatch + 'static,
@@ -580,6 +584,7 @@ where
 		build_import_queue::<RuntimeApi>,
 		start_consensus::<RuntimeApi>,
 		hwbench,
+		max_pov_percentage,
 	)
 	.await
 }

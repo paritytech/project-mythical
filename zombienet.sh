@@ -2,11 +2,11 @@
 
 set -e
 
-ZOMBIENET_V=v1.3.118
-POLKADOT_V=stable2412
-POLKADOT_RUNTIMES_V=v1.3.4
-PASEO_RUNTIMES_V=v1.3.4
-BIN_DIR=bin
+ZOMBIENET_V=v1.3.128
+POLKADOT_V=stable2503
+POLKADOT_RUNTIMES_V=v1.4.2
+PASEO_RUNTIMES_V=v1.4.1
+BIN_DIR=./bin
 
 case "$(uname -s)" in
 Linux*) MACHINE=Linux ;;
@@ -107,28 +107,28 @@ zombienet_testnet() {
   zombienet_init
   cargo +stable build --release --features testnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus mythos testnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
 }
 
 zombienet_testnet_asset_hub() {
   zombienet_init
   cargo +stable build --release --features testnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus muse testnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/testnet-asset-hub.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/testnet-asset-hub.toml -p native
 }
 
 zombienet_mainnet() {
   zombienet_init
   cargo +stable build --release --features mainnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus mythos mainnet as a parachain..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
 }
 
 zombienet_mainnet_asset_hub() {
   zombienet_init
   cargo +stable build --release --features mainnet-runtime/metadata-hash
   echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain plus asset-hub..."
-  ./$ZOMBIENET_BIN -l text spawn zombienet-config/mainnet-asset-hub.toml -p native
+  $ZOMBIENET_BIN spawn zombienet-config/mainnet-asset-hub.toml -p native
 }
 
 print_help() {
