@@ -26,6 +26,7 @@ sp-runtime = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 sp-std = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
+pallet-identity = { workspace = true, default-features = false }
 xcm = { workspace = true, default-features = false }
 
 parachains-common = { workspace = true, default-features = false }
@@ -39,6 +40,7 @@ account = { workspace = true }
 default = ["std"]
 std = [
   "account/std",
+  "pallet-identity/std",
   "frame-support/std",
   "frame-system/std",
   "sp-runtime/std",
