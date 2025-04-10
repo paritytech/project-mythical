@@ -14,8 +14,6 @@ chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {
 
 [[parachains]]
 id = 3369
-addToGenesis = true
-cumulus_based = true
 chain = "local-v"
 
 	[[parachains.collators]]

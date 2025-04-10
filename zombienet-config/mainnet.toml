@@ -28,8 +28,6 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 [[parachains]]
 id = 3369
 chain = "mainnet-local-v"
-addToGenesis = true
-cumulus_based = true
 
     [[parachains.collators]]
     name = "mythos-collator01"

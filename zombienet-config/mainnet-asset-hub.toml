@@ -29,7 +29,6 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 id = 1000
 chain = "asset-hub-polkadot-local"
 chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
-cumulus_based = true
 
     [[parachains.collators]]
     name = "assethub-collator01"
@@ -45,7 +44,6 @@ cumulus_based = true
 [[parachains]]
 id = 3369
 chain = "mainnet-local-v"
-cumulus_based = true
 
     [[parachains.collators]]
     name = "mythos-collator01"
