@@ -36,7 +36,7 @@ build_chainspec_generators() {
     pushd polkadot-runtimes
       echo "building polkadot chain-spec-generator..."
       cargo +stable build --release --features fast-runtime -p chain-spec-generator
-      cp target/release/chain-spec-generator "$CWD/$BIN_DIR/chain-spec-generator"
+      cp target/release/chain-spec-generator "$BIN_DIR/chain-spec-generator"
     popd
   fi
   if [ ! -f "$BIN_DIR/paseo-chain-spec-generator" ]; then
@@ -90,7 +90,7 @@ zombienet_testnet_asset_hub() {
 zombienet_mainnet() {
   zombienet_init
   cargo +stable build --release --features mainnet-runtime/metadata-hash
-  echo "spawning paseo-local relay chain plus mythos mainnet as a parachain..."
+  echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain..."
   "$ZOMBIENET_BIN" spawn zombienet-config/mainnet.toml -p native
 }
 
