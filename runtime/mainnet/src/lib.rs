@@ -380,6 +380,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	/// The maximum number of consumers allowed on a single account.
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type BaseCallFilter = TxPause;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
 }
 
