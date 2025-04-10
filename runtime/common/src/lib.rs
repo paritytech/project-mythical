@@ -1,7 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
 use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::{Pair, Public, U256};
 
@@ -17,8 +18,6 @@ use frame_support::traits::Incrementable;
 // These types are shared between the mainnet and testnet runtimes
 //https://github.com/paritytech/cumulus/tree/master/parachains/common
 pub use parachains_common::{AuraId, Balance, Block, BlockNumber, Hash};
-
-extern crate alloc;
 
 pub type Signature = EthereumSignature;
 
@@ -51,17 +50,24 @@ pub const DAYS: BlockNumber = HOURS * 24;
 /// used to limit the maximal weight of a single extrinsic.
 pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
 
-/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used by
-/// `Operational` extrinsics.
-pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(100);
 
-/// Max block weight configuration.
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
-	polkadot_primitives::MAX_POV_SIZE as u64,
-);
+/// Max block weight configuration, max allowed pov size is 10 MiB on all relay-chains.
+pub const MAXIMUM_BLOCK_WEIGHT: Weight =
+	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), 10 * 1024 * 1024 as u64);
 
-#[derive(Clone, TypeInfo, Encode, PartialEq, Eq, Decode, Copy, MaxEncodedLen, Debug)]
+#[derive(
+	Clone,
+	TypeInfo,
+	Encode,
+	PartialEq,
+	Eq,
+	Decode,
+	DecodeWithMemTracking,
+	Copy,
+	MaxEncodedLen,
+	Debug,
+)]
 pub struct IncrementableU256(U256);
 
 impl Incrementable for IncrementableU256 {

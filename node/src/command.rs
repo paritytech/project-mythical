@@ -378,7 +378,7 @@ pub fn run() -> Result<()> {
 							testnet_runtime::RuntimeApi,
 							TestnetRuntimeExecutor,
 							sc_network::NetworkWorker<_, _>
-						>(config, polkadot_config, collator_options, id, hwbench)
+						>(config, polkadot_config, collator_options, id, hwbench, cli.run.experimental_max_pov_percentage)
 						.await
 						.map(|r| r.0)
 						.map_err(Into::into)
@@ -391,7 +391,7 @@ pub fn run() -> Result<()> {
 							mainnet_runtime::RuntimeApi,
 							MainnetRuntimeExecutor,
 							sc_network::NetworkWorker<_, _>
-						>(config, polkadot_config, collator_options, id, hwbench)
+						>(config, polkadot_config, collator_options, id, hwbench, cli.run.experimental_max_pov_percentage)
 						.await
 						.map(|r| r.0)
 						.map_err(Into::into)

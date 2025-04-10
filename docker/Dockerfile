@@ -4,7 +4,7 @@ FROM docker.io/paritytech/ci-unified:latest as builder
 WORKDIR /workdir
 COPY . /workdir
 
-RUN cargo build --release
+RUN cargo build --profile production
 
 # the collator stage is normally built once, cached, and then ignored, but can
 # be specified with the --target build flag. This adds some extra tooling to the
@@ -28,7 +28,7 @@ RUN apt-get update && \
     npm install --global yarn && \
     yarn global add @polkadot/api-cli@0.10.0-beta.14
 COPY --from=builder \
-    /workdir/target/release/mythos-node /usr/bin
+    /workdir/target/production/mythos-node /usr/bin
 COPY ./docker/scripts/inject_bootnodes.sh /usr/bin
 CMD ["/usr/bin/inject_bootnodes.sh"]
 COPY ./docker/scripts/healthcheck.sh /usr/bin
@@ -42,13 +42,13 @@ FROM debian:bullseye-slim as runtime
 # Available options: testnet or mainnet
 ARG environment=testnet
 COPY --from=builder \
-    /workdir/target/release/wbuild/mythos-${environment}/mythos_${environment}.compact.compressed.wasm \
+    /workdir/target/production/wbuild/mythos-${environment}/mythos_${environment}.compact.compressed.wasm \
     /var/opt/
 CMD ["cp", "-v", "/var/opt/mythos_${environment}.compact.compressed.wasm", "/runtime/"]
 
 FROM debian:bullseye-slim
 COPY --from=builder \
-    /workdir/target/release/mythos-node /usr/bin
+    /workdir/target/production/mythos-node /usr/bin
 # Install ca certs inside docker container. See https://github.com/paritytech/project-mythical/issues/158
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 

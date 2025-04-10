@@ -94,7 +94,9 @@ pub mod pallet {
 	}
 
 	/// A call in a batch.
-	#[derive(Clone, Encode, Decode, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+	#[derive(
+		Clone, Encode, Decode, DecodeWithMemTracking, PartialEq, Eq, TypeInfo, MaxEncodedLen,
+	)]
 	#[scale_info(skip_type_params(T))]
 	pub struct BatchedCall<T: Config> {
 		/// The public key that will be the origin of this call.
@@ -114,7 +116,7 @@ pub mod pallet {
 	}
 
 	/// A signature of a batch by one of its participants.
-	#[derive(Clone, Encode, Decode, PartialEq, TypeInfo, MaxEncodedLen)]
+	#[derive(Clone, Encode, Decode, DecodeWithMemTracking, PartialEq, TypeInfo, MaxEncodedLen)]
 	#[scale_info(skip_type_params(T))]
 	pub struct Approval<T: Config> {
 		pub from: T::Signer,

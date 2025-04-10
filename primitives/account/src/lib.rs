@@ -20,14 +20,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use parity_scale_codec::{Decode, Encode, Error, Input, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, Error, Input, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160};
 
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use sp_core::crypto::AccountId32;
-use sp_core::crypto::FromEntropy;
+use sp_core::crypto::{AccountId32, FromEntropy};
 #[cfg(feature = "std")]
 use sp_io::hashing::keccak_256;
 use sp_runtime::MultiSignature;
@@ -36,9 +35,19 @@ use sp_runtime::MultiSignature;
 /// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
 /// the introduction of the `scale-info` crate this benefit extends even to non-Rust tools like
 /// Polkadot JS.
-
 #[derive(
-	Eq, PartialEq, Copy, Clone, Encode, Decode, TypeInfo, MaxEncodedLen, Default, PartialOrd, Ord,
+	Eq,
+	PartialEq,
+	Copy,
+	Clone,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	Default,
+	PartialOrd,
+	Ord,
 )]
 pub struct AccountId20(pub [u8; 20]);
 
@@ -137,7 +146,16 @@ impl FromEntropy for AccountId20 {
 }
 
 #[derive(
-	Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo, Serialize, Deserialize,
+	Eq,
+	PartialEq,
+	Clone,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	sp_core::RuntimeDebug,
+	TypeInfo,
+	Serialize,
+	Deserialize,
 )]
 pub struct EthereumSignature(ecdsa::Signature);
 
@@ -192,7 +210,16 @@ impl From<MultiSignature> for EthereumSignature {
 
 /// Public key for an Ethereum / Moonbeam compatible account
 #[derive(
-	Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Clone,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	sp_core::RuntimeDebug,
+	TypeInfo,
 )]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner([u8; 20]);
