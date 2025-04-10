@@ -1187,9 +1187,10 @@ mod benches {
 		[pallet_treasury, Treasury]
 		[pallet_vesting, Vesting]
 		[pallet_utility, Utility]
-		[pallet_identity, Identity]
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
+		// TODO: include once https://github.com/paritytech/polkadot-sdk/pull/8179 gets released
+		// [pallet_identity, Identity]
 	);
 }
 
