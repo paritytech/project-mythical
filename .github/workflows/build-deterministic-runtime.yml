@@ -35,9 +35,9 @@ jobs:
         env:
           # Includes metadata hash for production chains.
           BUILD_OPTS: "--features on-chain-release-build"
+          WASM_BUILD_STD: 1
         with:
           chain: ${{ matrix.runtime }}
-          tag: 1.81.0
           profile: production
 
       - name: Store srtool digest to disk
