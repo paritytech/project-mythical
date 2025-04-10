@@ -18,10 +18,10 @@ esac
 
 if [ $MACHINE = "Linux" ]; then
   ZOMBIENET_FILE="zombienet-linux-x64"
-  SUFFIX="-aarch-apple-darwin"
+  SUFFIX=""
 elif [ $MACHINE = "Mac" ]; then
   ZOMBIENET_FILE="zombienet-macos"
-  SUFFIX=""
+  SUFFIX="-aarch64-apple-darwin"
 fi
 
 ZOMBIENET_BIN="${BIN_DIR}/${ZOMBIENET_FILE}"
