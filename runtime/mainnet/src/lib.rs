@@ -380,6 +380,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	/// The maximum number of consumers allowed on a single account.
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type BaseCallFilter = TxPause;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
 }
 
@@ -1065,6 +1066,16 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
+impl pallet_tx_pause::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PauseOrigin = RootOrCouncilTwoThirdsMajority;
+	type UnpauseOrigin = RootOrCouncilTwoThirdsMajority;
+	type WhitelistedCalls = ();
+	type MaxNameLen = ConstU32<256>;
+	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1112,6 +1123,7 @@ construct_runtime!(
 		// Other pallets.
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
+		TxPause: pallet_tx_pause = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -1142,6 +1154,7 @@ mod benches {
 		[pallet_myth_proxy, MythProxy]
 		[pallet_nfts, Nfts]
 		[pallet_preimage, Preimage]
+		[pallet_tx_pause, TxPause]
 		[pallet_proxy, Proxy]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_scheduler, Scheduler]
