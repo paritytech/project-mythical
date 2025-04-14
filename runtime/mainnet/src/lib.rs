@@ -13,7 +13,9 @@ extern crate alloc;
 pub use fee::WeightToFee;
 
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
-use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
+use cumulus_primitives_core::{
+	AggregateMessageOrigin, AssetId, ClaimQueueOffset, CoreSelector, ParaId,
+};
 use frame_support::traits::fungible::Balanced;
 use frame_support::traits::{
 	fungible, AsEnsureOriginWithArg, InstanceFilter, OnUnbalanced, WithdrawReasons,
@@ -1318,6 +1320,12 @@ impl_runtime_apis! {
 
 		fn authorities() -> Vec<AuraId> {
 			pallet_aura::Authorities::<Runtime>::get().into_inner()
+		}
+	}
+
+	impl cumulus_primitives_core::GetCoreSelectorApi<Block> for Runtime {
+		fn core_selector() -> (CoreSelector, ClaimQueueOffset) {
+			ParachainSystem::core_selector()
 		}
 	}
 

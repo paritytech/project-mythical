@@ -15,8 +15,10 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::{
 	relay_chain::{CollatorPair, ValidationCode},
-	ParaId,
+	GetCoreSelectorApi, ParaId,
 };
+
+use cumulus_client_consensus_aura::collators::slot_based::{self, SlotBasedBlockImport};
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
 
 // Substrate Imports
@@ -84,8 +86,14 @@ type ParachainClient<RuntimeApi> = TFullClient<Block, RuntimeApi, ParachainExecu
 
 type ParachainBackend = TFullBackend<Block>;
 
-type ParachainBlockImport<RuntimeApi> =
-	TParachainBlockImport<Block, Arc<ParachainClient<RuntimeApi>>, ParachainBackend>;
+// type ParachainBlockImport<RuntimeApi> =
+// 	TParachainBlockImport<Block, Arc<ParachainClient<RuntimeApi>>, ParachainBackend>;
+
+pub type ParachainBlockImport<RuntimeApi> = TParachainBlockImport<
+	Block,
+	SlotBasedBlockImport<Block, Arc<ParachainClient<RuntimeApi>>, ParachainClient<RuntimeApi>>,
+	ParachainBackend,
+>;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -102,7 +110,12 @@ pub fn new_partial<RuntimeApi, BIQ>(
 		(),
 		sc_consensus::DefaultImportQueue<Block>,
 		sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient<RuntimeApi>>,
-		(ParachainBlockImport<RuntimeApi>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+		(
+			ParachainBlockImport<RuntimeApi>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+			slot_based::SlotBasedBlockImportHandle<Block>,
+		),
 	>,
 	sc_service::Error,
 >
@@ -176,7 +189,9 @@ where
 		.build(),
 	);
 
-	let block_import = ParachainBlockImport::<RuntimeApi>::new(client.clone(), backend.clone());
+	let (block_import, slot_based_handle) =
+		slot_based::SlotBasedBlockImport::new(client.clone(), client.clone());
+	let block_import = ParachainBlockImport::new(block_import, backend.clone());
 
 	let import_queue = build_import_queue(
 		client.clone(),
@@ -194,7 +209,7 @@ where
 		task_manager,
 		transaction_pool,
 		select_chain: (),
-		other: (block_import, telemetry, telemetry_worker_handle),
+		other: (block_import, telemetry, telemetry_worker_handle, slot_based_handle),
 	})
 }
 
@@ -221,6 +236,7 @@ where
 		+ sp_session::SessionKeys<Block>
 		+ sp_api::ApiExt<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
+		+ GetCoreSelectorApi<Block>
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_aura::AuraUnincludedSegmentApi<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
@@ -243,6 +259,7 @@ where
 		Arc<ParachainClient<RuntimeApi>>,
 		Arc<ParachainBackend>,
 		ParachainBlockImport<RuntimeApi>,
+		slot_based::SlotBasedBlockImportHandle<Block>,
 		Option<&Registry>,
 		Option<TelemetryHandle>,
 		&TaskManager,
@@ -261,7 +278,7 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial::<RuntimeApi, BIQ>(&parachain_config, build_import_queue)?;
-	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
+	let (block_import, mut telemetry, telemetry_worker_handle, slot_based_handle) = params.other;
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, Net>::new(
 		&parachain_config.network,
@@ -410,6 +427,7 @@ where
 			client.clone(),
 			backend.clone(),
 			block_import,
+			slot_based_handle,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
@@ -473,6 +491,7 @@ fn start_consensus<RuntimeApi>(
 	client: Arc<ParachainClient<RuntimeApi>>,
 	backend: Arc<ParachainBackend>,
 	block_import: ParachainBlockImport<RuntimeApi>,
+	slot_based_handle: slot_based::SlotBasedBlockImportHandle<Block>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -484,7 +503,7 @@ fn start_consensus<RuntimeApi>(
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
 	collator_key: CollatorPair,
-	overseer_handle: OverseerHandle,
+	_overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	max_pov_percentage: Option<u32>,
 ) -> Result<(), sc_service::Error>
@@ -492,6 +511,7 @@ where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 		+ sp_api::Metadata<Block>
+		+ GetCoreSelectorApi<Block>
 		+ sp_session::SessionKeys<Block>
 		+ sp_api::ApiExt<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
@@ -502,10 +522,6 @@ where
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 {
-	// NOTE: because we use Aura here explicitly, we can use `CollatorSybilResistance::Resistant`
-	// when starting the network.
-	use cumulus_client_consensus_aura::collators::lookahead::{self as aura, Params as AuraParams};
-
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
@@ -523,31 +539,31 @@ where
 		client.clone(),
 	);
 
-	let params = AuraParams {
+	let params = slot_based::Params {
 		create_inherent_data_providers: move |_, ()| async move { Ok(()) },
 		block_import,
 		para_client: client.clone(),
-		para_backend: backend,
+		para_backend: backend.clone(),
 		relay_client: relay_chain_interface,
 		code_hash_provider: move |block_hash| {
-			client.code_at(block_hash).ok().map(ValidationCode).map(|c| c.hash())
+			client.code_at(block_hash).ok().map(|c| ValidationCode::from(c).hash())
 		},
 		keystore,
 		collator_key,
-		para_id,
-		overseer_handle,
 		relay_chain_slot_duration,
+		para_id,
 		proposer,
 		collator_service,
 		authoring_duration: Duration::from_millis(2000),
 		reinitialize: false,
+		slot_offset: Duration::from_secs(1),
+		block_import_handle: slot_based_handle,
+		spawner: task_manager.spawn_handle(),
+		export_pov: None,
 		max_pov_percentage,
 	};
 
-	let fut = aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _>(
-		params,
-	);
-	task_manager.spawn_essential_handle().spawn("aura", None, fut);
+	slot_based::run::<Block, <AuraId as AppCrypto>::Pair, _, _, _, _, _, _, _, _, _>(params);
 
 	Ok(())
 }
@@ -573,6 +589,7 @@ where
 		+ cumulus_primitives_aura::AuraUnincludedSegmentApi<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppCrypto>::Pair as Pair>::Public>
+		+ GetCoreSelectorApi<Block>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 {
