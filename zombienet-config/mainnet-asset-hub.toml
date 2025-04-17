@@ -6,7 +6,7 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 
     [[relaychain.nodes]]
     name = "alice"
-    ws_port = 9900
+    rpc_port = 9900
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
@@ -33,7 +33,7 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "assethub-collator01"
-    ws_port = 9910
+    rpc_port = 9910
     command = "./bin/polkadot-parachain"
     args = ["-lxcm=trace", "--state-cache-size=0" ]
 
@@ -49,7 +49,7 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "mythos-collator01"
-    ws_port = 9920
+    rpc_port = 9920
     command = "./target/release/mythos-node"
     args = ["-lxcm=trace", "--state-cache-size=0"]
 
