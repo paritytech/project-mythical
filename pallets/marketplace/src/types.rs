@@ -1,5 +1,5 @@
 use frame_support::{pallet_prelude::DispatchResult, traits::fungible::Inspect};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
@@ -43,7 +43,7 @@ pub struct Bid<AccountId, Amount, Expiration> {
 	pub fee: Amount,
 }
 
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Debug, Eq, PartialEq, TypeInfo)]
 pub enum OrderType {
 	Ask,
 	Bid,
@@ -55,7 +55,7 @@ pub enum ExecOrder<AccountId, Amount, Expiration, Agent> {
 	Bid(Bid<AccountId, Amount, Expiration>),
 }
 
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Debug, Eq, PartialEq, TypeInfo)]
 pub struct Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Agent, BoundedString>
 {
 	pub order_type: OrderType,
@@ -68,7 +68,7 @@ pub struct Order<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Ag
 	pub signature_data: SignatureData<OffchainSignature, BoundedString>,
 }
 
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Debug, Eq, PartialEq, TypeInfo)]
 pub struct SignatureData<OffchainSignature, BoundedString> {
 	pub signature: OffchainSignature,
 	pub nonce: BoundedString,
@@ -105,7 +105,7 @@ impl<CollectionId, ItemId, Amount, Expiration, OffchainSignature, Agent, Bounded
 	}
 }
 
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Debug, Eq, PartialEq, TypeInfo)]
 pub enum Execution {
 	/// The order must be executed otherwise it should fail
 	Force,

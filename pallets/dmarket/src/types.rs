@@ -1,6 +1,6 @@
 use crate::Config;
 use frame_support::traits::fungible::Inspect;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 pub type BalanceOf<T> =
@@ -9,7 +9,7 @@ pub type BalanceOf<T> =
 pub type Item = u128;
 pub type Domain = [u8; 8];
 
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Debug, Eq, PartialEq, TypeInfo)]
 pub struct TradeParams<Amount, ItemId, Expiration> {
 	pub price: Amount,
 	pub fee: Amount,
@@ -24,7 +24,7 @@ pub type TradeParamsOf<T> = TradeParams<
 	<T as pallet_timestamp::Config>::Moment,
 >;
 
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Debug, Eq, PartialEq, TypeInfo)]
 pub struct TradeSignatures<OffchainSignature> {
 	pub ask_signature: OffchainSignature,
 	pub bid_signature: OffchainSignature,
