@@ -71,7 +71,9 @@ pub use runtime_common::{
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
-use xcm::{prelude::XcmVersion, VersionedLocation, VersionedXcm};
+use xcm::{
+	prelude::XcmVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
+};
 use xcm_config::XcmOriginToTransactDispatchOrigin;
 use xcm_runtime_apis::{
 	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
