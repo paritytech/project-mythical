@@ -290,8 +290,8 @@ pub type XcmRouter = WithUniqueTopic<(
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// We disallow users to send arbitrary XCMs from this chain. Root can send.
-	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, ()>;
+	// Any local signed origin can send XCM messages.
+	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type XcmRouter = XcmRouter;
 	// We must allow execution for running XCM programs to integrate with other chains.
