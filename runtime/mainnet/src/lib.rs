@@ -1631,6 +1631,7 @@ impl_runtime_apis! {
 
 	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
+			// We only handler the native token
 			let acceptable_assets = vec![AssetId(xcm_config::SelfReserve::get())];
 			PolkadotXcm::query_acceptable_payment_assets(xcm_version, acceptable_assets)
 		}
@@ -1639,7 +1640,7 @@ impl_runtime_apis! {
 			let latest_asset_id: Result<AssetId, ()> = asset.clone().try_into();
 			match latest_asset_id {
 				Ok(asset_id) if asset_id.0 == xcm_config::SelfReserve::get() => {
-					// for native token
+					// WeightToFee for native token
 					Ok(<fee::WeightToFee as frame_support::weights::WeightToFee>::weight_to_fee(&weight))
 				},
 				Ok(asset_id) => {
