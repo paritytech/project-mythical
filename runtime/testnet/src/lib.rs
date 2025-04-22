@@ -640,8 +640,8 @@ parameter_types! {
 	pub const MaxInvulnerables: u32 = 4;
 	pub const MaxStakers: u32 = 200_000;
 	pub const KickThreshold: u32 = 2 * Period::get();
-	pub const BondUnlockDelay: BlockNumber = 5 * MINUTES;
-	pub const StakeUnlockDelay: BlockNumber = 2 * MINUTES;
+	pub const BondUnlockDelay: BlockNumber = 0;  // previously 5 * MINUTES
+	pub const StakeUnlockDelay: BlockNumber = 0;  // previously 2 * MINUTES
 	pub const AutoCompoundingThreshold: Balance = 50 * MUSE;
 	/// Rewards are claimable for up to a year.
 	/// Pending to claim rewards past a year will be lost.
