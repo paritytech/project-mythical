@@ -6,24 +6,24 @@ chain_spec_command = "./bin/paseo-chain-spec-generator {% raw %} {{chainName}} {
 
     [[relaychain.nodes]]
     name = "alice"
-    ws_port = 9900
+    rpc_port = 9900
     validator = true
-    args = ["--state-cache-size=0", "--disable-worker-version-check"]
+    args = ["--trie-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "bob"
     validator = true
-    args = ["--state-cache-size=0", "--disable-worker-version-check"]
+    args = ["--trie-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "charlie"
     validator = true
-    args = ["--state-cache-size=0", "--disable-worker-version-check"]
+    args = ["--trie-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "dave"
     validator = true
-    args = ["--state-cache-size=0", "--disable-worker-version-check"]
+    args = ["--trie-cache-size=0", "--disable-worker-version-check"]
 
 [[parachains]]
 id = 1000
@@ -33,14 +33,14 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "assethub-collator01"
-    ws_port = 9910
+    rpc_port = 9910
     command = "./bin/polkadot-parachain"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--trie-cache-size=0"]
 
     [[parachains.collators]]
     name = "assethub-collator02"
     command = "./bin/polkadot-parachain"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--trie-cache-size=0"]
 
 [[parachains]]
 id = 3369
@@ -49,11 +49,11 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "muse-collator01"
-    ws_port = 9920
+    rpc_port = 9920
     command = "./target/release/mythos-node"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--trie-cache-size=0"]
 
     [[parachains.collators]]
     name = "muse-collator02"
     command = "./target/release/mythos-node"
-    args = ["-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--trie-cache-size=0"]
