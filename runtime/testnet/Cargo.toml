@@ -87,7 +87,7 @@ xcm-runtime-apis = { workspace = true, default-features = false }
 # Cumulus
 cumulus-primitives-aura = { workspace = true, default-features = false }
 cumulus-pallet-aura-ext = { workspace = true, default-features = false }
-cumulus-pallet-parachain-system = { workspace = true, default-features = false }
+cumulus-pallet-parachain-system = { workspace = true, default-features = false, features=["experimental-ump-signals"] }
 cumulus-pallet-session-benchmarking = { workspace = true, default-features = false }
 cumulus-pallet-xcm = { workspace = true, default-features = false }
 cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
