@@ -10,6 +10,7 @@ use std::{
 	error::Error,
 	sync::{atomic::AtomicU64, Arc},
 	time::Duration,
+	env,
 };
 use stps_config::eth::{AccountId20, EthereumSigner, MythicalConfig};
 use subxt::{
@@ -25,6 +26,7 @@ const NTRANS: usize = 4000;
 const SENDER_SEED: &str = "//Sender";
 const RECEIVER_SEED: &str = "//Receiver";
 const ED: u128 = 10_000_000_000_000_000;
+const SNAPS_BUCKET: &str = "https://storage.googleapis.com/project-mythical-tps";
 
 type AccountInfo = frame_system::AccountInfo<u32, pallet_balances::AccountData<u128>>;
 type TxOutput<C> = SubmittableTransaction<C, OnlineClient<C>>;
@@ -432,12 +434,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
 	);
 
+	let snaps_server = if let Ok(url) = env::var("ZOMBIE_SNAPS") {
+		url
+	} else {
+		SNAPS_BUCKET.to_string()
+	};
+
 	let network = NetworkConfigBuilder::new().with_relaychain(|r| {
 		r.with_chain("paseo-local")
 			.with_chain_spec_path("chainspec/paseo-local.json")
-			.with_default_command("chainspec/polkadot")
-			.with_node(|node| node.with_name("alice").with_db_snapshot("http://51.15.222.13:8000/alice.tgz"))
-			.with_node(|node| node.with_name("bob").with_db_snapshot("http://51.15.222.13:8000/bob.tgz"))
+			.with_default_command("polkadot")
+			.with_node(|node| node.with_name("alice").with_db_snapshot(format!("{snaps_server}/alice.tgz").as_str()))
+			.with_node(|node| node.with_name("bob").with_db_snapshot(format!("{snaps_server}/bob.tgz").as_str()))
 	})
 
 	// Always use a directory with enough space! (>25 Gb)
@@ -446,8 +454,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	.with_parachain(|p| {
 			p.with_id(3369).evm_based(true)
 				.with_chain_spec_path("chainspec/local-v_paseo-local-3369.json")
-				.with_default_command("../bin/mythos-node")
-				.with_collator(|n| n.with_name("muse-collator01").with_db_snapshot("http://51.15.222.13:8000/muse-collator01.tgz").with_args(
+				.with_default_command("mythos-node")
+				.with_collator(|n| n.with_name("muse-collator01").with_db_snapshot(format!("{snaps_server}/muse-collator01.tgz").as_str()).with_args(
 					vec![
 						"--rpc-max-connections", "10000",
 						"--rpc-max-subscriptions-per-connection", "65536",
@@ -456,7 +464,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 						"--pool-kbytes", "2048000",
 					].into_iter().map(Into::into).collect()
 				))
-				.with_collator(|n| n.with_name("muse-collator02").with_db_snapshot("http://51.15.222.13:8000/muse-collator02.tgz"))
+				.with_collator(|n| n.with_name("muse-collator02").with_db_snapshot(format!("{snaps_server}/muse-collator02.tgz").as_str()))
 		});
 
 	let network = network.build().unwrap();
