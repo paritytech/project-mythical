@@ -2,8 +2,11 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use jsonrpsee_client_transport::ws::WsTransportClientBuilder;
 use jsonrpsee_core::client::Client;
 use parity_scale_codec::Decode;
-use sp_core::{crypto::Pair as _, ecdsa};
-use sp_runtime::traits::IdentifyAccount;
+
+// use this from stps to resolve versioning problems.
+use funder::{Pair as _, ecdsa};
+use stps_config::eth::{AccountId20, EthereumSigner, MythicalConfig, IdentifyAccount};
+
 use std::{
 	cell::RefCell,
 	collections::HashMap,
@@ -12,7 +15,7 @@ use std::{
 	time::Duration,
 	env,
 };
-use stps_config::eth::{AccountId20, EthereumSigner, MythicalConfig};
+
 use subxt::{
 	backend::legacy::LegacyBackend,
 	config::DefaultExtrinsicParamsBuilder,

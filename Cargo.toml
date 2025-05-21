@@ -12,6 +12,14 @@ members = [
 	"primitives/*",
 	"runtime/*",
 	"pallets/*",
+	"zombienet-sdk-tests/tps",
+]
+
+default-members = [
+	"node",
+	"primitives/*",
+	"runtime/*",
+	"pallets/*",
 ]
 
 resolver = "2"
@@ -33,9 +41,9 @@ hex-literal = "0.4.1"
 jsonrpsee = { version = "0.24.3", features = ["server"] }
 log = { version = "0.4.22", default-features = false }
 parity-scale-codec = { version = "3.7.4", default-features = false, features = [
-  "derive",
+  "derive", "max-encoded-len", "full", "bit-vec",
 ] }
-scale-info = { version = "2.11.6", default-features = false }
+scale-info = { version = "2.11.6", default-features = false, features = ["derive"] }
 serde = { version = "1.0.214", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.132", default-features = false, features = [
   "arbitrary_precision",
@@ -44,7 +52,7 @@ impl-serde = { version = "0.5.0", default-features = false }
 smallvec = "1.13.2"
 libsecp256k1 = { version = "0.7.1", default-features = false }
 sha3 = { version = "0.10.8", default-features = false }
-hex = { version = "0.4.3", default-features = false }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 enumflags2 = { version = "0.7.11" }
 
 # Local dependencies
@@ -162,3 +170,19 @@ xcm-runtime-apis = { git = "https://github.com/paritytech/polkadot-sdk", tag = "
 
 # Primitives
 account = { path = "./primitives/account", default-features = false }
+
+# Zombienet tests
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0"
+env_logger = "0.11"
+zombienet-sdk = "0.2.31"
+funder = { git = "https://github.com/paritytech/polkadot-stps", package = "funder", rev = "c45759c60641cb752e7d9718f1c356e6f547c944" } # branch = "ethereum2-1" }
+stps-config = { git = "https://github.com/paritytech/polkadot-stps", package = "stps-config", rev = "c45759c60641cb752e7d9718f1c356e6f547c944" } #branch = "ethereum2-1" }
+rand = { version = "0.9.0" }
+sp-keyring = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503", default-features = false }
+subxt = { version = "0.41" }
+subxt-core = { version = "0.41" }
+subxt-signer = { version = "0.41.0", features = ["unstable-eth"] }
+reqwest = { version = "0.11" }
+jsonrpsee-client-transport = { version = "0.24.8", features = [ "ws" ] }
+jsonrpsee-core = { version = "0.24.8", features = [ "async-client" ] }

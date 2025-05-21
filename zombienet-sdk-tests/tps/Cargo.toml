@@ -3,33 +3,30 @@ name = "mythical-test"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-members = []
-
 [dependencies]
-tokio = { version = "1", features = ["full"] }
-futures = "0.3"
-anyhow = "1.0"
-log = "0.4"
-env_logger = "0.11"
-zombienet-sdk = "0.2.31"
-funder = { git = "https://github.com/paritytech/polkadot-stps", package = "funder", branch = "s0me0ne/ethereum2" }
-stps-config = { git = "https://github.com/paritytech/polkadot-stps", package = "stps-config", branch = "s0me0ne/ethereum2" }
-rand = { version = "0.9.0" }
-sp-core = "29.0.0"
-sp-runtime = "32.0.0"
-sp-keyring = "32.0.0"
-subxt = { version = "0.41" }
-subxt-core = { version = "0.41" }
-subxt-signer = { version = "0.41.0", features = ["unstable-eth"] }
-frame-system = "29.0.0"
-pallet-balances = "29.0.0"
-reqwest = "0.11"
-jsonrpsee-client-transport = { version = "0.24.8", features = [ "ws" ] }
-jsonrpsee-core = { version = "0.24.8", features = [ "async-client" ] }
-hex = { version = "0.4.3", features = ["alloc"] }
-impl-serde = { version = "0.4.0" }
-libsecp256k1 = { version = "0.7.1" }
-scale-info = { version = "2.10.0", features = ["derive"] }
-serde = { version = "1.0.188", features = ["derive"] }
-parity-scale-codec = { version = "3.6.1", features = ["derive", "max-encoded-len", "full", "bit-vec"] }
+tokio = { workspace = true }
+futures = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+zombienet-sdk = { workspace = true }
+funder = { workspace = true }
+stps-config = { workspace = true }
+rand = { workspace = true }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+sp-keyring = { workspace = true }
+subxt = { workspace = true }
+subxt-core = { workspace = true }
+subxt-signer = { workspace = true , features = ["unstable-eth"] }
+frame-system = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std"] }
+reqwest = { workspace = true }
+jsonrpsee-client-transport = { workspace = true , features = [ "ws" ] }
+jsonrpsee-core = { workspace = true , features = [ "async-client" ] }
+hex = { workspace = true , features = ["alloc"] }
+impl-serde = { workspace = true }
+libsecp256k1 = { workspace = true }
+scale-info = { workspace = true , features = ["derive"] }
+serde = { workspace = true , features = ["derive"] }
+parity-scale-codec = { workspace = true , features = ["derive", "max-encoded-len", "full", "bit-vec"] }
