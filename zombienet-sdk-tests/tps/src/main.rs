@@ -4,16 +4,16 @@ use jsonrpsee_core::client::Client;
 use parity_scale_codec::Decode;
 
 // use this from stps to resolve versioning problems.
-use funder::{Pair as _, ecdsa};
-use stps_config::eth::{AccountId20, EthereumSigner, MythicalConfig, IdentifyAccount};
+use funder::{ecdsa, Pair as _};
+use stps_config::eth::{AccountId20, EthereumSigner, IdentifyAccount, MythicalConfig};
 
 use std::{
 	cell::RefCell,
 	collections::HashMap,
+	env,
 	error::Error,
 	sync::{atomic::AtomicU64, Arc},
 	time::Duration,
-	env,
 };
 
 use subxt::{
@@ -437,37 +437,55 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
 	);
 
-	let snaps_server = if let Ok(url) = env::var("ZOMBIE_SNAPS") {
-		url
-	} else {
-		SNAPS_BUCKET.to_string()
-	};
+	let snaps_server =
+		if let Ok(url) = env::var("ZOMBIE_SNAPS") { url } else { SNAPS_BUCKET.to_string() };
 
-	let network = NetworkConfigBuilder::new().with_relaychain(|r| {
-		r.with_chain("paseo-local")
-			.with_chain_spec_path("chainspec/paseo-local.json")
-			.with_default_command("polkadot")
-			.with_node(|node| node.with_name("alice").with_db_snapshot(format!("{snaps_server}/alice.tgz").as_str()))
-			.with_node(|node| node.with_name("bob").with_db_snapshot(format!("{snaps_server}/bob.tgz").as_str()))
-	})
-
-	// Always use a directory with enough space! (>25 Gb)
-	.with_global_settings(|s| s.with_base_dir("/tmp/zn"))
-
-	.with_parachain(|p| {
-			p.with_id(3369).evm_based(true)
+	let network = NetworkConfigBuilder::new()
+		.with_relaychain(|r| {
+			r.with_chain("paseo-local")
+				.with_chain_spec_path("chainspec/paseo-local.json")
+				.with_default_command("polkadot")
+				.with_node(|node| {
+					node.with_name("alice")
+						.with_db_snapshot(format!("{snaps_server}/alice.tgz").as_str())
+				})
+				.with_node(|node| {
+					node.with_name("bob")
+						.with_db_snapshot(format!("{snaps_server}/bob.tgz").as_str())
+				})
+		})
+		// Always use a directory with enough space! (>25 Gb)
+		.with_global_settings(|s| s.with_base_dir("/tmp/zn"))
+		.with_parachain(|p| {
+			p.with_id(3369)
+				.evm_based(true)
 				.with_chain_spec_path("chainspec/local-v_paseo-local-3369.json")
 				.with_default_command("mythos-node")
-				.with_collator(|n| n.with_name("muse-collator01").with_db_snapshot(format!("{snaps_server}/muse-collator01.tgz").as_str()).with_args(
-					vec![
-						"--rpc-max-connections", "10000",
-						"--rpc-max-subscriptions-per-connection", "65536",
-						"--pool-type", "fork-aware",
-						"--pool-limit", "500000",
-						"--pool-kbytes", "2048000",
-					].into_iter().map(Into::into).collect()
-				))
-				.with_collator(|n| n.with_name("muse-collator02").with_db_snapshot(format!("{snaps_server}/muse-collator02.tgz").as_str()))
+				.with_collator(|n| {
+					n.with_name("muse-collator01")
+						.with_db_snapshot(format!("{snaps_server}/muse-collator01.tgz").as_str())
+						.with_args(
+							vec![
+								"--rpc-max-connections",
+								"10000",
+								"--rpc-max-subscriptions-per-connection",
+								"65536",
+								"--pool-type",
+								"fork-aware",
+								"--pool-limit",
+								"500000",
+								"--pool-kbytes",
+								"2048000",
+							]
+							.into_iter()
+							.map(Into::into)
+							.collect(),
+						)
+				})
+				.with_collator(|n| {
+					n.with_name("muse-collator02")
+						.with_db_snapshot(format!("{snaps_server}/muse-collator02.tgz").as_str())
+				})
 		});
 
 	let network = network.build().unwrap();
