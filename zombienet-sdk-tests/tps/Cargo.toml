@@ -3,6 +3,9 @@ name = "mythical-test"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = []
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
