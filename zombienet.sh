@@ -32,11 +32,11 @@ build_polkadot() {
   git clone --depth 1 --branch "polkadot-$POLKADOT_V" https://github.com/paritytech/polkadot-sdk.git || echo -n
   pushd polkadot-sdk
   echo "building polkadot executable..."
-  cargo +stable build --release --features fast-runtime
+  cargo build --release --features fast-runtime
   cp target/release/polkadot "$CWD/$BIN_DIR"
   cp target/release/polkadot-execute-worker "$CWD/$BIN_DIR"
   cp target/release/polkadot-prepare-worker "$CWD/$BIN_DIR"
-  cargo +stable build --release -p polkadot-parachain-bin
+  cargo build --release -p polkadot-parachain-bin
   cp target/release/polkadot-parachain "$CWD/$BIN_DIR"
   popd
   popd
@@ -50,7 +50,7 @@ build_chainspec_generators() {
     git clone --depth 1 --branch "$POLKADOT_RUNTIMES_V" https://github.com/polkadot-fellows/runtimes.git polkadot-runtimes || echo -n
     pushd polkadot-runtimes
     echo "building polkadot chain-spec-generator..."
-    cargo +stable build --release --features fast-runtime
+    cargo build --release --features fast-runtime
     cp target/release/chain-spec-generator "$CWD/$BIN_DIR/chain-spec-generator"
     popd
   fi
@@ -58,7 +58,7 @@ build_chainspec_generators() {
     git clone --depth 1 --branch "$PASEO_RUNTIMES_V" https://github.com/paseo-network/runtimes.git paseo-runtimes || echo -n
     pushd paseo-runtimes
     echo "building paseo chain-spec-generator..."
-    cargo +stable build --release --features fast-runtime
+    cargo build --release --features fast-runtime
     cp target/release/chain-spec-generator "$CWD/$BIN_DIR/paseo-chain-spec-generator"
     popd
   fi
@@ -105,28 +105,28 @@ zombienet_build() {
 
 zombienet_testnet() {
   zombienet_init
-  cargo +stable build --release --features testnet-runtime/metadata-hash
+  cargo build --release --features testnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus mythos testnet as a parachain..."
   $ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
 }
 
 zombienet_testnet_asset_hub() {
   zombienet_init
-  cargo +stable build --release --features testnet-runtime/metadata-hash
+  cargo build --release --features testnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus muse testnet as a parachain plus asset-hub..."
   $ZOMBIENET_BIN spawn zombienet-config/testnet-asset-hub.toml -p native
 }
 
 zombienet_mainnet() {
   zombienet_init
-  cargo +stable build --release --features mainnet-runtime/metadata-hash
+  cargo build --release --features mainnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus mythos mainnet as a parachain..."
   $ZOMBIENET_BIN spawn zombienet-config/mainnet.toml -p native
 }
 
 zombienet_mainnet_asset_hub() {
   zombienet_init
-  cargo +stable build --release --features mainnet-runtime/metadata-hash
+  cargo build --release --features mainnet-runtime/metadata-hash
   echo "spawning polkadot-local relay chain plus mythos mainnet as a parachain plus asset-hub..."
   $ZOMBIENET_BIN spawn zombienet-config/mainnet-asset-hub.toml -p native
 }
