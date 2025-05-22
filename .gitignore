@@ -18,6 +18,7 @@ resources
 .DS_Store
 .idea
 .vscode
+tmp/
 
 # polkadot-launch logs
 *.log
