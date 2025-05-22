@@ -6,7 +6,7 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 
     [[relaychain.nodes]]
     name = "alice"
-    rpc_port = 9900
+    ws_port = 9900
     validator = true
     args = ["--trie-cache-size=0", "--disable-worker-version-check"]
 
@@ -33,7 +33,7 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "mythos-collator01"
-    rpc_port = 9920
+    ws_port = 9920
     command = "./target/release/mythos-node"
     args = ["-lxcm=trace", "--trie-cache-size=0"]
 
