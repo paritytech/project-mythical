@@ -1,0 +1,37 @@
+name: Zombienet TPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push_to_registry:
+    name: TPS zombienet
+    runs-on: parity-large
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Build Node
+        run: cargo build --profile=production --all
+
+      - name: Save parachain binary
+        run: |
+          mkdir -p bins
+          cp target/production/mythos-node bins/mythos-node
+
+      - name: Polkadot binaries
+        run: |
+          mkdir -p bins
+          cd bins
+          LINKS=$(curl  -H 'Accept: application/vnd.github+json' https://api.github.com/repos/paritytech/polkadot-sdk/releases |jq -r -c  '[.[0].assets.[] | select(.name == "polkadot" or .name == "polkadot-prepare-worker" or .name == "polkadot-execute-worker")| .browser_download_url] | .[]')
+          for link in $(echo $LINKS);do
+            echo "downloading $link"
+            curl -O $link
+          done;
+          chmod +x polkadot*
+          cd ..
+
+      - name: Run Zombienet
+        run: |
+          export PATH=$(pwd)/bins:$PATH
+          cargo run --manifest-path zombienet-sdk-tests/tps/Cargo.toml

@@ -1,0 +1,32 @@
+[package]
+name = "mythical-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+futures = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+zombienet-sdk = { workspace = true }
+funder = { workspace = true }
+stps-config = { workspace = true }
+rand = { workspace = true }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+sp-keyring = { workspace = true }
+subxt = { workspace = true }
+subxt-core = { workspace = true }
+subxt-signer = { workspace = true , features = ["unstable-eth"] }
+frame-system = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std"] }
+reqwest = { workspace = true }
+jsonrpsee-client-transport = { workspace = true , features = [ "ws" ] }
+jsonrpsee-core = { workspace = true , features = [ "async-client" ] }
+hex = { workspace = true , features = ["alloc"] }
+impl-serde = { workspace = true }
+libsecp256k1 = { workspace = true }
+scale-info = { workspace = true , features = ["derive"] }
+serde = { workspace = true , features = ["derive"] }
+parity-scale-codec = { workspace = true , features = ["derive", "max-encoded-len", "full", "bit-vec"] }
