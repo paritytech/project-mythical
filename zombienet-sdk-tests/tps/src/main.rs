@@ -12,6 +12,7 @@ use std::{
 	collections::HashMap,
 	env,
 	error::Error,
+	process::Command,
 	sync::{atomic::AtomicU64, Arc},
 	time::Duration,
 };
@@ -431,6 +432,26 @@ async fn block_subscriber(
 	Ok(())
 }
 
+fn cargo() -> Command {
+	Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string()))
+}
+
+fn get_specs_directory() -> String {
+	let output = cargo()
+		.arg("metadata")
+		.arg("--format-version=1")
+		.output()
+		.ok()
+		.expect("Cargo metadata should works.");
+
+	let metadata: serde_json::Value =
+		serde_json::from_slice(&output.stdout).ok().expect("metadata should be valid.");
+	let workspace_directory =
+		metadata["workspace_root"].as_str().expect("workspace root should be present");
+
+	format!("{workspace_directory}/zombienet-sdk-tests/tps/chainspec")
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 	env_logger::init_from_env(
@@ -440,10 +461,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let snaps_server =
 		if let Ok(url) = env::var("ZOMBIE_SNAPS") { url } else { SNAPS_BUCKET.to_string() };
 
+	let chain_specs_dir = if let Ok(path) = env::var("ZOMBIE_SPECS") {
+		path
+	} else {
+		get_specs_directory().to_string()
+	};
+
 	let network = NetworkConfigBuilder::new()
 		.with_relaychain(|r| {
 			r.with_chain("paseo-local")
-				.with_chain_spec_path("chainspec/paseo-local.json")
+				.with_chain_spec_path(format!("{chain_specs_dir}/paseo-local.json").as_str())
 				.with_default_command("polkadot")
 				.with_node(|node| {
 					node.with_name("alice")
@@ -459,7 +486,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		.with_parachain(|p| {
 			p.with_id(3369)
 				.evm_based(true)
-				.with_chain_spec_path("chainspec/local-v_paseo-local-3369.json")
+				.with_chain_spec_path(
+					format!("{chain_specs_dir}/local-v_paseo-local-3369.json").as_str(),
+				)
 				.with_default_command("mythos-node")
 				.with_collator(|n| {
 					n.with_name("muse-collator01")
