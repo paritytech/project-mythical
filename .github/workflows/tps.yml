@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir -p bins
           cd bins
-          LINKS=$(curl  -H 'Accept: application/vnd.github+json' https://api.github.com/repos/paritytech/polkadot-sdk/releases |jq -r -c  '[.[0].assets.[] | select(.name == "polkadot" or .name == "polkadot-prepare-worker" or .name == "polkadot-execute-worker")| .browser_download_url] | .[]')
+          LINKS=$(curl  -H 'Accept: application/vnd.github+json' https://api.github.com/repos/paritytech/polkadot-sdk/releases |jq -r -c  '[ .[] |select(.target_commitish="polkadot-stable2503") |.assets | .[] | select(.name == "polkadot" or .name == "polkadot-prepare-worker" or .name == "polkadot-execute-worker")| .browser_download_url] | .[0,1,2]')
           for link in $(echo $LINKS);do
             echo "downloading $link"
             curl -O $link
