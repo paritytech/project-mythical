@@ -36,4 +36,5 @@ jobs:
       - name: Run Zombienet
         run: |
           export PATH=$(pwd)/bins:$PATH
+          export ZOMBIE_SPECS=$(pwd)/zombienet-sdk-tests/tps/chainspec
           cargo run --manifest-path zombienet-sdk-tests/tps/Cargo.toml
