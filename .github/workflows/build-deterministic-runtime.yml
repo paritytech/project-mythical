@@ -31,7 +31,7 @@ jobs:
 
       - name: Build ${{ matrix.runtime }} runtime
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.9.2
+        uses: paritytech/srtool-actions@v0.9.3
         env:
           # Includes metadata hash for production chains.
           BUILD_OPTS: "--features on-chain-release-build"
