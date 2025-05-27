@@ -34,7 +34,16 @@ jobs:
           cd ..
 
       - name: Run Zombienet
+        timeout-minutes: 30
         run: |
           export PATH=$(pwd)/bins:$PATH
           export ZOMBIE_SPECS=$(pwd)/zombienet-sdk-tests/tps/chainspec
           cargo run --manifest-path zombienet-sdk-tests/tps/Cargo.toml
+
+      - name: upload_logs
+        uses: actions/upload-artifact@v4
+        if: ${{ ! cancelled() }}
+        with:
+          name: zombienet-logs-${{ github.job }}-${{ github.sha }}
+          path: |
+            /tmp/zombie*/logs/*
