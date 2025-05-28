@@ -46,4 +46,4 @@ jobs:
         with:
           name: zombienet-logs-${{ github.job }}-${{ github.sha }}
           path: |
-            /tmp/zombie*/logs/*
+            /tmp/zn/*/*.log
