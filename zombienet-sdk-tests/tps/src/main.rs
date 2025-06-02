@@ -433,7 +433,8 @@ async fn block_subscriber(
 
 		if total_ntrans >= ntrans {
 			log::info!("{:?}", counters);
-			let json_counters = serde_json::to_string(&counters).expect("Failed to serialize counters to JSON");
+			let json_counters =
+				serde_json::to_string(&counters).expect("Failed to serialize counters to JSON");
 			return Ok(json_counters);
 		}
 	}
@@ -656,9 +657,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let fapi = client.clone();
 	let ntrans = txgroups.iter().map(|tx| tx.len()).sum::<usize>();
 	log::info!("Got {} transactions", ntrans);
-	let subscriber = tokio::spawn(async move {
-		block_subscriber(fapi, ntrans).await
-	});
+	let subscriber = tokio::spawn(async move { block_subscriber(fapi, ntrans).await });
 
 	let mut submitted: Vec<_> = Vec::new();
 	for txgroup in txgroups.into_iter() {
@@ -688,13 +687,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	let res = tokio::try_join!(subscriber).expect("Block subscriber joins successfully");
 	let json_counters = res.0.expect("Block subscriber returns counters");
-	let counters = serde_json::from_str::<HashMap<String, HashMap<u64, u64>>>(&json_counters).expect("Failed to deserialize counters");
+	let counters = serde_json::from_str::<HashMap<String, HashMap<u64, u64>>>(&json_counters)
+		.expect("Failed to deserialize counters");
 	log::info!("Test finished");
 
-	assert!(counters["balance_transfer"].values().copied().max().unwrap() >= balance_transfer::EXPECTED_TPB);
+	assert!(
+		counters["balance_transfer"].values().copied().max().unwrap()
+			>= balance_transfer::EXPECTED_TPB
+	);
 	assert!(counters["nft_mint"].values().copied().max().unwrap() >= nft_mint::EXPECTED_TPB);
-	assert!(counters["nft_transfer"].values().copied().max().unwrap() >= nft_transfer::EXPECTED_TPB);
-	assert!(counters["marketplace_order_bid"].values().copied().max().unwrap() >= marketplace_order_bid::EXPECTED_TPB);
+	assert!(
+		counters["nft_transfer"].values().copied().max().unwrap() >= nft_transfer::EXPECTED_TPB
+	);
+	assert!(
+		counters["marketplace_order_bid"].values().copied().max().unwrap()
+			>= marketplace_order_bid::EXPECTED_TPB
+	);
 
 	Ok(())
 }
