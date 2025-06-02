@@ -29,4 +29,5 @@ impl-serde = { workspace = true }
 libsecp256k1 = { workspace = true }
 scale-info = { workspace = true , features = ["derive"] }
 serde = { workspace = true , features = ["derive"] }
+serde_json = { workspace = true }
 parity-scale-codec = { workspace = true , features = ["derive", "max-encoded-len", "full", "bit-vec"] }

@@ -40,6 +40,8 @@ mod balance_transfer {
 	use super::*;
 	use subxt::blocks::ExtrinsicDetails;
 
+	pub const EXPECTED_TPB: u64 = 3490;
+
 	pub fn tx_generator<'a>(
 		client: &'a OnlineClient<MythicalConfig>,
 		senders: impl Iterator<Item = &'a ecdsa::Pair> + 'a,
@@ -81,6 +83,8 @@ mod nft_mint {
 	use super::*;
 	use std::sync::atomic::{AtomicU64, Ordering::SeqCst};
 	use subxt::blocks::ExtrinsicDetails;
+
+	pub const EXPECTED_TPB: u64 = 2870;
 
 	pub fn tx_generator<'a>(
 		client: &'a OnlineClient<MythicalConfig>,
@@ -136,6 +140,8 @@ mod nft_transfer {
 	use std::sync::atomic::{AtomicU64, Ordering::SeqCst};
 	use subxt::blocks::ExtrinsicDetails;
 
+	pub const EXPECTED_TPB: u64 = 2820;
+
 	pub fn tx_generator<'a>(
 		client: &'a OnlineClient<MythicalConfig>,
 		senders: impl Iterator<Item = &'a ecdsa::Pair> + 'a,
@@ -185,6 +191,8 @@ mod marketplace_order_bid {
 	use sp_core::U256;
 	use std::sync::atomic::{AtomicU64, Ordering::SeqCst};
 	use subxt::blocks::ExtrinsicDetails;
+
+	pub const EXPECTED_TPB: u64 = 1570;
 
 	pub fn tx_generator<'a>(
 		client: &'a OnlineClient<MythicalConfig>,
@@ -378,7 +386,7 @@ async fn get_nfts(
 async fn block_subscriber(
 	api: OnlineClient<MythicalConfig>,
 	ntrans: usize,
-) -> Result<(), subxt::Error> {
+) -> Result<String, subxt::Error> {
 	let mut blocks_sub = api.blocks().subscribe_finalized().await?;
 
 	let mut total_ntrans = 0;
@@ -425,10 +433,12 @@ async fn block_subscriber(
 
 		if total_ntrans >= ntrans {
 			log::info!("{:?}", counters);
-			break;
+			let json_counters =
+				serde_json::to_string(&counters).expect("Failed to serialize counters to JSON");
+			return Ok(json_counters);
 		}
 	}
-	Ok(())
+	Err(subxt::Error::Other("Finalized block subscriber exited unexpectedly".to_string()))
 }
 
 #[tokio::main]
@@ -647,16 +657,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let fapi = client.clone();
 	let ntrans = txgroups.iter().map(|tx| tx.len()).sum::<usize>();
 	log::info!("Got {} transactions", ntrans);
-	let subscriber = tokio::spawn(async move {
-		match block_subscriber(fapi, ntrans).await {
-			Ok(()) => {
-				log::info!("Block subscriber exited");
-			},
-			Err(e) => {
-				log::error!("Block subscriber exited with error: {:?}", e);
-			},
-		}
-	});
+	let subscriber = tokio::spawn(async move { block_subscriber(fapi, ntrans).await });
 
 	let mut submitted: Vec<_> = Vec::new();
 	for txgroup in txgroups.into_iter() {
@@ -684,8 +685,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
 		.expect("All the transactions finalized successfully");
 	log::info!("Finalized {} transactions", res.len());
 
-	tokio::try_join!(subscriber).expect("Block subscriber joins successfully");
+	let res = tokio::try_join!(subscriber).expect("Block subscriber joins successfully");
+	let json_counters = res.0.expect("Block subscriber returns counters");
+	let counters = serde_json::from_str::<HashMap<String, HashMap<u64, u64>>>(&json_counters)
+		.expect("Failed to deserialize counters");
 	log::info!("Test finished");
+
+	assert!(
+		counters["balance_transfer"].values().copied().max().unwrap()
+			>= balance_transfer::EXPECTED_TPB
+	);
+	assert!(counters["nft_mint"].values().copied().max().unwrap() >= nft_mint::EXPECTED_TPB);
+	assert!(
+		counters["nft_transfer"].values().copied().max().unwrap() >= nft_transfer::EXPECTED_TPB
+	);
+	assert!(
+		counters["marketplace_order_bid"].values().copied().max().unwrap()
+			>= marketplace_order_bid::EXPECTED_TPB
+	);
 
 	Ok(())
 }
