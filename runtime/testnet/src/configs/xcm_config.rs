@@ -27,10 +27,10 @@ use xcm_executor::XcmExecutor;
 use xcm_primitives::{BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
-	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
-	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	TransactionByteFee, WeightToFee, XcmpQueue,
+	AccountId, Balances, BaseDeliveryFee, FeeAssetId, ParachainSystem, PolkadotXcm, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, TransactionByteFee, WeightToFee, XcmpQueue,
 };
+use crate::{AllPalletsWithSystem, ParachainInfo};
 
 /// Parachain ID of AssetHub, as defined here:
 /// https://github.com/paseo-network/runtimes/blob/946eb86ca08703c8798f04fc898157af933cf403/relay/paseo/constants/src/lib.rs#L127

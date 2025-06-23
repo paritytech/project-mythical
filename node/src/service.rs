@@ -51,7 +51,7 @@ impl NativeExecutionDispatch for TestnetRuntimeExecutor {
 	);
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		testnet_runtime::api::dispatch(method, data)
+		testnet_runtime::apis::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
