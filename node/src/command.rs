@@ -181,9 +181,9 @@ macro_rules! construct_async_run {
 			}
 			Runtime::Mainnet => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<mainnet_runtime::RuntimeApi, _>(
+					let $components = new_partial::<mainnet_runtime::apis::RuntimeApi, _>(
 						&$config,
-						crate::service::build_import_queue::<mainnet_runtime::RuntimeApi>,
+						crate::service::build_import_queue::<mainnet_runtime::apis::RuntimeApi>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -204,7 +204,7 @@ macro_rules! construct_benchmark_partials {
 				$code
 			},
 			Runtime::Mainnet => {
-				let $partials = new_partial::<mainnet_runtime::RuntimeApi, _>(
+				let $partials = new_partial::<mainnet_runtime::apis::RuntimeApi, _>(
 					&$config,
 					crate::service::build_import_queue::<_>,
 				)?;
@@ -385,10 +385,10 @@ pub fn run() -> Result<()> {
 					},
 					Runtime::Mainnet => {
 						sp_core::crypto::set_default_ss58_version(
-							mainnet_runtime::SS58Prefix::get().into(),
+							mainnet_runtime::configs::SS58Prefix::get().into(),
 						);
 						crate::service::start_parachain_node::<
-							mainnet_runtime::RuntimeApi,
+							mainnet_runtime::apis::RuntimeApi,
 							MainnetRuntimeExecutor,
 							sc_network::NetworkWorker<_, _>
 						>(config, polkadot_config, collator_options, id, hwbench, cli.run.experimental_max_pov_percentage)

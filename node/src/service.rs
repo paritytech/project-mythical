@@ -70,7 +70,7 @@ impl NativeExecutionDispatch for MainnetRuntimeExecutor {
 	);
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		mainnet_runtime::api::dispatch(method, data)
+		mainnet_runtime::apis::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
