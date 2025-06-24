@@ -30,7 +30,7 @@ fn call_transfer(dest: u64, value: u64) -> RuntimeCall {
 }
 
 fn make_free_balance_be(account: &u64, balance: u64) {
-	assert_ok!(<Test as pallet::Config>::Currency::mint_into(&account, balance));
+	assert_ok!(<Test as pallet::Config>::Currency::mint_into(account, balance));
 }
 
 mod proxy {
@@ -79,7 +79,7 @@ mod proxy {
 				None,
 			));
 
-			assert_eq!(Balances::reserved_balance(&delegator), 1);
+			assert_eq!(Balances::reserved_balance(delegator), 1);
 		});
 	}
 
@@ -123,11 +123,11 @@ mod proxy {
 				None,
 			));
 
-			assert_eq!(Balances::reserved_balance(&delegator), 1);
+			assert_eq!(Balances::reserved_balance(delegator), 1);
 
 			assert_ok!(Proxy::remove_proxy(RuntimeOrigin::signed(delegator), delegate,));
 
-			assert_eq!(Balances::reserved_balance(&delegator), 0);
+			assert_eq!(Balances::reserved_balance(delegator), 0);
 		});
 	}
 
@@ -158,7 +158,7 @@ mod proxy {
 
 				System::assert_last_event(Event::ProxyExecuted { delegator, delegate }.into());
 
-				assert_eq!(Balances::free_balance(&third_party), 1);
+				assert_eq!(Balances::free_balance(third_party), 1);
 			});
 		}
 
@@ -363,7 +363,7 @@ mod proxy {
 					Some(sponsor),
 				));
 
-				assert_eq!(Balances::reserved_balance(&sponsor), 1);
+				assert_eq!(Balances::reserved_balance(sponsor), 1);
 			});
 		}
 
@@ -624,11 +624,11 @@ mod proxy {
 					Some(sponsor),
 				));
 
-				assert_eq!(Balances::reserved_balance(&sponsor), 1);
+				assert_eq!(Balances::reserved_balance(sponsor), 1);
 
 				assert_ok!(Proxy::remove_proxy(RuntimeOrigin::signed(delegator), delegate,));
 
-				assert_eq!(Balances::reserved_balance(&sponsor), 0);
+				assert_eq!(Balances::reserved_balance(sponsor), 0);
 			});
 		}
 
@@ -660,7 +660,7 @@ mod proxy {
 					Some(sponsor),
 				));
 
-				assert_eq!(Balances::reserved_balance(&sponsor), 1);
+				assert_eq!(Balances::reserved_balance(sponsor), 1);
 
 				assert_ok!(Proxy::remove_sponsored_proxy(
 					RuntimeOrigin::signed(sponsor),
@@ -668,7 +668,7 @@ mod proxy {
 					delegate,
 				));
 
-				assert_eq!(Balances::reserved_balance(&sponsor), 0);
+				assert_eq!(Balances::reserved_balance(sponsor), 0);
 
 				System::assert_last_event(
 					Event::ProxyRemoved { delegator, delegate, removed_by_sponsor: Some(sponsor) }

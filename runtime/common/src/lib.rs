@@ -60,7 +60,7 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(100);
 
 /// Max block weight configuration, max allowed pov size is 10 MiB on all relay-chains.
 pub const MAXIMUM_BLOCK_WEIGHT: Weight =
-	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), 10 * 1024 * 1024 as u64);
+	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), 10 * 1024 * 1024_u64);
 
 #[derive(
 	Clone,

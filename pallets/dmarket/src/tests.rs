@@ -107,7 +107,7 @@ mod execute_trade {
 		item_owner: &AccountIdOf<Test>,
 		item: u128,
 	) -> CollectionId<Test> {
-		let collection_id = create_collection(&sender);
+		let collection_id = create_collection(sender);
 		assert_ok!(Dmarket::force_set_collection(RuntimeOrigin::root(), collection_id));
 
 		assert_ok!(Nfts::mint(RuntimeOrigin::signed(*sender), 0, Some(item), *item_owner, None));
@@ -188,7 +188,7 @@ mod execute_trade {
 			let (sender, fee_address, seller_pair, buyer_pair) = get_trade_accounts();
 
 			let seller: AccountId20 = EthereumSigner::from(seller_pair.public()).into_account();
-			let buyer: AccountId20 = seller.clone();
+			let buyer: AccountId20 = seller;
 
 			let item = 1;
 			let _ = setup_nft(&sender, &seller, item);

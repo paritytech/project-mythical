@@ -16,11 +16,6 @@ mod benchmarks;
 
 use cumulus_primitives_core::AssetId;
 
-#[cfg(feature = "runtime-benchmarks")]
-use pallet_treasury::ArgumentsFactory;
-#[cfg(feature = "runtime-benchmarks")]
-use sp_core::crypto::FromEntropy;
-
 use alloc::vec::Vec;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
