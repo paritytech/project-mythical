@@ -27,30 +27,32 @@ use xcm_executor::XcmExecutor;
 use xcm_primitives::{BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
-	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
-	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	TransactionByteFee, WeightToFee, XcmpQueue,
+	AccountId, Balances, BaseDeliveryFee, FeeAssetId, ParachainSystem, PolkadotXcm, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, TransactionByteFee, WeightToFee, XcmpQueue,
 };
+use crate::{AllPalletsWithSystem, ParachainInfo};
 
 /// Parachain ID of AssetHub, as defined here:
-/// https://github.com/polkadot-fellows/runtimes/blob/31ba26287ec752574244f0d690167f7ae8430c8b/relay/polkadot/constants/src/lib.rs#L127
+/// https://github.com/paseo-network/runtimes/blob/946eb86ca08703c8798f04fc898157af933cf403/relay/paseo/constants/src/lib.rs#L127
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
 /// Parachain ID of Hydration on Polkadot, formerly known as HydraDX
 const HYDRATION_PARA_ID: u32 = 2034;
 
 parameter_types! {
+	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(hex!("77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"));
+}
+
+parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub const SelfReserve: Location = Location::here();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 	pub EthereumCurrencyLocation: Location = Location::new(2,
 		[
-			GlobalConsensus(NetworkId::Ethereum { chain_id: 1 }), // mainnet
-			// MYTHOS ERC20
-			AccountKey20 { network: None, key: hex!("BA41Ddf06B7fFD89D1267b5A93BFeF2424eb2003") }
+			GlobalConsensus(NetworkId::Ethereum { chain_id: 11155111 }), // sepolia
+			AccountKey20 { network: None, key: hex!("B34a6924a02100BA6EF12AF1C798285E8f7A16Ee") }
 		]);
 	pub TreasuryPot: AccountId = crate::Treasury::account_id();
 	// Arbitrary value to allow to test reserve transfers, only for testing.
@@ -81,7 +83,7 @@ pub type LocalAssetTransactor = FungibleAdapter<
 	(),
 >;
 
-/// Means for transacting the native currency on this chain with an Ethereum token on mainnet
+/// Means for transacting the native currency on this chain with an Ethereum token on sepolia
 pub type BridgedLocalAssetTransactor = FungibleAdapter<
 	// Use this currency:
 	Balances,
@@ -116,6 +118,10 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognized.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
+	// Native signed account converter; this just converts an `AccountId32` origin into a normal
+	// `RuntimeOrigin::Signed` origin of the same 32-byte value.
+	//TODO: Commented out until check how it should look for AccountId20
+	// SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
 );

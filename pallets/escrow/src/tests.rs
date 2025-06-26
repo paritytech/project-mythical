@@ -40,8 +40,8 @@ mod escrow {
 					escrow_agent
 				));
 
-				assert_eq!(Balances::free_balance(&account_id), 100);
-				assert_eq!(Balances::reserved_balance(&account_id), 100);
+				assert_eq!(Balances::free_balance(account_id), 100);
+				assert_eq!(Balances::reserved_balance(account_id), 100);
 			});
 		}
 
@@ -62,7 +62,7 @@ mod escrow {
 					escrow_agent
 				));
 
-				assert_eq!(Balances::free_balance(&depositor), 900);
+				assert_eq!(Balances::free_balance(depositor), 900);
 			});
 		}
 
@@ -178,7 +178,7 @@ mod escrow {
 
 				assert_ok!(Escrow::release(RuntimeOrigin::signed(escrow_agent), account_id, 100,));
 
-				assert_eq!(Balances::free_balance(&account_id), 200);
+				assert_eq!(Balances::free_balance(account_id), 200);
 			});
 		}
 
@@ -283,8 +283,8 @@ mod escrow {
 					vec![],
 				));
 
-				assert_eq!(Balances::free_balance(&account_id), 100);
-				assert_eq!(Balances::free_balance(&depositor), 1000);
+				assert_eq!(Balances::free_balance(account_id), 100);
+				assert_eq!(Balances::free_balance(depositor), 1000);
 				assert_eq!(total_deposited::<Test>(&account_id), 0);
 			});
 		}
@@ -385,7 +385,7 @@ mod escrow {
 					100,
 				));
 
-				assert_eq!(Balances::free_balance(&account_id), 200);
+				assert_eq!(Balances::free_balance(account_id), 200);
 			});
 		}
 	}

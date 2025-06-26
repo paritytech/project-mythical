@@ -63,7 +63,7 @@ mod balance_transfer {
 			);
 			client
 				.tx()
-				.create_partial_offline(&tx_call, tx_params.into())
+				.create_partial_offline(&tx_call, tx_params)
 				.unwrap()
 				.sign(&EthereumSigner::from(sender))
 		})
@@ -72,10 +72,10 @@ mod balance_transfer {
 	pub fn check_extrinsic(
 		ex: &ExtrinsicDetails<MythicalConfig, OnlineClient<MythicalConfig>>,
 	) -> bool {
-		match (ex.pallet_name().unwrap(), ex.variant_name().unwrap()) {
-			("Balances", "transfer_keep_alive") => true,
-			_ => false,
-		}
+		matches!(
+			(ex.pallet_name().unwrap(), ex.variant_name().unwrap()),
+			("Balances", "transfer_keep_alive")
+		)
 	}
 }
 
@@ -105,21 +105,20 @@ mod nft_mint {
 				"mint",
 				vec![
 					TxValue::unnamed_composite(
-						collections
+						(*collections
 							.get(&AccountId20::from(sender.clone()))
-							.expect("Collections are known")
-							.clone()
-							.into_iter()
-							.map(Into::into),
+							.expect("Collections are known"))
+						.into_iter()
+						.map(Into::into),
 					),
 					TxValue::unnamed_variant("None", vec![]),
-					TxValue::from_bytes(&EthereumSigner::from(sender.clone()).into_account().0),
+					TxValue::from_bytes(EthereumSigner::from(sender.clone()).into_account().0),
 					TxValue::unnamed_variant("None", vec![]),
 				],
 			);
 			client
 				.tx()
-				.create_partial_offline(&tx_call, tx_params.into())
+				.create_partial_offline(&tx_call, tx_params)
 				.unwrap()
 				.sign(&EthereumSigner::from(sender))
 		})
@@ -128,10 +127,7 @@ mod nft_mint {
 	pub fn check_extrinsic(
 		ex: &ExtrinsicDetails<MythicalConfig, OnlineClient<MythicalConfig>>,
 	) -> bool {
-		match (ex.pallet_name().unwrap(), ex.variant_name().unwrap()) {
-			("Nfts", "mint") => true,
-			_ => false,
-		}
+		matches!((ex.pallet_name().unwrap(), ex.variant_name().unwrap()), ("Nfts", "mint"))
 	}
 }
 
@@ -162,14 +158,14 @@ mod nft_transfer {
 				"Nfts",
 				"transfer",
 				vec![
-					TxValue::unnamed_composite(coll.clone().into_iter().map(Into::into)),
+					TxValue::unnamed_composite(coll.into_iter().map(Into::into)),
 					TxValue::u128(nft_id),
-					TxValue::from_bytes(&EthereumSigner::from(receiver).into_account().0),
+					TxValue::from_bytes(EthereumSigner::from(receiver).into_account().0),
 				],
 			);
 			client
 				.tx()
-				.create_partial_offline(&tx_call, tx_params.into())
+				.create_partial_offline(&tx_call, tx_params)
 				.unwrap()
 				.sign(&EthereumSigner::from(sender))
 		})
@@ -178,10 +174,7 @@ mod nft_transfer {
 	pub fn check_extrinsic(
 		ex: &ExtrinsicDetails<MythicalConfig, OnlineClient<MythicalConfig>>,
 	) -> bool {
-		match (ex.pallet_name().unwrap(), ex.variant_name().unwrap()) {
-			("Nfts", "transfer") => true,
-			_ => false,
-		}
+		matches!((ex.pallet_name().unwrap(), ex.variant_name().unwrap()), ("Nfts", "transfer"))
 	}
 }
 
@@ -250,9 +243,7 @@ mod marketplace_order_bid {
 							("order_type", TxValue::unnamed_variant("Bid", vec![])),
 							(
 								"collection",
-								TxValue::unnamed_composite(
-									nft.0.clone().into_iter().map(Into::into),
-								),
+								TxValue::unnamed_composite(nft.0.into_iter().map(Into::into)),
 							),
 							("item", TxValue::u128(nft.1)),
 							("price", TxValue::u128(1u128)),
@@ -262,7 +253,7 @@ mod marketplace_order_bid {
 							(
 								"signature_data",
 								TxValue::named_composite(vec![
-									("signature", TxValue::from_bytes(&signature)),
+									("signature", TxValue::from_bytes(signature)),
 									("nonce", TxValue::from_bytes(Vec::from(order_nonce))),
 								]),
 							),
@@ -273,7 +264,7 @@ mod marketplace_order_bid {
 			);
 			client
 				.tx()
-				.create_partial_offline(&tx_call, tx_params.into())
+				.create_partial_offline(&tx_call, tx_params)
 				.unwrap()
 				.sign(&EthereumSigner::from(receiver))
 		})
@@ -520,7 +511,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	log::info!("Block production detected");
 
-	let node_url = reqwest::Url::parse(&node.ws_uri())?;
+	let node_url = reqwest::Url::parse(node.ws_uri())?;
 	log::info!("Node URL: {}", node_url);
 	let (node_sender, node_receiver) = {
 		let mut last_error = None;
