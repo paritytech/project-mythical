@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("./asset-hub-polkadot-chain-spec.json")`, DB CACHE: 1024
 
 // This file has been taken from Asset Hub mainnet runtime and not modified.
-// We expect the XCM pallet to have similar weights for the Mythos runtime as well. 
+// We expect the XCM pallet to have similar weights for the Mythos runtime as well.
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -404,5 +404,9 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 		Weight::from_parts(21_481_000, 4002)
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
+	}
+
+	fn weigh_message() -> Weight {
+		Weight::zero()
 	}
 }

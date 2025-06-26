@@ -60,8 +60,6 @@ pub mod pallet {
 	pub trait Config:
 		frame_system::Config + pallet_nfts::Config + pallet_timestamp::Config
 	{
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		type RuntimeCall: Parameter
 			+ UnfilteredDispatchable<RuntimeOrigin = Self::RuntimeOrigin>
 			+ GetDispatchInfo;

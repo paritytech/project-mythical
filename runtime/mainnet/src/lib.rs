@@ -433,7 +433,6 @@ parameter_types! {
 }
 
 impl pallet_multibatching::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Signature = Signature;
 	type Signer = <Signature as Verify>::Signer;
@@ -494,6 +493,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ();
 }
 
 type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
@@ -592,6 +592,8 @@ impl pallet_session::Config for Runtime {
 	type Keys = SessionKeys;
 	type DisablingStrategy = pallet_session::disabling::UpToLimitWithReEnablingDisablingStrategy;
 	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
+	type Currency = Balances;
+	type KeyDeposit = ();
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -715,7 +717,6 @@ parameter_types! {
 pub type CollectionId = IncrementableU256;
 
 impl pallet_nfts::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = CollectionId;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
@@ -755,7 +756,6 @@ impl pallet_marketplace::Escrow<AccountId, Balance, AccountId> for EscrowImpl {
 	}
 }
 impl pallet_marketplace::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type Escrow = EscrowImpl;
@@ -770,7 +770,6 @@ impl pallet_marketplace::Config for Runtime {
 }
 
 impl pallet_escrow::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Balance = Balance;
 	type MinDeposit = ExistentialDeposit;
@@ -779,7 +778,6 @@ impl pallet_escrow::Config for Runtime {
 }
 
 impl pallet_dmarket::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type Signature = Signature;
@@ -791,7 +789,6 @@ impl pallet_dmarket::Config for Runtime {
 }
 
 impl pallet_myth_proxy::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type ProxyType = ProxyType;
 	type MaxProxies = MaxProxies;
@@ -1083,6 +1080,29 @@ parameter_types! {
 	pub const MaxRegistrars: u32 = 20;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub struct IdentityBenchmarkHelper;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_identity::BenchmarkHelper<<Signature as Verify>::Signer, Signature>
+	for IdentityBenchmarkHelper
+{
+	fn sign_message(message: &[u8]) -> (<Signature as Verify>::Signer, Signature) {
+		use sp_runtime::traits::IdentifyAccount;
+
+		let public = sp_io::crypto::ecdsa_generate(0.into(), None);
+		let signature = account::EthereumSignature::from(
+			sp_io::crypto::ecdsa_sign_prehashed(
+				0.into(),
+				&public.into_account().try_into().unwrap(),
+				&sp_io::hashing::keccak_256(message),
+			)
+			.unwrap(),
+		);
+		(public.into(), signature)
+	}
+}
+
 impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -1104,6 +1124,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxSuffixLength = ConstU32<7>;
 	type MaxUsernameLength = ConstU32<32>;
 	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = IdentityBenchmarkHelper;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -1195,7 +1217,7 @@ mod benches {
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
 		// TODO: include once https://github.com/paritytech/polkadot-sdk/pull/8179 gets released
-		// [pallet_identity, Identity]
+		[pallet_identity, Identity]
 	);
 }
 

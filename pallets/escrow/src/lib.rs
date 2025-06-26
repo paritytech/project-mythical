@@ -44,8 +44,6 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_balances::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		type Currency: Inspect<Self::AccountId, Balance = <Self as Config>::Balance>
 			+ Mutate<Self::AccountId>
 			+ MutateHold<Self::AccountId, Reason = <Self as pallet::Config>::RuntimeHoldReason>;
