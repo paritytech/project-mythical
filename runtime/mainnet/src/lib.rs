@@ -594,6 +594,12 @@ impl pallet_session::Config for Runtime {
 	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
 }
 
+impl pallet_sudo::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type WeightInfo = weights::pallet_sudo::WeightInfo<Runtime>;
+}
+
 parameter_types! {
 	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
 	pub const DepositBase: Balance = deposit(1, 88);
@@ -1112,7 +1118,7 @@ construct_runtime!(
 		Multibatching: pallet_multibatching = 14,
 
 		// Governance
-		// pallet-sudo was 15
+		Sudo: pallet_sudo = 15,
 		Council: pallet_collective::<Instance1> = 16,
 		Democracy: pallet_democracy = 17,
 		Treasury: pallet_treasury = 18,
@@ -1166,6 +1172,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_scheduler, Scheduler]
+		[pallet_sudo, Sudo]
 		[pallet_timestamp, Timestamp]
 		[pallet_treasury, Treasury]
 		[pallet_vesting, Vesting]
@@ -1194,6 +1201,7 @@ pub mod genesis_config_presets {
 		invulnerables: Vec<(AccountId, AuraId)>,
 		endowed_accounts: Vec<(AccountId, Balance)>,
 		council: Vec<AccountId>,
+		root_key: AccountId,
 		id: ParaId,
 	) -> Value {
 		build_struct_json_patch!(RuntimeGenesisConfig {
@@ -1224,6 +1232,7 @@ pub mod genesis_config_presets {
 					})
 					.collect::<Vec<_>>(),
 			},
+			sudo: SudoConfig { key: Some(root_key) },
 			polkadot_xcm: PolkadotXcmConfig { safe_xcm_version: Some(SAFE_XCM_VERSION) },
 		})
 	}
@@ -1274,6 +1283,7 @@ pub mod genesis_config_presets {
 						AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
 						AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
 					],
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 					PARA_ID.into(),
 				)
 			},
@@ -1311,6 +1321,7 @@ pub mod genesis_config_presets {
 					),
 				],
 				vec![],
+				AccountId::from(hex!("742c722892976C23A3919ADC7A4B562169B91E41")),
 				PARA_ID.into(),
 			),
 			_ => return None,
