@@ -6,7 +6,6 @@ use frame_support::{
 	parameter_types,
 	traits::{tokens::imbalance::ResolveTo, ConstU32, Everything, Nothing},
 };
-use frame_system::EnsureRoot;
 use hex_literal::hex;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::ParentRelayOrSiblingParachains;
@@ -28,8 +27,8 @@ use xcm_primitives::{BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
-	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	TransactionByteFee, WeightToFee, XcmpQueue,
+	ParachainSystem, PolkadotXcm, RootOrSpecialCommitteeSimpleMajority, Runtime, RuntimeCall,
+	RuntimeEvent, RuntimeOrigin, TransactionByteFee, WeightToFee, XcmpQueue,
 };
 
 /// Parachain ID of AssetHub, as defined here:
@@ -286,7 +285,7 @@ impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// We disallow users to send arbitrary XCMs from this chain. Root can send.
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, ()>;
-	type AdminOrigin = EnsureRoot<AccountId>;
+	type AdminOrigin = RootOrSpecialCommitteeSimpleMajority;
 	type XcmRouter = XcmRouter;
 	// We must allow execution for running XCM programs to integrate with other chains.
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
