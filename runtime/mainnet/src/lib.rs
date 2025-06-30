@@ -686,23 +686,6 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type Consideration = ();
 }
 
-type TechnicalCommitteeInstance = pallet_collective::Instance2;
-impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type Proposal = RuntimeCall;
-	type RuntimeEvent = RuntimeEvent;
-	type MotionDuration = CouncilMotionDuration;
-	type MaxProposals = CouncilMaxProposals;
-	type MaxMembers = CouncilMaxMembers;
-	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
-	type SetMembersOrigin = RootOrCouncilTwoThirds;
-	type MaxProposalWeight = MaxCollectivesProposalWeight;
-	type DisapproveOrigin = RootOrCouncilTwoThirds;
-	type KillOrigin = RootOrCouncilTwoThirds;
-	type Consideration = ();
-}
-
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
 	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
@@ -1133,7 +1116,6 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1> = 16,
 		Democracy: pallet_democracy = 17,
 		Treasury: pallet_treasury = 18,
-		TechnicalCommittee: pallet_collective::<Instance2> = 19,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
@@ -1171,7 +1153,6 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_collective::<Instance1>, Council]
-		[pallet_collective::<Instance2>, TechnicalCommittee]
 		[pallet_democracy, Democracy]
 		[pallet_dmarket, Dmarket]
 		[pallet_escrow, Escrow]
