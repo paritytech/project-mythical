@@ -1232,6 +1232,7 @@ pub mod genesis_config_presets {
 		invulnerables: Vec<(AccountId, AuraId)>,
 		endowed_accounts: Vec<(AccountId, Balance)>,
 		council: Vec<AccountId>,
+		technical_committee: Vec<AccountId>,
 		root_key: AccountId,
 		id: ParaId,
 	) -> Value {
@@ -1251,6 +1252,7 @@ pub mod genesis_config_presets {
 				extra_reward: 0,
 			},
 			council: CouncilConfig { members: council },
+			technical_committee: TechnicalCommitteeConfig { members: technical_committee },
 			session: SessionConfig {
 				keys: invulnerables
 					.into_iter()
@@ -1310,11 +1312,16 @@ pub mod genesis_config_presets {
 						), // Faith
 					],
 					vec![
+						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
 						AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-						AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
 					],
-					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					vec![
+						AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
+						AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
+						AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
+					],
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
 					PARA_ID.into(),
 				)
 			},
@@ -1351,6 +1358,7 @@ pub mod genesis_config_presets {
 						150_000_000 * MYTH,
 					),
 				],
+				vec![],
 				vec![],
 				AccountId::from(hex!("742c722892976C23A3919ADC7A4B562169B91E41")),
 				PARA_ID.into(),
