@@ -1,0 +1,2 @@
+[registries]
+crates-io-2 = { index = "sparse+https://index.crates.io/" }
