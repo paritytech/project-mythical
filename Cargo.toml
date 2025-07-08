@@ -186,3 +186,31 @@ subxt-signer = { version = "0.41.0", features = ["unstable-eth"] }
 reqwest = { version = "0.11" }
 jsonrpsee-client-transport = { version = "0.24.8", features = [ "ws" ] }
 jsonrpsee-core = { version = "0.24.8", features = [ "async-client" ] }
+
+[patch."https://github.com/paritytech/polkadot-sdk"]
+sc-proposer-metrics = { git = "https://github.com/MythicalGames/polkadot-sdk", branch = "mythical/proposer-block-fill-histogram" }
+sc-basic-authorship = { git = "https://github.com/MythicalGames/polkadot-sdk", branch = "mythical/proposer-block-fill-histogram" }
+
+[patch."https://github.com/MythicalGames/polkadot-sdk"]
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-externalities = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-runtime-interface = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-consensus = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-inherents = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-state-machine = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-api = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-trie = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-arithmetic = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-block-builder = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-crypto-hashing = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sp-database = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sc-transaction-pool-api = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sc-block-builder = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sc-telemetry = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+sc-utils = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+substrate-prometheus-endpoint = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503-5" }
+
+[patch.crates-io]
+base64ct = { version = "=1.7.3", registry = "crates-io-2" }
