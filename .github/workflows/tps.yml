@@ -12,12 +12,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Node
-        run: cargo build --profile=production --all
+        run: cargo build --profile=release --all
 
       - name: Save parachain binary
         run: |
           mkdir -p bins
-          cp target/production/mythos-node bins/mythos-node
+          cp target/release/mythos-node bins/mythos-node
 
       - name: Polkadot binaries
         run: |
