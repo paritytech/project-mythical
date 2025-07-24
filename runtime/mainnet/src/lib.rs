@@ -696,7 +696,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_collective_council::WeightInfo<Runtime>;
 	type SetMembersOrigin = RootOrCouncilThreeFourths;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 	type DisapproveOrigin = RootOrCouncilSimpleMajority;
@@ -713,7 +713,7 @@ impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_collective_technical_committee::WeightInfo<Runtime>;
 	type SetMembersOrigin = RootOrCouncilThreeFourths;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 	type DisapproveOrigin = RootOrCouncilSimpleMajority;
@@ -1188,8 +1188,8 @@ mod benches {
 		[pallet_marketplace, Marketplace]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
-		[pallet_collective::<Instance1>, Council]
-		[pallet_collective::<Instance2>, TechnicalCommittee]
+		[pallet_collective_council, Council]
+		[pallet_collective_technical_committee, TechnicalCommittee]
 		[pallet_democracy, Democracy]
 		[pallet_dmarket, Dmarket]
 		[pallet_escrow, Escrow]
