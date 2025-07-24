@@ -934,7 +934,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_collective_council::WeightInfo<Runtime>;
 	type SetMembersOrigin = RootOrCouncilThreeFourths;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 	type DisapproveOrigin = RootOrCouncilSimpleMajority;
@@ -951,7 +951,7 @@ impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_collective_technical_committee::WeightInfo<Runtime>;
 	type SetMembersOrigin = RootOrCouncilThreeFourths;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
 	type DisapproveOrigin = RootOrCouncilSimpleMajority;
