@@ -1,5 +1,5 @@
-use frame_support::{weights::Weight};
 use core::marker::PhantomData;
+use frame_support::weights::Weight;
 
 pub trait WeightInfo {
 	fn transfer_through_delayed_remint() -> Weight;

@@ -21,11 +21,11 @@ use frame_support::{
 	pallet_prelude::*,
 	traits::{
 		fungible::{Inspect, Mutate},
-		tokens::{Balance, Precision, Preservation, Fortitude},
+		tokens::{Balance, Fortitude, Precision, Preservation},
 	},
 };
-use frame_system::pallet_prelude::{*, BlockNumberFor as SystemBlockNumberFor};
-use sp_runtime::traits::{Saturating, BlockNumberProvider};
+use frame_system::pallet_prelude::{BlockNumberFor as SystemBlockNumberFor, *};
+use sp_runtime::traits::{BlockNumberProvider, Saturating};
 use sp_std::prelude::*;
 
 pub type BalanceOf<T> =
@@ -38,10 +38,8 @@ pub struct ScheduledTransfer<AccountId, Balance> {
 	amount: Balance,
 }
 
-pub type ScheduledTransferOf<T> = ScheduledTransfer<
-	<T as frame_system::Config>::AccountId,
-	<T as Config>::Balance,
->;
+pub type ScheduledTransferOf<T> =
+	ScheduledTransfer<<T as frame_system::Config>::AccountId, <T as Config>::Balance>;
 
 pub type BlockNumberFor<T> =
 	<<T as Config>::BlockNumberProvider as BlockNumberProvider>::BlockNumber;
@@ -71,17 +69,12 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		Scheduled,
-		Executed{ scheduled_in: BlockNumberFor<T> },
+		Executed { scheduled_in: BlockNumberFor<T> },
 	}
 
 	#[pallet::storage]
-	pub type ScheduledTransfers<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		BlockNumberFor<T>,
-		ScheduledTransferOf<T>,
-		OptionQuery,
-	>;
+	pub type ScheduledTransfers<T: Config> =
+		StorageMap<_, Twox64Concat, BlockNumberFor<T>, ScheduledTransferOf<T>, OptionQuery>;
 
 	#[pallet::error]
 	pub enum Error<T> {
@@ -118,7 +111,8 @@ pub mod pallet {
 			let from = ensure_signed(origin.clone())?;
 
 			ensure!(
-				T::Currency::balance(&from).saturating_sub(amount) >= T::Currency::minimum_balance(),
+				T::Currency::balance(&from).saturating_sub(amount)
+					>= T::Currency::minimum_balance(),
 				<Error<T>>::SourceBalanceTooLow,
 			);
 
@@ -134,10 +128,7 @@ pub mod pallet {
 				<Error<T>>::CouldNotSchedule,
 			);
 
-			<ScheduledTransfers<T>>::insert(
-				current_block,
-				ScheduledTransfer{ from, to, amount },
-			);
+			<ScheduledTransfers<T>>::insert(current_block, ScheduledTransfer { from, to, amount });
 
 			Self::deposit_event(Event::Scheduled);
 
@@ -152,7 +143,11 @@ pub mod pallet {
 				<ScheduledTransfers<T>>::remove(key);
 
 				let _ = T::Currency::burn_from(
-					&tf.from, tf.amount, Preservation::Preserve, Precision::Exact, Fortitude::Polite
+					&tf.from,
+					tf.amount,
+					Preservation::Preserve,
+					Precision::Exact,
+					Fortitude::Polite,
 				);
 				let _ = T::Currency::mint_into(&tf.to, tf.amount);
 			}
@@ -161,4 +156,3 @@ pub mod pallet {
 		}
 	}
 }
-
