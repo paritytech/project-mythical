@@ -8538,6 +8538,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-testing-utilities"
+version = "0.1.0"
+dependencies = [
+ "account",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io 40.0.1",
+ "sp-runtime 41.1.0",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-stable2503-5)",
+]
+
+[[package]]
 name = "pallet-timestamp"
 version = "39.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?tag=polkadot-stable2503-5#f4dba53bfac614b054735aa725d2b0c44efda414"
@@ -16007,6 +16023,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
+ "pallet-testing-utilities",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
