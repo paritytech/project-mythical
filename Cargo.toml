@@ -65,6 +65,7 @@ runtime-common = { path = "runtime/common", default-features = false }
 pallet-escrow = { path = "pallets/escrow", default-features = false }
 pallet-nfts = { path = "pallets/nfts", default-features = false }
 pallet-myth-proxy = { path = "pallets/myth-proxy", default-features = false }
+pallet-testing-utilities = { path = "pallets/testing-utilities", default-features = false }
 
 # External pallets
 pallet-collator-staking = { git = "https://github.com/blockdeep/pallet-collator-staking.git", tag = "v1.3.1", default-features = false }

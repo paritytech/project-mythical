@@ -1133,6 +1133,14 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = weights::pallet_identity::WeightInfo<Runtime>;
 }
 
+impl pallet_testing_utilities::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = Balance;
+	type BlockNumberProvider = System;
+	type WeightInfo = pallet_testing_utilities::SubstrateWeight<Runtime>; // TODO
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1186,6 +1194,8 @@ construct_runtime!(
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
 		Dmarket: pallet_dmarket = 52,
+
+		TestingUtilities: pallet_testing_utilities = 53,
 	}
 );
 
