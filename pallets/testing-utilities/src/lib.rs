@@ -17,6 +17,7 @@ pub use weights::*;
 
 pub use pallet::*;
 
+use parity_scale_codec as codec;
 use frame_support::{
 	pallet_prelude::*,
 	traits::{
@@ -48,6 +49,8 @@ pub type BlockNumberFor<T> =
 pub mod pallet {
 	use super::*;
 
+	use codec::HasCompact;
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -58,7 +61,8 @@ pub mod pallet {
 		type Currency: Inspect<Self::AccountId, Balance = <Self as Config>::Balance>
 			+ Mutate<Self::AccountId>;
 
-		type Balance: Balance;
+		type Balance: Balance
+			+ HasCompact<Type: DecodeWithMemTracking>;
 
 		type BlockNumberProvider: BlockNumberProvider;
 
@@ -106,7 +110,7 @@ pub mod pallet {
 		pub fn transfer_through_delayed_remint(
 			origin: OriginFor<T>,
 			to: T::AccountId,
-			amount: BalanceOf<T>,
+			#[pallet::compact] amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let from = ensure_signed(origin.clone())?;
 
