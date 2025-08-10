@@ -1,15 +1,9 @@
 //! Utilities for testing behaviours present on mainnet that are otherwise hard
 //! to achieve in testnets.
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
-
-#[cfg(test)]
 mod mock;
-
-#[cfg(test)]
 mod tests;
 
 pub mod weights;
@@ -105,6 +99,8 @@ pub mod pallet {
 		///   to transfer the required amount.
 		/// * `Error::<T>::DestinationBalanceTooLow` when `to` balance will be
 		///   below minimum after transfer.
+		/// * `Error::<T>::CouldNotSchedule` when another task was already
+		///   scheduled in this block.
 		#[pallet::weight(<T as Config>::WeightInfo::transfer_through_delayed_remint())]
 		#[pallet::call_index(0)]
 		pub fn transfer_through_delayed_remint(
@@ -154,6 +150,8 @@ pub mod pallet {
 					Fortitude::Polite,
 				);
 				let _ = T::Currency::mint_into(&tf.to, tf.amount);
+
+				Self::deposit_event(Event::Executed { scheduled_in: key });
 			}
 
 			Weight::zero()

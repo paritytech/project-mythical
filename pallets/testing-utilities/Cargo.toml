@@ -17,6 +17,7 @@ scale-info = { workspace = true, default-features = false, features = [
 sp-std = { workspace = true, default-features = false }
 sp-runtime = { workspace = true, default-features = false }
 sp-io = { workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false } # Added missing dependency
 pallet-balances = { workspace = true, default-features = false }
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 
