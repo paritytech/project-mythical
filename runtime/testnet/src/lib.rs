@@ -1136,7 +1136,6 @@ impl pallet_identity::Config for Runtime {
 impl pallet_testing_utilities::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type Balance = Balance;
 	type BlockNumberProvider = System;
 	type WeightInfo = pallet_testing_utilities::SubstrateWeight<Runtime>; // TODO
 }
@@ -1233,6 +1232,7 @@ mod benches {
 		[pallet_utility, Utility]
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
+		[pallet_testing_utilities, TestingUtilities]
 		// TODO: include once https://github.com/paritytech/polkadot-sdk/pull/8179 gets released
 		// [pallet_identity, Identity]
 	);

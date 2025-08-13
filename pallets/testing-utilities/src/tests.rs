@@ -37,7 +37,7 @@ mod testing_utilities {
 			));
 
 			// Verify the events were emitted
-			System::assert_last_event(Event::Scheduled.into());
+			System::assert_last_event(Event::TransferScheduled{ transfer: ScheduledTransferOf::<Test> { from, to, amount }}.into());
 
 			System::run_to_block::<AllPalletsWithSystem>(2_u64.into());
 
@@ -46,7 +46,7 @@ mod testing_utilities {
 
 			System::assert_has_event(pallet_balances::Event::Burned { who: from, amount }.into());
 			System::assert_has_event(pallet_balances::Event::Minted { who: to, amount }.into());
-			System::assert_last_event(Event::Executed { scheduled_in: 1 }.into());
+			System::assert_last_event(Event::TransferExecuted { transfer: ScheduledTransferOf::<Test> { from, to, amount }, scheduled_in: 1 }.into());
 		});
 	}
 }

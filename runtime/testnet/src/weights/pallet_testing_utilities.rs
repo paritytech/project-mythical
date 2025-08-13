@@ -8,7 +8,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("local-v")`, DB CACHE: 1024
 
 // Executed Command:
-// ../../target/release/mythos-node
+// ./target/release/mythos-node
 // benchmark
 // pallet
 // --chain
@@ -24,7 +24,7 @@
 // --repeat
 // 20
 // --output
-// src/weights.rs
+// ./runtime/testnet/src/weights/pallet_testing_utilities.rs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -60,7 +60,7 @@ impl<T: frame_system::Config> pallet_testing_utilities::WeightInfo for WeightInf
 		//  Measured:  `265`
 		//  Estimated: `6076`
 		// Minimum execution time: 37_000_000 picoseconds.
-		Weight::from_parts(37_000_000, 0)
+		Weight::from_parts(38_000_000, 0)
 			.saturating_add(Weight::from_parts(0, 6076))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(2))

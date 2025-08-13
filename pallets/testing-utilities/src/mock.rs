@@ -4,21 +4,12 @@ use super::*;
 
 use crate as pallet_testing_utilities;
 use account::AccountId20;
-use frame_support::{
-	derive_impl, parameter_types,
-	weights::Weight,
-};
+use frame_support::{derive_impl, parameter_types};
 use frame_system;
 use sp_runtime::{
 	traits::IdentityLookup,
 	BuildStorage,
 };
-
-// Define a dummy WeightInfo for testing
-pub struct TestWeightInfo;
-impl crate::weights::WeightInfo for TestWeightInfo {
-	fn transfer_through_delayed_remint() -> Weight { Weight::from_all(10_000_000) }
-}
 
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -55,7 +46,6 @@ impl pallet_balances::Config for Test {
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type Balance = BalanceOf<Test>;
 	type BlockNumberProvider = frame_system::Pallet<Test>;
 	type WeightInfo = SubstrateWeight<Test>;
 }
