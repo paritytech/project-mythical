@@ -1137,7 +1137,7 @@ impl pallet_testing_utilities::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BlockNumberProvider = System;
-	type WeightInfo = pallet_testing_utilities::SubstrateWeight<Runtime>; // TODO
+	type WeightInfo = weights::pallet_testing_utilities::WeightInfo<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

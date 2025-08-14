@@ -5,7 +5,6 @@ use super::*;
 use crate as pallet_testing_utilities;
 use account::AccountId20;
 use frame_support::{derive_impl, parameter_types};
-use frame_system;
 use sp_runtime::{
 	traits::IdentityLookup,
 	BuildStorage,

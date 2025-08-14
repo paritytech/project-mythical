@@ -21,6 +21,7 @@ use frame_support::{
 		fungible::{Inspect, Mutate},
 		tokens::{Fortitude, Precision, Preservation},
 	},
+	storage::{self, TransactionOutcome},
 	weights::WeightMeter,
 };
 use frame_system::pallet_prelude::{BlockNumberFor as SystemBlockNumberFor, *};
@@ -170,30 +171,37 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// Consumes and executes a single scheduled transfer. Returns true if
-		/// a transfer was executed.
+		/// a scheduled transfer was consumed.
 		pub(crate) fn execute_scheduled_transfer() -> bool {
+
 			if let Some((block_number, tf)) = <ScheduledTransfers<T>>::iter().next() {
 				<ScheduledTransfers<T>>::remove(block_number);
 
-				if let Err(e) = T::Currency::burn_from(
-					&tf.from,
-					tf.amount,
-					Preservation::Preserve,
-					Precision::Exact,
-					Fortitude::Polite,
-				) {
-					Self::deposit_event(Event::TransferFailed{ scheduled_in: block_number, transfer: tf, error: e });
-					return true;
-				}
+				let tx_result = storage::with_transaction(|| {
+					if let Err(e) = T::Currency::burn_from(
+						&tf.from,
+						tf.amount,
+						Preservation::Preserve,
+						Precision::Exact,
+						Fortitude::Polite,
+					) {
+						return TransactionOutcome::Rollback(Err(e));
+					}
 
-				if let Err(e) = T::Currency::mint_into(&tf.to, tf.amount) {
-					Self::deposit_event(Event::TransferFailed{ scheduled_in: block_number, transfer: tf, error: e });
-					return true;
-				}
+					if let Err(e) = T::Currency::mint_into(&tf.to, tf.amount) {
+						return TransactionOutcome::Rollback(Err(e));
+					}
 
-				Self::deposit_event(Event::TransferExecuted { scheduled_in: block_number, transfer: tf });
+					TransactionOutcome::Commit(Ok(()))
+				});
+
+				match tx_result {
+					Ok(_) => Self::deposit_event(Event::TransferExecuted { scheduled_in: block_number, transfer: tf }),
+					Err(e) => Self::deposit_event(Event::TransferFailed{ scheduled_in: block_number, transfer: tf, error: e }),
+				}
 
 				true
+
 			} else {
 				false
 			}
