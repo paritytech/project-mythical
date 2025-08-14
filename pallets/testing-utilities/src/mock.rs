@@ -5,10 +5,7 @@ use super::*;
 use crate as pallet_testing_utilities;
 use account::AccountId20;
 use frame_support::{derive_impl, parameter_types};
-use sp_runtime::{
-	traits::IdentityLookup,
-	BuildStorage,
-};
+use sp_runtime::{traits::IdentityLookup, BuildStorage};
 
 type Block = frame_system::mocking::MockBlock<Test>;
 

@@ -2,12 +2,15 @@
 
 use account::AccountId20;
 use frame_benchmarking::v2::*;
-use frame_support::{assert_ok, traits::{Currency, Hooks}};
+use frame_support::{
+	assert_ok,
+	traits::{Currency, Hooks},
+};
 use frame_system::RawOrigin;
 use pallet_balances::Pallet as Balances;
 use sp_runtime::traits::{Block, Header};
 
-use crate::{*, Pallet as TestingUtilities};
+use crate::{Pallet as TestingUtilities, *};
 
 #[benchmarks(
     where
@@ -30,7 +33,7 @@ mod benchmarks {
 		let amount: BalanceOf<T> = (transfer_amount * ed).into();
 
 		Balances::<T>::make_free_balance_be(&from, (initial_amount * ed).into());
-		Balances::<T>::make_free_balance_be(&to,   (initial_amount * ed).into());
+		Balances::<T>::make_free_balance_be(&to, (initial_amount * ed).into());
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(from), to.clone(), amount);
@@ -49,11 +52,13 @@ mod benchmarks {
 		let amount: BalanceOf<T> = (transfer_amount * ed).into();
 
 		Balances::<T>::make_free_balance_be(&from, (initial_amount * ed).into());
-		Balances::<T>::make_free_balance_be(&to,   (initial_amount * ed).into());
+		Balances::<T>::make_free_balance_be(&to, (initial_amount * ed).into());
 
-		assert_ok!(
-			TestingUtilities::<T>::transfer_through_delayed_remint(RawOrigin::Signed(from).into(), to.clone(), amount)
-		);
+		assert_ok!(TestingUtilities::<T>::transfer_through_delayed_remint(
+			RawOrigin::Signed(from).into(),
+			to.clone(),
+			amount
+		));
 
 		#[block]
 		{

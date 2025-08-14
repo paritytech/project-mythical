@@ -3,7 +3,10 @@
 use super::*;
 use crate::mock::*;
 use account::AccountId20;
-use frame_support::{assert_ok, traits::{Currency, Hooks}};
+use frame_support::{
+	assert_ok,
+	traits::{Currency, Hooks},
+};
 
 fn account(id: u8) -> AccountId20 {
 	[id; 20].into()
@@ -27,7 +30,7 @@ mod testing_utilities {
 			let amount = 9_001;
 
 			Balances::make_free_balance_be(&from, 10_000);
-			Balances::make_free_balance_be(&to,       10);
+			Balances::make_free_balance_be(&to, 10);
 
 			// Implement the functionality to test the transfer and event emissions
 			assert_ok!(Pallet::<Test>::transfer_through_delayed_remint(
@@ -37,7 +40,12 @@ mod testing_utilities {
 			));
 
 			// Verify the events were emitted
-			System::assert_last_event(Event::TransferScheduled{ transfer: ScheduledTransferOf::<Test> { from, to, amount }}.into());
+			System::assert_last_event(
+				Event::TransferScheduled {
+					transfer: ScheduledTransferOf::<Test> { from, to, amount },
+				}
+				.into(),
+			);
 
 			System::run_to_block::<AllPalletsWithSystem>(2_u64.into());
 
@@ -46,7 +54,13 @@ mod testing_utilities {
 
 			System::assert_has_event(pallet_balances::Event::Burned { who: from, amount }.into());
 			System::assert_has_event(pallet_balances::Event::Minted { who: to, amount }.into());
-			System::assert_last_event(Event::TransferExecuted { transfer: ScheduledTransferOf::<Test> { from, to, amount }, scheduled_in: 1 }.into());
+			System::assert_last_event(
+				Event::TransferExecuted {
+					transfer: ScheduledTransferOf::<Test> { from, to, amount },
+					scheduled_in: 1,
+				}
+				.into(),
+			);
 		});
 	}
 }

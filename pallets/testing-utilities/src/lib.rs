@@ -17,11 +17,11 @@ pub use pallet::*;
 
 use frame_support::{
 	pallet_prelude::*,
+	storage::{self, TransactionOutcome},
 	traits::{
 		fungible::{Inspect, Mutate},
 		tokens::{Fortitude, Precision, Preservation},
 	},
-	storage::{self, TransactionOutcome},
 	weights::WeightMeter,
 };
 use frame_system::pallet_prelude::{BlockNumberFor as SystemBlockNumberFor, *};
@@ -34,7 +34,17 @@ pub type BalanceOf<T> =
 
 /// A transfer that was scheduled to be executed in
 /// the next on_idle hook invocation.
-#[derive(Clone, RuntimeDebug, PartialEq, Eq, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo)]
+#[derive(
+	Clone,
+	RuntimeDebug,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub struct ScheduledTransfer<AccountId, Balance> {
 	from: AccountId,
 	to: AccountId,
@@ -61,8 +71,7 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// Runtime currency type to be used by the `transfer_through_delayed_remint` call.
-		type Currency: Inspect<Self::AccountId>
-			+ Mutate<Self::AccountId>;
+		type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
 
 		/// Runtime block number type.
 		type BlockNumberProvider: BlockNumberProvider;
@@ -75,11 +84,15 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A delayed transfer was scheduled.
-		TransferScheduled{ transfer: ScheduledTransferOf<T> },
+		TransferScheduled { transfer: ScheduledTransferOf<T> },
 		/// A delayed transfer was executed by the on_idle hook.
 		TransferExecuted { scheduled_in: BlockNumberFor<T>, transfer: ScheduledTransferOf<T> },
 		/// A delayed transfer has failed to execute.
-		TransferFailed { scheduled_in: BlockNumberFor<T>, transfer: ScheduledTransferOf<T>, error: DispatchError },
+		TransferFailed {
+			scheduled_in: BlockNumberFor<T>,
+			transfer: ScheduledTransferOf<T>,
+			error: DispatchError,
+		},
 	}
 
 	/// A map from block number to a transfer that may have been scheduled in that block.
@@ -145,7 +158,7 @@ pub mod pallet {
 			let tf = ScheduledTransfer { from, to, amount };
 			<ScheduledTransfers<T>>::insert(current_block, tf.clone());
 
-			Self::deposit_event(Event::TransferScheduled{ transfer: tf });
+			Self::deposit_event(Event::TransferScheduled { transfer: tf });
 
 			Ok(())
 		}
@@ -156,10 +169,13 @@ pub mod pallet {
 		fn on_idle(_n: SystemBlockNumberFor<T>, remaining_weight: Weight) -> Weight {
 			let mut meter = WeightMeter::with_limit(remaining_weight);
 			loop {
-				if meter.try_consume(<T as Config>::WeightInfo::execute_scheduled_transfer()).is_ok() {
+				if meter
+					.try_consume(<T as Config>::WeightInfo::execute_scheduled_transfer())
+					.is_ok()
+				{
 					let executed = Self::execute_scheduled_transfer();
 					if !executed {
-						 break;
+						break;
 					}
 				} else {
 					break;
@@ -173,7 +189,6 @@ pub mod pallet {
 		/// Consumes and executes a single scheduled transfer. Returns true if
 		/// a scheduled transfer was consumed.
 		pub(crate) fn execute_scheduled_transfer() -> bool {
-
 			if let Some((block_number, tf)) = <ScheduledTransfers<T>>::iter().next() {
 				<ScheduledTransfers<T>>::remove(block_number);
 
@@ -196,12 +211,18 @@ pub mod pallet {
 				});
 
 				match tx_result {
-					Ok(_) => Self::deposit_event(Event::TransferExecuted { scheduled_in: block_number, transfer: tf }),
-					Err(e) => Self::deposit_event(Event::TransferFailed{ scheduled_in: block_number, transfer: tf, error: e }),
+					Ok(_) => Self::deposit_event(Event::TransferExecuted {
+						scheduled_in: block_number,
+						transfer: tf,
+					}),
+					Err(e) => Self::deposit_event(Event::TransferFailed {
+						scheduled_in: block_number,
+						transfer: tf,
+						error: e,
+					}),
 				}
 
 				true
-
 			} else {
 				false
 			}
