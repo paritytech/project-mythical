@@ -17,9 +17,12 @@ scale-info = { workspace = true, default-features = false, features = [
 sp-std = { workspace = true, default-features = false }
 sp-runtime = { workspace = true, default-features = false }
 sp-io = { workspace = true, default-features = false }
+pallet-balances = { workspace = true, default-features = false }
 
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
-pallet-balances = { workspace = true, default-features = false, optional = true }
+account = { workspace = true, optional = true }
+
+[dev-dependencies]
 account = { workspace = true, optional = true }
 
 [features]
@@ -41,7 +44,6 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
-	"pallet-balances",
 	"account",
 ]
 
