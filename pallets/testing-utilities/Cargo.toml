@@ -23,7 +23,7 @@ frame-benchmarking = { workspace = true, default-features = false, optional = tr
 account = { workspace = true, optional = true }
 
 [dev-dependencies]
-account = { workspace = true, optional = true }
+account = { workspace = true }
 
 [features]
 default = ["std"]
