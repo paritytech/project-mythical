@@ -20,12 +20,12 @@ use frame_support::{
 	storage::{self, TransactionOutcome},
 	traits::{
 		fungible::{Inspect, Mutate},
-		tokens::{Fortitude, Precision, Preservation},
+		tokens::{Fortitude, Precision, Preservation, Provenance},
 	},
 	weights::WeightMeter,
 };
 use frame_system::pallet_prelude::{BlockNumberFor as SystemBlockNumberFor, *};
-use sp_runtime::traits::{BlockNumberProvider, Saturating};
+use sp_runtime::traits::BlockNumberProvider;
 use sp_std::prelude::*;
 
 /// The type that represents account balances in the runtime.
@@ -138,13 +138,12 @@ pub mod pallet {
 			let from = ensure_signed(origin.clone())?;
 
 			ensure!(
-				T::Currency::balance(&from).saturating_sub(amount)
-					>= T::Currency::minimum_balance(),
+				T::Currency::can_withdraw(&from, amount).into_result(true).is_ok(),
 				<Error<T>>::SourceBalanceTooLow,
 			);
 
 			ensure!(
-				T::Currency::balance(&to).saturating_add(amount) >= T::Currency::minimum_balance(),
+				T::Currency::can_deposit(&to, amount, Provenance::Extant).into_result().is_ok(),
 				<Error<T>>::DestinationBalanceTooLow,
 			);
 
