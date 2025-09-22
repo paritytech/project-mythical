@@ -1133,6 +1133,13 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = weights::pallet_identity::WeightInfo<Runtime>;
 }
 
+impl pallet_testing_utilities::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BlockNumberProvider = System;
+	type WeightInfo = weights::pallet_testing_utilities::WeightInfo<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1186,6 +1193,8 @@ construct_runtime!(
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
 		Dmarket: pallet_dmarket = 52,
+
+		TestingUtilities: pallet_testing_utilities = 53,
 	}
 );
 
@@ -1223,6 +1232,7 @@ mod benches {
 		[pallet_utility, Utility]
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
+		[pallet_testing_utilities, TestingUtilities]
 		// TODO: include once https://github.com/paritytech/polkadot-sdk/pull/8179 gets released
 		// [pallet_identity, Identity]
 	);

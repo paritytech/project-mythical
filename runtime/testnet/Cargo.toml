@@ -32,6 +32,7 @@ pallet-escrow = { workspace = true, default-features = false }
 pallet-collator-staking = { workspace = true, default-features = false }
 pallet-myth-proxy = { workspace = true, default-features = false }
 account = { workspace = true, default-features = false }
+pallet-testing-utilities = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
@@ -170,6 +171,7 @@ std = [
   "pallet-escrow/std",
   "pallet-myth-proxy/std",
   "account/std",
+  "pallet-testing-utilities/std",
 ]
 
 runtime-benchmarks = [
@@ -207,6 +209,7 @@ runtime-benchmarks = [
   "cumulus-pallet-weight-reclaim/runtime-benchmarks",
   "pallet-escrow/runtime-benchmarks",
   "pallet-myth-proxy/runtime-benchmarks",
+  "pallet-testing-utilities/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -245,6 +248,7 @@ try-runtime = [
   "parachain-info/try-runtime",
   "pallet-escrow/try-runtime",
   "pallet-myth-proxy/try-runtime",
+  "pallet-testing-utilities/try-runtime",
 ]
 
 # Enable the metadata hash generation.
