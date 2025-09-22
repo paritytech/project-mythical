@@ -66,7 +66,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 									== collection_details.minted_items.saturating_add(1),
 							Error::<T, I>::ItemIdNotSerial
 						);
-						collection_details.minted_items.saturating_add(1)
+						collection_details.highest_item_id.unwrap_or_default().saturating_add(1)
 					},
 					false => {
 						ensure!(
@@ -89,7 +89,6 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 						collection_details.minted_items < max_supply,
 						Error::<T, I>::MaxSupplyReached
 					);
-					ensure!(item <= max_supply, Error::<T, I>::InvalidItemId);
 				}
 
 				collection_details.items.saturating_inc();

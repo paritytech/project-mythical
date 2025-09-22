@@ -3976,7 +3976,7 @@ fn test_random_minting_over_max_supply_should_fail() {
 			account(1),
 			CollectionConfig {
 				settings: CollectionSettings::all_enabled(),
-				max_supply: Some(5),
+				max_supply: Some(2),
 				mint_settings: Default::default(),
 			}
 		));
@@ -3987,12 +3987,17 @@ fn test_random_minting_over_max_supply_should_fail() {
 			Error::<Test>::InvalidItemId
 		);
 
+		// Can mint an item normally
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(1), account(1), None,));
+
+		// Can mint an item even when id > max_supply
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(9), account(1), None,));
+
 		// Cannot mint over max_supply.
 		assert_noop!(
 			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(10), account(1), None,),
-			Error::<Test>::InvalidItemId
+			Error::<Test>::MaxSupplyReached,
 		);
-		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(5), account(1), None,));
 	});
 }
 
