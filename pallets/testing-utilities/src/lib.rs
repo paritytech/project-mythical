@@ -167,16 +167,12 @@ pub mod pallet {
 	impl<T: Config> Hooks<SystemBlockNumberFor<T>> for Pallet<T> {
 		fn on_idle(_n: SystemBlockNumberFor<T>, remaining_weight: Weight) -> Weight {
 			let mut meter = WeightMeter::with_limit(remaining_weight);
-			loop {
-				if meter
-					.try_consume(<T as Config>::WeightInfo::execute_scheduled_transfer())
-					.is_ok()
-				{
-					let executed = Self::execute_scheduled_transfer();
-					if !executed {
-						break;
-					}
-				} else {
+			while meter
+				.try_consume(<T as Config>::WeightInfo::execute_scheduled_transfer())
+				.is_ok()
+			{
+				let executed = Self::execute_scheduled_transfer();
+				if !executed {
 					break;
 				}
 			}
