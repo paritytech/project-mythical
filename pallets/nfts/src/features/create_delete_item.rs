@@ -58,30 +58,25 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				let collection_details =
 					maybe_collection_details.as_mut().ok_or(Error::<T, I>::UnknownCollection)?;
 				let collection_config = Self::get_collection_config(&collection)?;
-				let item = match collection_config.mint_settings.serial_mint {
-					true => {
-						ensure!(
-							maybe_item.is_none()
-								|| maybe_item.ok_or(Error::<T, I>::ItemIdNotSerial)?
-									== collection_details.minted_items.saturating_add(1),
-							Error::<T, I>::ItemIdNotSerial
-						);
-						collection_details.highest_item_id.unwrap_or_default().saturating_add(1)
-					},
-					false => {
-						ensure!(
-							collection_config.max_supply.is_some(),
-							Error::<T, I>::MaxSupplyRequired
-						);
-						maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
-					},
+
+				let item = if collection_config.mint_settings.serial_mint {
+					let next_serial_item_id = collection_details.highest_item_id.unwrap_or_default().saturating_add(1);
+					ensure!(
+						maybe_item.unwrap_or(next_serial_item_id) == next_serial_item_id,
+						Error::<T, I>::ItemIdNotSerial,
+					);
+					next_serial_item_id
+				} else {
+					maybe_item.ok_or(Error::<T, I>::InvalidItemId)?
 				};
+
 				ensure!(item > 0, Error::<T, I>::InvalidItemId);
 				ensure!(
 					!Item::<T, I>::contains_key(collection, item),
 					Error::<T, I>::AlreadyExists
 				);
 				ensure!(!BurnedItems::<T, I>::get(collection, item), Error::<T, I>::AlreadyBurned);
+
 				with_details_and_config(collection_details, &collection_config)?;
 
 				if let Some(max_supply) = collection_config.max_supply {

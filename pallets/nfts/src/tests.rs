@@ -3850,20 +3850,6 @@ fn test_serial_minting_should_work() {
 	new_test_ext().execute_with(|| {
 		Balances::make_free_balance_be(&account(1), 100);
 
-		// Cannot create without max_supply if no serial minting is specified.
-		assert_noop!(
-			Nfts::create(
-				RuntimeOrigin::signed(account(1)),
-				account(1),
-				CollectionConfig {
-					settings: CollectionSettings::all_enabled(),
-					max_supply: None,
-					mint_settings: MintSettings::default(),
-				}
-			),
-			Error::<Test>::MaxSupplyRequired
-		);
-
 		assert_ok!(Nfts::create(
 			RuntimeOrigin::signed(account(1)),
 			account(1),
@@ -3963,6 +3949,19 @@ fn test_serial_minting_should_work() {
 		assert_noop!(
 			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, None, account(1), None,),
 			Error::<Test>::MaxSupplyReached
+		);
+
+		// Can create without max_supply even if serial minting is not enabled.
+		assert_ok!(
+			Nfts::create(
+				RuntimeOrigin::signed(account(1)),
+				account(1),
+				CollectionConfig {
+					settings: CollectionSettings::all_enabled(),
+					max_supply: None,
+					mint_settings: MintSettings::default(),
+				}
+			),
 		);
 	});
 }

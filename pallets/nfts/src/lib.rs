@@ -663,14 +663,10 @@ pub mod pallet {
 		CollectionNotEmpty,
 		/// The witness data should be provided.
 		WitnessRequired,
-		/// It is required to specify the collection's maximum supply.
-		MaxSupplyRequired,
-		/// ItemId must be under the collection's maximum supply.
+		/// ItemId must not be None and greater than zero.
 		InvalidItemId,
 		/// When serial minting is enabled items must be consecutive.
 		ItemIdNotSerial,
-		/// The collection must be configured for serial minting.
-		SerialMintEnabled,
 		/// The item as already burned.
 		AlreadyBurned,
 	}
