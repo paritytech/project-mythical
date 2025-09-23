@@ -60,7 +60,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				let collection_config = Self::get_collection_config(&collection)?;
 
 				let item = if collection_config.mint_settings.serial_mint {
-					let next_serial_item_id = collection_details.highest_item_id.unwrap_or_default().saturating_add(1);
+					let next_serial_item_id =
+						collection_details.highest_item_id.unwrap_or_default().saturating_add(1);
 					ensure!(
 						maybe_item.unwrap_or(next_serial_item_id) == next_serial_item_id,
 						Error::<T, I>::ItemIdNotSerial,

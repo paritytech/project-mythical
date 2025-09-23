@@ -3952,17 +3952,15 @@ fn test_serial_minting_should_work() {
 		);
 
 		// Can create without max_supply even if serial minting is not enabled.
-		assert_ok!(
-			Nfts::create(
-				RuntimeOrigin::signed(account(1)),
-				account(1),
-				CollectionConfig {
-					settings: CollectionSettings::all_enabled(),
-					max_supply: None,
-					mint_settings: MintSettings::default(),
-				}
-			),
-		);
+		assert_ok!(Nfts::create(
+			RuntimeOrigin::signed(account(1)),
+			account(1),
+			CollectionConfig {
+				settings: CollectionSettings::all_enabled(),
+				max_supply: None,
+				mint_settings: MintSettings::default(),
+			}
+		));
 	});
 }
 
