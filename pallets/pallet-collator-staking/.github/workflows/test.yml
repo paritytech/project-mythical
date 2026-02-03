@@ -1,0 +1,43 @@
+name: Build, test and lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  CARGO_TERM_COLOR: always
+
+# Disable previous runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        run: |
+          rustup install stable && rustup default stable
+          rustup component add rustfmt
+      - name: Rustfmt
+        run: |
+          cargo fmt --all --check
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.5.0
+        with:
+          cache-on-failure: true
+          cache-all-crates: true
+
+      - name: Check Build
+        run: |
+          cargo check --release --all-features
+
+      - name: Run tests
+        run: cargo test --release --all-features --locked --verbose --all

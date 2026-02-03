@@ -184,7 +184,7 @@ pub mod pallet {
 		/// Consumes and executes a single scheduled transfer. Returns true if
 		/// a scheduled transfer was consumed.
 		pub(crate) fn execute_scheduled_transfer() -> bool {
-			if let Some((block_number, tf)) = <ScheduledTransfers<T>>::iter().next() {
+			match <ScheduledTransfers<T>>::iter().next() { Some((block_number, tf)) => {
 				<ScheduledTransfers<T>>::remove(block_number);
 
 				let tx_result = storage::with_transaction(|| {
@@ -218,9 +218,9 @@ pub mod pallet {
 				}
 
 				true
-			} else {
+			} _ => {
 				false
-			}
+			}}
 		}
 	}
 }
