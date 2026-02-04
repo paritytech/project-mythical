@@ -11,7 +11,7 @@ log = { workspace = true }
 env_logger = { workspace = true }
 zombienet-sdk = { workspace = true }
 funder = { workspace = true }
-#stps-config = { workspace = true }
+stps-config = { workspace = true }
 rand = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
