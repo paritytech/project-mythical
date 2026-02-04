@@ -4,7 +4,7 @@ use crate::fee::default_fee_per_second;
 use frame_support::traits::{Contains, ContainsPair, Disabled, Get};
 use frame_support::{
 	parameter_types,
-	traits::{tokens::imbalance::ResolveTo, ConstU32, Everything, Nothing},
+	traits::{ConstU32, Everything, Nothing, tokens::imbalance::ResolveTo},
 };
 use hex_literal::hex;
 use pallet_xcm::XcmPassthrough;

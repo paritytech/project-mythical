@@ -25,12 +25,12 @@ pub mod weights;
 pub use weights::*;
 
 use frame_support::{
-	dispatch::{extract_actual_weight, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo, extract_actual_weight},
 	pallet_prelude::*,
 	traits::{
+		InstanceFilter, IsSubType, OriginTrait,
 		fungible::{Inspect, Mutate, MutateHold},
 		tokens::Precision,
-		InstanceFilter, IsSubType, OriginTrait,
 	},
 	weights::WeightMeter,
 };

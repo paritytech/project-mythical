@@ -184,43 +184,44 @@ pub mod pallet {
 		/// Consumes and executes a single scheduled transfer. Returns true if
 		/// a scheduled transfer was consumed.
 		pub(crate) fn execute_scheduled_transfer() -> bool {
-			match <ScheduledTransfers<T>>::iter().next() { Some((block_number, tf)) => {
-				<ScheduledTransfers<T>>::remove(block_number);
+			match <ScheduledTransfers<T>>::iter().next() {
+				Some((block_number, tf)) => {
+					<ScheduledTransfers<T>>::remove(block_number);
 
-				let tx_result = storage::with_transaction(|| {
-					if let Err(e) = T::Currency::burn_from(
-						&tf.from,
-						tf.amount,
-						Preservation::Preserve,
-						Precision::Exact,
-						Fortitude::Polite,
-					) {
-						return TransactionOutcome::Rollback(Err(e));
+					let tx_result = storage::with_transaction(|| {
+						if let Err(e) = T::Currency::burn_from(
+							&tf.from,
+							tf.amount,
+							Preservation::Preserve,
+							Precision::Exact,
+							Fortitude::Polite,
+						) {
+							return TransactionOutcome::Rollback(Err(e));
+						}
+
+						if let Err(e) = T::Currency::mint_into(&tf.to, tf.amount) {
+							return TransactionOutcome::Rollback(Err(e));
+						}
+
+						TransactionOutcome::Commit(Ok(()))
+					});
+
+					match tx_result {
+						Ok(_) => Self::deposit_event(Event::TransferExecuted {
+							scheduled_in: block_number,
+							transfer: tf,
+						}),
+						Err(e) => Self::deposit_event(Event::TransferFailed {
+							scheduled_in: block_number,
+							transfer: tf,
+							error: e,
+						}),
 					}
 
-					if let Err(e) = T::Currency::mint_into(&tf.to, tf.amount) {
-						return TransactionOutcome::Rollback(Err(e));
-					}
-
-					TransactionOutcome::Commit(Ok(()))
-				});
-
-				match tx_result {
-					Ok(_) => Self::deposit_event(Event::TransferExecuted {
-						scheduled_in: block_number,
-						transfer: tf,
-					}),
-					Err(e) => Self::deposit_event(Event::TransferFailed {
-						scheduled_in: block_number,
-						transfer: tf,
-						error: e,
-					}),
-				}
-
-				true
-			} _ => {
-				false
-			}}
+					true
+				},
+				_ => false,
+			}
 		}
 	}
 }

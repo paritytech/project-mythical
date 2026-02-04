@@ -44,8 +44,8 @@ pub mod pallet {
 
 	use sp_runtime::traits::Hash;
 	use sp_runtime::{
-		traits::{IdentifyAccount, Verify},
 		DispatchError,
+		traits::{IdentifyAccount, Verify},
 	};
 	use sp_std::vec::Vec;
 

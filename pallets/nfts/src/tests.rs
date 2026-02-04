@@ -21,20 +21,20 @@ use enumflags2::BitFlags;
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{
-		tokens::nonfungibles_v2::{Create, Destroy, Inspect, Mutate},
 		Currency, Get,
+		tokens::nonfungibles_v2::{Create, Destroy, Inspect, Mutate},
 	},
 };
 use pallet_balances::Error as BalancesError;
 use sp_core::{bounded::BoundedVec, ecdsa};
 use sp_io::crypto::{ecdsa_generate, ecdsa_sign_prehashed};
 use sp_io::hashing::keccak_256;
-use sp_runtime::{traits::Dispatchable, MultiSignature};
+use sp_runtime::{MultiSignature, traits::Dispatchable};
 use sp_std::prelude::*;
 
 use account::{EthereumSignature, EthereumSigner};
 
-use crate::{mock::*, Event, SystemConfig, *};
+use crate::{Event, SystemConfig, mock::*, *};
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
 

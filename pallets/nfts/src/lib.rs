@@ -48,14 +48,14 @@ pub mod macros;
 pub mod weights;
 
 use frame_support::traits::{
-	tokens::Locker, BalanceStatus::Reserved, Currency, EnsureOriginWithArg, Incrementable,
-	ReservableCurrency,
+	BalanceStatus::Reserved, Currency, EnsureOriginWithArg, Incrementable, ReservableCurrency,
+	tokens::Locker,
 };
 use frame_system::Config as SystemConfig;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
-	traits::{IdentifyAccount, Saturating, StaticLookup, Verify, Zero},
 	RuntimeDebug,
+	traits::{IdentifyAccount, Saturating, StaticLookup, Verify, Zero},
 };
 use sp_std::prelude::*;
 
@@ -127,11 +127,7 @@ pub mod pallet {
 
 		/// Standard collection creation is only allowed if the origin attempting it and the
 		/// collection are in this set.
-		type CreateOrigin: EnsureOriginWithArg<
-			Self::RuntimeOrigin,
-			Self::CollectionId,
-			Success = Self::AccountId,
-		>;
+		type CreateOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Self::CollectionId, Success = Self::AccountId>;
 
 		/// Locker trait to enable Locking mechanism downstream.
 		type Locker: Locker<Self::CollectionId, ItemId>;

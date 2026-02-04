@@ -8,8 +8,9 @@ use frame_support::{
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_nfts::{CollectionConfig, CollectionSettings, MintSettings, NextCollectionId};
 use sp_core::{
+	Pair,
 	ecdsa::{Pair as KeyPair, Signature},
-	keccak_256, Pair,
+	keccak_256,
 };
 
 use sp_runtime::traits::IdentifyAccount;
@@ -36,8 +37,8 @@ fn create_collection(creator: &AccountIdOf<Test>) -> CollectionId<Test> {
 	collection_id
 }
 
-fn collection_config_with_all_settings_enabled(
-) -> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
+fn collection_config_with_all_settings_enabled()
+-> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
 	CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
 		max_supply: Some(1000000),
