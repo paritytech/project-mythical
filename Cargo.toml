@@ -188,3 +188,4 @@ subxt-signer = { version = "0.41.0", features = ["unstable-eth"] }
 reqwest = { version = "0.11" }
 jsonrpsee-client-transport = { version = "0.24.8", features = [ "ws" ] }
 jsonrpsee-core = { version = "0.24.8", features = [ "async-client" ] }
+
