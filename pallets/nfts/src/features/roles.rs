@@ -131,11 +131,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		role: CollectionRole,
 	) -> Option<T::AccountId> {
 		CollectionRoleOf::<T, I>::iter_prefix(collection_id).find_map(|(account, roles)| {
-			if roles.has_role(role) {
-				Some(account.clone())
-			} else {
-				None
-			}
+			if roles.has_role(role) { Some(account.clone()) } else { None }
 		})
 	}
 

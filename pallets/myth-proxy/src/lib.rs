@@ -25,12 +25,12 @@ pub mod weights;
 pub use weights::*;
 
 use frame_support::{
-	dispatch::{extract_actual_weight, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo, extract_actual_weight},
 	pallet_prelude::*,
 	traits::{
+		InstanceFilter, IsSubType, OriginTrait,
 		fungible::{Inspect, Mutate, MutateHold},
 		tokens::Precision,
-		InstanceFilter, IsSubType, OriginTrait,
 	},
 	weights::WeightMeter,
 };
@@ -302,13 +302,13 @@ pub mod pallet {
 
 				let partial = match c.is_sub_type() {
 					// Proxy call cannot add a proxy with more permissions than it already has.
-					Some(Call::add_proxy { ref proxy_type, .. })
+					Some(Call::add_proxy { proxy_type, .. })
 						if !proxy_def.proxy_type.is_superset(proxy_type) =>
 					{
 						false
 					},
 
-					Some(Call::remove_proxy { ref delegate }) => {
+					Some(Call::remove_proxy { delegate }) => {
 						let removing_proxy_def = Proxies::<T>::get(&delegator, delegate);
 
 						match removing_proxy_def {

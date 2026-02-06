@@ -15,7 +15,7 @@ use sp_runtime::traits::AccountIdConversion;
 use crate::{
 	chain_spec::{self, GenericChainSpec},
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, MainnetRuntimeExecutor, TestnetRuntimeExecutor},
+	service::{MainnetRuntimeExecutor, TestnetRuntimeExecutor, new_partial},
 };
 
 /// Helper enum that is used for better distinction of different parachain/runtime configuration
@@ -40,7 +40,10 @@ fn runtime(id: &str) -> Runtime {
 	} else if id.starts_with("main") {
 		Runtime::Mainnet
 	} else {
-		log::warn!("No specific runtime was recognized for ChainSpec's Id: '{}', so Runtime::Default will be used", id);
+		log::warn!(
+			"No specific runtime was recognized for ChainSpec's Id: '{}', so Runtime::Default will be used",
+			id
+		);
 		Runtime::default()
 	}
 }

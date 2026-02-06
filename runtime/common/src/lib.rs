@@ -1,8 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use enumflags2::{bitflags, BitFlags};
-use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
+use enumflags2::{BitFlags, bitflags};
+use frame_support::weights::{Weight, constants::WEIGHT_REF_TIME_PER_SECOND};
 use frame_support::{CloneNoBound, EqNoBound, PartialEqNoBound, RuntimeDebugNoBound};
 use pallet_identity::{Data, IdentityInformationProvider};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
@@ -13,8 +13,8 @@ use sp_runtime::RuntimeDebug;
 use sp_std::vec;
 
 use sp_runtime::{
-	traits::{IdentifyAccount, Verify},
 	Perbill,
+	traits::{IdentifyAccount, Verify},
 };
 
 pub use account::EthereumSignature;

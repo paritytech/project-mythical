@@ -19,15 +19,15 @@
 
 use super::*;
 use crate::macros::*;
-use enumflags2::{bitflags, BitFlags};
+use enumflags2::{BitFlags, bitflags};
 use frame_support::{
+	BoundedBTreeMap, BoundedBTreeSet,
 	pallet_prelude::{BoundedVec, MaxEncodedLen},
 	traits::Get,
-	BoundedBTreeMap, BoundedBTreeSet,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use parity_scale_codec::{DecodeWithMemTracking, EncodeLike};
-use scale_info::{build::Fields, meta_type, Path, Type, TypeInfo, TypeParameter};
+use scale_info::{Path, Type, TypeInfo, TypeParameter, build::Fields, meta_type};
 
 /// A type alias for handling balance deposits.
 pub(super) type DepositBalanceOf<T, I = ()> =

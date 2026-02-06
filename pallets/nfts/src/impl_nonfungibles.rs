@@ -19,10 +19,9 @@
 
 use super::*;
 use frame_support::{
-	ensure,
+	BoundedSlice, ensure,
 	storage::KeyPrefixIterator,
-	traits::{tokens::nonfungibles_v2::*, Get},
-	BoundedSlice,
+	traits::{Get, tokens::nonfungibles_v2::*},
 };
 use sp_runtime::{DispatchError, DispatchResult};
 use sp_std::prelude::*;

@@ -9,13 +9,13 @@ use cumulus_client_collator::service::CollatorService;
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
 use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_service::{
-	build_network, build_relay_chain_interface, prepare_node_config, start_relay_chain_tasks,
 	BuildNetworkParams, CollatorSybilResistance, DARecoveryProfile, ParachainHostFunctions,
-	StartRelayChainTasksParams,
+	StartRelayChainTasksParams, build_network, build_relay_chain_interface, prepare_node_config,
+	start_relay_chain_tasks,
 };
 use cumulus_primitives_core::{
-	relay_chain::{CollatorPair, ValidationCode},
 	ParaId,
+	relay_chain::{CollatorPair, ValidationCode},
 };
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
 
@@ -24,7 +24,7 @@ use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use sc_client_api::Backend;
 use sc_consensus::ImportQueue;
 use sc_executor::{
-	HeapAllocStrategy, NativeExecutionDispatch, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
+	DEFAULT_HEAP_ALLOC_STRATEGY, HeapAllocStrategy, NativeExecutionDispatch, WasmExecutor,
 };
 use sc_network::NetworkBackend;
 use sc_network::NetworkBlock;
@@ -215,7 +215,6 @@ async fn start_node_impl<RuntimeApi, Executor, BIQ, SC, Net>(
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
-
 	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 		+ sp_api::Metadata<Block>
 		+ sp_session::SessionKeys<Block>
@@ -226,11 +225,9 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
 		sc_client_api::StateBackend<BlakeTwo256>,
 	Executor: NativeExecutionDispatch + 'static,
-
 	BIQ: FnOnce(
 			Arc<ParachainClient<RuntimeApi>>,
 			ParachainBlockImport<RuntimeApi>,
@@ -360,9 +357,9 @@ where
 		match SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench, false) {
 			Err(err) if validator => {
 				log::warn!(
-				"⚠️  The hardware does not meet the minimal requirements {} for role 'Authority'.",
-				err
-			);
+					"⚠️  The hardware does not meet the minimal requirements {} for role 'Authority'.",
+					err
+				);
 			},
 			_ => {},
 		}

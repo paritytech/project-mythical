@@ -19,20 +19,19 @@
 
 use enumflags2::{BitFlag, BitFlags};
 use frame_benchmarking::v1::{
-	account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller, BenchmarkError,
+	BenchmarkError, account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller,
 };
 use frame_support::{
-	assert_ok,
+	BoundedVec, assert_ok,
 	traits::{EnsureOrigin, Get, UnfilteredDispatchable},
-	BoundedVec,
 };
-use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin as SystemOrigin};
+use frame_system::{RawOrigin as SystemOrigin, pallet_prelude::BlockNumberFor};
 use sp_core::ecdsa;
 use sp_io::crypto::{ecdsa_generate, ecdsa_sign_prehashed};
 use sp_io::hashing::keccak_256;
 use sp_runtime::{
-	traits::{Bounded, One},
 	MultiSignature,
+	traits::{Bounded, One},
 };
 use sp_std::prelude::*;
 
@@ -49,8 +48,8 @@ fn sign(pair: &ecdsa::Public, raw_message: &[u8]) -> ecdsa::Signature {
 	ecdsa_sign_prehashed(0.into(), pair, &hash).unwrap()
 }
 
-fn create_collection<T: Config<I>, I: 'static>(
-) -> (T::CollectionId, T::AccountId, AccountIdLookupOf<T>) {
+fn create_collection<T: Config<I>, I: 'static>()
+-> (T::CollectionId, T::AccountId, AccountIdLookupOf<T>) {
 	let caller: T::AccountId = whitelisted_caller();
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
 	let collection = T::Helper::collection(0);

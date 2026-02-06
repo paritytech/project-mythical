@@ -41,8 +41,8 @@ pub mod pallet {
 
 	use pallet_nfts::ItemId;
 	use sp_runtime::{
-		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
 		BoundedVec, DispatchError, Saturating,
+		traits::{CheckedAdd, CheckedSub, IdentifyAccount, Verify},
 	};
 	use sp_std::vec::Vec;
 

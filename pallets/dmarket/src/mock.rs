@@ -1,13 +1,13 @@
 use frame_support::{
 	derive_impl, parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, ConstU128},
 };
 use frame_system as system;
 use sp_core::H256;
-use sp_keystore::{testing::MemoryKeystore, KeystoreExt};
+use sp_keystore::{KeystoreExt, testing::MemoryKeystore};
 use sp_runtime::{
-	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Verify},
 	BuildStorage,
+	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Verify},
 };
 
 use account::EthereumSignature;

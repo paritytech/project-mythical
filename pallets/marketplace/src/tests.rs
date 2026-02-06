@@ -4,22 +4,22 @@ use account::{EthereumSignature, EthereumSigner};
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{
+		NamedReservableCurrency,
 		fungible::{Inspect as InspectFungible, InspectHold, Mutate},
 		nonfungibles_v2::{Inspect, Transfer},
-		NamedReservableCurrency,
 	},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_nfts::{CollectionConfig, CollectionSettings, ItemId, MintSettings};
 use parity_scale_codec::Encode;
 use sp_core::{
-	ecdsa::{Pair as KeyPair, Signature},
 	Get, Pair,
+	ecdsa::{Pair as KeyPair, Signature},
 };
 use sp_io::hashing::keccak_256;
 use sp_runtime::{
-	traits::{BadOrigin, IdentifyAccount},
 	BoundedVec,
+	traits::{BadOrigin, IdentifyAccount},
 };
 
 type AccountIdOf<Test> = <Test as frame_system::Config>::AccountId;
@@ -58,8 +58,8 @@ fn get_valid_expiration() -> Moment<Test> {
 	timestamp + min_order_duration + 1
 }
 
-fn collection_config_with_all_settings_enabled(
-) -> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
+fn collection_config_with_all_settings_enabled()
+-> CollectionConfig<Balance<Test>, BlockNumberFor<Test>, CollectionId<Test>> {
 	CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
 		max_supply: Some(u128::MAX),
