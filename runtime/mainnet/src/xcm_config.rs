@@ -27,9 +27,10 @@ use xcm_primitives::{BurnerAdapter, SignedToAccountId20, XcmFeeToAccountId20};
 
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, BaseDeliveryFee, FeeAssetId, ParachainInfo,
-	ParachainSystem, PolkadotXcm, RootOrTechnicalCommitteeSimpleMajority, Runtime, RuntimeCall,
+	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
 	RuntimeEvent, RuntimeOrigin, TransactionByteFee, WeightToFee, XcmpQueue,
 };
+use frame_system::EnsureRoot;
 
 /// Parachain ID of AssetHub, as defined here:
 /// https://github.com/polkadot-fellows/runtimes/blob/31ba26287ec752574244f0d690167f7ae8430c8b/relay/polkadot/constants/src/lib.rs#L127
@@ -285,7 +286,7 @@ impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// We disallow users to send arbitrary XCMs from this chain. Root can send.
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, ()>;
-	type AdminOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type AdminOrigin = EnsureRoot<AccountId>;
 	type XcmRouter = XcmRouter;
 	// We must allow execution for running XCM programs to integrate with other chains.
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
