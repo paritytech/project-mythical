@@ -577,8 +577,6 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
 }
 
-
-
 parameter_types! {
 	pub const Period: u32 = 24 * HOURS;
 	pub const Offset: u32 = 0;
@@ -696,8 +694,6 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type KillOrigin = EnsureRoot<Self::AccountId>;
 	type Consideration = ();
 }
-
-
 
 parameter_types! {
 	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
@@ -1086,8 +1082,6 @@ impl pallet_treasury::Config for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
-
-
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
