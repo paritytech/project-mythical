@@ -174,7 +174,7 @@ pub mod fee {
 	use sp_runtime::Perbill;
 
 	/// This constant will multiply the overall fee users will have to spend for transactions.
-	pub const FEE_MULTIPLIER: Balance = 7;
+	pub const FEE_MULTIPLIER: Balance = 1;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -279,7 +279,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("mythos"),
 	impl_name: alloc::borrow::Cow::Borrowed("mythos"),
 	authoring_version: 1,
-	spec_version: 1019,
+	spec_version: 1020,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
