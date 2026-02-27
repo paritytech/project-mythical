@@ -106,20 +106,17 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 pub type BlockId = generic::BlockId<Block>;
 
 /// The extension to the basic transaction logic.
-pub type TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
-	Runtime,
-	(
-		frame_system::CheckNonZeroSender<Runtime>,
-		frame_system::CheckSpecVersion<Runtime>,
-		frame_system::CheckTxVersion<Runtime>,
-		frame_system::CheckGenesis<Runtime>,
-		frame_system::CheckEra<Runtime>,
-		frame_system::CheckNonce<Runtime>,
-		frame_system::CheckWeight<Runtime>,
-		pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-		frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	),
->;
+pub type TxExtension = (
+	frame_system::CheckNonZeroSender<Runtime>,
+	frame_system::CheckSpecVersion<Runtime>,
+	frame_system::CheckTxVersion<Runtime>,
+	frame_system::CheckGenesis<Runtime>,
+	frame_system::CheckEra<Runtime>,
+	frame_system::CheckNonce<Runtime>,
+	frame_system::CheckWeight<Runtime>,
+	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+);
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -282,7 +279,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("mythos"),
 	impl_name: alloc::borrow::Cow::Borrowed("mythos"),
 	authoring_version: 1,
-	spec_version: 1018,
+	spec_version: 1019,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -324,10 +321,10 @@ pub type RootOrCouncilThreeFourths = EitherOfDiverse<
 	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 4>,
 >;
 
-/// Privileged origin that represents Root or half of the Technical Committee.
-pub type RootOrTechnicalCommitteeSimpleMajority = EitherOfDiverse<
+/// Privileged origin that represents Root or two thirds of the Council.
+pub type RootOrCouncilTwoThirdsMajority = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 1, 2>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 2, 3>,
 >;
 
 parameter_types! {
@@ -572,16 +569,12 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 		ParaIdToSibling,
 	>;
 	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
-	type ControllerOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type PriceForSiblingDelivery = PriceForSiblingParachainDelivery;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 	type MaxActiveOutboundChannels = ConstU32<128>;
 	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
-}
-
-impl cumulus_pallet_weight_reclaim::Config for Runtime {
-	type WeightInfo = weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -657,7 +650,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type UpdateOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type UpdateOrigin = RootOrCouncilTwoThirdsMajority;
 	type PotId = PotId;
 	type ExtraRewardPotId = ExtraRewardPotId;
 	type ExtraRewardReceiver = TreasuryAccount;
@@ -695,27 +688,10 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
 	type WeightInfo = weights::pallet_collective_council::WeightInfo<Runtime>;
-	type SetMembersOrigin = RootOrCouncilThreeFourths;
+	type SetMembersOrigin = RootOrCouncilTwoThirdsMajority;
 	type MaxProposalWeight = MaxCollectivesProposalWeight;
-	type DisapproveOrigin = RootOrCouncilSimpleMajority;
-	type KillOrigin = RootOrCouncilSimpleMajority;
-	type Consideration = ();
-}
-
-type TechnicalCommitteeInstance = pallet_collective::Instance2;
-impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type Proposal = RuntimeCall;
-	type RuntimeEvent = RuntimeEvent;
-	type MotionDuration = CouncilMotionDuration;
-	type MaxProposals = CouncilMaxProposals;
-	type MaxMembers = CouncilMaxMembers;
-	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::pallet_collective_technical_committee::WeightInfo<Runtime>;
-	type SetMembersOrigin = RootOrCouncilThreeFourths;
-	type MaxProposalWeight = MaxCollectivesProposalWeight;
-	type DisapproveOrigin = RootOrCouncilSimpleMajority;
-	type KillOrigin = RootOrCouncilSimpleMajority;
+	type DisapproveOrigin = EnsureRoot<Self::AccountId>;
+	type KillOrigin = EnsureRoot<Self::AccountId>;
 	type Consideration = ();
 }
 
@@ -746,7 +722,7 @@ impl pallet_nfts::Config for Runtime {
 	type CollectionId = CollectionId;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
-	type ForceOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type ForceOrigin = RootOrCouncilTwoThirdsMajority;
 	type Locker = ();
 	type CollectionDeposit = NftsCollectionDeposit;
 	type ItemDeposit = NftsItemDeposit;
@@ -956,7 +932,7 @@ impl pallet_scheduler::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
 	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type ScheduleOrigin = RootOrCouncilTwoThirdsMajority;
 	type OriginPrivilegeCmp = frame_support::traits::EqualPrivilegeOnly;
 	#[cfg(feature = "runtime-benchmarks")]
 	type MaxScheduledPerBlock = ConstU32<512>;
@@ -977,7 +953,7 @@ impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_preimage::WeightInfo<Runtime>;
 	type Currency = Balances;
-	type ManagerOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type ManagerOrigin = RootOrCouncilTwoThirdsMajority;
 	type Consideration = HoldConsideration<
 		AccountId,
 		Balances,
@@ -1014,15 +990,30 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 	type MaxDeposits = ConstU32<100>;
 	type MaxBlacklisted = ConstU32<100>;
-	type ExternalOrigin = RootOrCouncilSimpleMajority;
-	type ExternalMajorityOrigin = RootOrCouncilSimpleMajority;
-	type ExternalDefaultOrigin = RootOrCouncilSimpleMajority;
+	type ExternalOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 2>,
+	>;
+	type ExternalMajorityOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 4>,
+	>;
+	type ExternalDefaultOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 1>,
+	>;
 	type SubmitOrigin = EnsureSigned<AccountId>;
-	type FastTrackOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type InstantOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type CancellationOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type BlacklistOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type CancelProposalOrigin = RootOrTechnicalCommitteeSimpleMajority;
+	type FastTrackOrigin = RootOrCouncilTwoThirdsMajority;
+	type InstantOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 1>,
+	>;
+	type CancellationOrigin = RootOrCouncilTwoThirdsMajority;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 1>,
+	>;
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, CouncilInstance>;
 	type PalletsOrigin = OriginCaller;
 	type Slash = Treasury;
@@ -1061,7 +1052,10 @@ where
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type RejectOrigin = RootOrCouncilSimpleMajority;
+	type RejectOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	>;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
@@ -1070,7 +1064,14 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = EnsureWithSuccess<RootOrCouncilSimpleMajority, AccountId, MaxBalance>;
+	type SpendOrigin = EnsureWithSuccess<
+		EitherOfDiverse<
+			EnsureRoot<AccountId>,
+			pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		>,
+		AccountId,
+		MaxBalance,
+	>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
@@ -1082,42 +1083,6 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
-parameter_types! {
-	//   27 | Min encoded size of `Registration`
-	// - 10 | Min encoded size of `IdentityInfo`
-	// -----|
-	//   17 | Min size without `IdentityInfo` (accounted for in byte deposit)
-	pub const BasicDeposit: Balance = deposit(1, 17) * 10;
-	pub const ByteDeposit: Balance = deposit(0, 1) * 10;
-	pub const UsernameDeposit: Balance = deposit(0, 32) * 10;
-	pub const SubAccountDeposit: Balance = deposit(1, 53) * 10;
-	pub const MaxSubAccounts: u32 = 100;
-	pub const MaxRegistrars: u32 = 20;
-}
-
-impl pallet_identity::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type BasicDeposit = BasicDeposit;
-	type ByteDeposit = ByteDeposit;
-	type UsernameDeposit = UsernameDeposit;
-	type SubAccountDeposit = SubAccountDeposit;
-	type MaxSubAccounts = MaxSubAccounts;
-	type IdentityInformation = runtime_common::IdentityInfo;
-	type MaxRegistrars = MaxRegistrars;
-	type Slashed = Treasury;
-	type ForceOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type RegistrarOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type OffchainSignature = Signature;
-	type SigningPublicKey = <Signature as Verify>::Signer;
-	type UsernameAuthorityOrigin = RootOrTechnicalCommitteeSimpleMajority;
-	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
-	type UsernameGracePeriod = ConstU32<{ 7 * DAYS }>;
-	type MaxSuffixLength = ConstU32<7>;
-	type MaxUsernameLength = ConstU32<32>;
-	type WeightInfo = weights::pallet_identity::WeightInfo<Runtime>;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1126,14 +1091,12 @@ construct_runtime!(
 		ParachainSystem: cumulus_pallet_parachain_system = 1,
 		Timestamp: pallet_timestamp = 2,
 		ParachainInfo: parachain_info = 3,
-		WeightReclaim: cumulus_pallet_weight_reclaim = 4,
 
 		// Utility
+		Utility: pallet_utility = 4,
 		Multisig: pallet_multisig = 5,
 		Preimage: pallet_preimage = 6,
 		Scheduler: pallet_scheduler = 7,
-		Utility: pallet_utility = 8,  // was previously 4
-		Identity: pallet_identity = 9,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -1149,7 +1112,6 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1> = 16,
 		Democracy: pallet_democracy = 17,
 		Treasury: pallet_treasury = 18,
-		TechnicalCommittee: pallet_collective::<Instance2> = 19,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 20,
@@ -1179,7 +1141,6 @@ mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[cumulus_pallet_weight_reclaim, WeightReclaim]
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_nfts, Nfts]
@@ -1187,7 +1148,6 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
 		[pallet_collective_council, Council]
-		[pallet_collective_technical_committee, TechnicalCommittee]
 		[pallet_democracy, Democracy]
 		[pallet_dmarket, Dmarket]
 		[pallet_escrow, Escrow]
@@ -1208,8 +1168,6 @@ mod benches {
 		[pallet_utility, Utility]
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
-		// TODO: include once https://github.com/paritytech/polkadot-sdk/pull/8179 gets released
-		// [pallet_identity, Identity]
 	);
 }
 
@@ -1230,7 +1188,6 @@ pub mod genesis_config_presets {
 		invulnerables: Vec<(AccountId, AuraId)>,
 		endowed_accounts: Vec<(AccountId, Balance)>,
 		council: Vec<AccountId>,
-		technical_committee: Vec<AccountId>,
 		root_key: AccountId,
 		id: ParaId,
 	) -> Value {
@@ -1250,7 +1207,6 @@ pub mod genesis_config_presets {
 				extra_reward: 0,
 			},
 			council: CouncilConfig { members: council },
-			technical_committee: TechnicalCommitteeConfig { members: technical_committee },
 			session: SessionConfig {
 				keys: invulnerables
 					.into_iter()
@@ -1310,14 +1266,9 @@ pub mod genesis_config_presets {
 						), // Faith
 					],
 					vec![
-						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
 						AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-					],
-					vec![
 						AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
-						AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
-						AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
 					],
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
 					PARA_ID.into(),
@@ -1356,7 +1307,6 @@ pub mod genesis_config_presets {
 						150_000_000 * MYTH,
 					),
 				],
-				vec![],
 				vec![],
 				AccountId::from(hex!("742c722892976C23A3919ADC7A4B562169B91E41")),
 				PARA_ID.into(),

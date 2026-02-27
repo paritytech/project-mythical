@@ -28,17 +28,14 @@ pub use extrinsic_weights::constants::ExtrinsicBaseWeight;
 pub use rocksdb_weights::constants::RocksDbWeight;
 
 pub mod cumulus_pallet_parachain_system;
-pub mod cumulus_pallet_weight_reclaim;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod frame_system;
 pub mod pallet_balances;
 pub mod pallet_collator_staking;
 pub mod pallet_collective_council;
-pub mod pallet_collective_technical_committee;
 pub mod pallet_democracy;
 pub mod pallet_dmarket;
 pub mod pallet_escrow;
-pub mod pallet_identity;
 pub mod pallet_marketplace;
 pub mod pallet_message_queue;
 pub mod pallet_multibatching;
