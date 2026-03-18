@@ -173,8 +173,11 @@ pub mod fee {
 	use smallvec::smallvec;
 	use sp_runtime::Perbill;
 
-	/// This constant will multiply the overall fee users will have to spend for transactions.
-	pub const FEE_MULTIPLIER: Balance = 1;
+	/// This constant will multiply the 'length' fee users will have to spend for transactions.
+	pub const FEE_BYTES_MULTIPLIER: Balance = 10;
+
+	/// This constant will divide the 'reftime' fee users will have to spend for transactions.
+	pub const FEE_DIVISOR: Balance = 20;
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -201,7 +204,7 @@ pub mod fee {
 			let proof_fee: Balance = proof_polynomial.eval(weight.proof_size());
 
 			// Take the maximum instead of the sum to charge by the more scarce resource.
-			ref_fee.max(proof_fee).saturating_mul(FEE_MULTIPLIER)
+			ref_fee.max(proof_fee).saturating_div(FEE_DIVISOR)
 		}
 	}
 
@@ -452,7 +455,7 @@ impl pallet_multibatching::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = fee::FEE_MULTIPLIER * 100 * MICRO_MYTH;
+	pub const TransactionByteFee: Balance = fee::FEE_BYTES_MULTIPLIER * MICRO_MYTH;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
