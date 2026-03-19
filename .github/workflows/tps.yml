@@ -7,6 +7,8 @@ jobs:
   push_to_registry:
     name: TPS zombienet
     runs-on: parity-large
+    container:
+        image: docker.io/paritytech/ci-unified:bullseye-1.84.1-2025-01-28-v202502131220
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -23,15 +25,25 @@ jobs:
         run: |
           mkdir -p bins
           cd bins
-          LINKS=$(curl  -H 'Accept: application/vnd.github+json' https://api.github.com/repos/paritytech/polkadot-sdk/releases |jq -r -c  '[.[0].assets.[] | select(.name == "polkadot" or .name == "polkadot-prepare-worker" or .name == "polkadot-execute-worker")| .browser_download_url] | .[]')
+          LINKS=$(curl  -H 'Accept: application/vnd.github+json' https://api.github.com/repos/paritytech/polkadot-sdk/releases |jq -r -c  '[ .[] |select(.target_commitish="polkadot-stable2503") |.assets | .[] | select(.name == "polkadot" or .name == "polkadot-prepare-worker" or .name == "polkadot-execute-worker")| .browser_download_url] | .[0,1,2]')
           for link in $(echo $LINKS);do
             echo "downloading $link"
-            curl -O $link
+            curl -L -O $link
           done;
           chmod +x polkadot*
           cd ..
 
       - name: Run Zombienet
+        timeout-minutes: 30
         run: |
           export PATH=$(pwd)/bins:$PATH
+          export ZOMBIE_SPECS=$(pwd)/zombienet-sdk-tests/tps/chainspec
           cargo run --manifest-path zombienet-sdk-tests/tps/Cargo.toml
+
+      - name: upload_logs
+        uses: actions/upload-artifact@v4
+        if: ${{ ! cancelled() }}
+        with:
+          name: zombienet-logs-${{ github.job }}-${{ github.sha }}
+          path: |
+            /tmp/zn/*/*.log
