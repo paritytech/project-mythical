@@ -3850,20 +3850,6 @@ fn test_serial_minting_should_work() {
 	new_test_ext().execute_with(|| {
 		Balances::make_free_balance_be(&account(1), 100);
 
-		// Cannot create without max_supply if no serial minting is specified.
-		assert_noop!(
-			Nfts::create(
-				RuntimeOrigin::signed(account(1)),
-				account(1),
-				CollectionConfig {
-					settings: CollectionSettings::all_enabled(),
-					max_supply: None,
-					mint_settings: MintSettings::default(),
-				}
-			),
-			Error::<Test>::MaxSupplyRequired
-		);
-
 		assert_ok!(Nfts::create(
 			RuntimeOrigin::signed(account(1)),
 			account(1),
@@ -3964,6 +3950,17 @@ fn test_serial_minting_should_work() {
 			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, None, account(1), None,),
 			Error::<Test>::MaxSupplyReached
 		);
+
+		// Can create without max_supply even if serial minting is not enabled.
+		assert_ok!(Nfts::create(
+			RuntimeOrigin::signed(account(1)),
+			account(1),
+			CollectionConfig {
+				settings: CollectionSettings::all_enabled(),
+				max_supply: None,
+				mint_settings: MintSettings::default(),
+			}
+		));
 	});
 }
 
@@ -3976,7 +3973,7 @@ fn test_random_minting_over_max_supply_should_fail() {
 			account(1),
 			CollectionConfig {
 				settings: CollectionSettings::all_enabled(),
-				max_supply: Some(5),
+				max_supply: Some(2),
 				mint_settings: Default::default(),
 			}
 		));
@@ -3987,12 +3984,17 @@ fn test_random_minting_over_max_supply_should_fail() {
 			Error::<Test>::InvalidItemId
 		);
 
+		// Can mint an item normally
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(1), account(1), None,));
+
+		// Can mint an item even when id > max_supply
+		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(9), account(1), None,));
+
 		// Cannot mint over max_supply.
 		assert_noop!(
 			Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(10), account(1), None,),
-			Error::<Test>::InvalidItemId
+			Error::<Test>::MaxSupplyReached,
 		);
-		assert_ok!(Nfts::mint(RuntimeOrigin::signed(account(1)), 0, Some(5), account(1), None,));
 	});
 }
 
